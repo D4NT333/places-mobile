@@ -1,22 +1,40 @@
-import React from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import React, { useRef, useState } from "react";
+import { View, StyleSheet } from "react-native";
+import PagerView from "react-native-pager-view";
 
 import FooterNav from "../components/FooterNav";
-import {HomeScreen, SearchScreen, AddPlacesScreen, MetricsScreen, ProfileScreen } from "../screens";
-
-const Tab = createBottomTabNavigator();
+import {HomeScreen, SearchScreen, AddPlacesScreen, MetricsScreen, ProfileScreen} from "../screens";
 
 export default function AppRoutes() {
+  const pagerRef = useRef(null);
+  const [index, setIndex] = useState(0);
+
+  const onNavigate = (i) => {
+    setIndex(i);
+    pagerRef.current?.setPage(i);
+  };
+
   return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false }}
-      tabBar={(props) => <FooterNav {...props} />}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="Add" component={AddPlacesScreen} />
-      <Tab.Screen name="Metrics" component={MetricsScreen} />
-      <Tab.Screen name="User" component={ProfileScreen} />
-    </Tab.Navigator>
+    <View style={styles.container}>
+      <PagerView
+        style={styles.pager}
+        initialPage={0}
+        ref={pagerRef}
+        onPageSelected={(e) => setIndex(e.nativeEvent.position)}
+      >
+        <HomeScreen key="home" />
+        <SearchScreen key="search" />
+        <AddPlacesScreen key="add" />
+        <MetricsScreen key="metrics" />
+        <ProfileScreen key="user" />
+      </PagerView>
+
+      <FooterNav index={index} onNavigate={onNavigate} />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  pager: { flex: 1 },
+});
