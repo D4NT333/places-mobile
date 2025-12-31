@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
+    wrapper: {
+    backgroundColor: "#fff", 
+  },
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -8,14 +11,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     margin: 16,
     borderWidth: 2,
-    borderColor: "#000",
+    borderColor: "#ffffffff",
     borderRadius: 16,
     backgroundColor: "#fff",
-    marginBottom: 100, 
+    //marginBottom: 50, 
   },
   icon: {
-    width: 26,
-    height: 26,
+    width: 33,
+    height: 33,
     resizeMode: "contain",
   },
 });

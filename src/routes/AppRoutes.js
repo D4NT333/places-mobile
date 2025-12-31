@@ -1,40 +1,26 @@
-import React, { useRef, useState } from "react";
-import { View, StyleSheet } from "react-native";
-import PagerView from "react-native-pager-view";
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import FooterNav from "../components/FooterNav";
-import {HomeScreen, SearchScreen, AddPlacesScreen, MetricsScreen, ProfileScreen} from "../screens";
+import {MainPager} from "../components";
+import {PlaceDetailScreen} from "../screens";
+
+const Stack = createNativeStackNavigator();
 
 export default function AppRoutes() {
-  const pagerRef = useRef(null);
-  const [index, setIndex] = useState(0);
-
-  const onNavigate = (i) => {
-    setIndex(i);
-    pagerRef.current?.setPage(i);
-  };
-
   return (
-    <View style={styles.container}>
-      <PagerView
-        style={styles.pager}
-        initialPage={0}
-        ref={pagerRef}
-        onPageSelected={(e) => setIndex(e.nativeEvent.position)}
-      >
-        <HomeScreen key="home" />
-        <SearchScreen key="search" />
-        <AddPlacesScreen key="add" />
-        <MetricsScreen key="metrics" />
-        <ProfileScreen key="user" />
-      </PagerView>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* Pantalla base: Pager + Footer */}
+        <Stack.Screen
+          name="Main"
+          component={MainPager}
+        />
 
-      <FooterNav index={index} onNavigate={onNavigate} />
-    </View>
+        {/* Pantallas que se abren ENCIMA */}
+        <Stack.Screen
+          name="PlaceDetailScreen"
+          component={PlaceDetailScreen}
+        />
+      </Stack.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  pager: { flex: 1 },
-});

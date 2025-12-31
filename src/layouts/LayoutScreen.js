@@ -1,7 +1,7 @@
 import React from "react";
 import {View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableWithoutFeedback, Keyboard, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { spacing, list } from "../theme";
+import { spacing, list } from "../themes";
 import { styles } from "./styles.js";
 
 export default function LayoutScreen({
@@ -12,7 +12,7 @@ export default function LayoutScreen({
   footer = null,
   padding = spacing.xl,
   bg = list.background,
-  barStyle = "light-content",
+  barStyle = "dark-content", // light-content o dark-content
   safeArea = true,
   edges = ['top', 'bottom'],
   keyboardOffset = Platform.OS === 'ios' ? 0 : 20,

@@ -1,5 +1,5 @@
 export const list = {
-  background: "#FFFFFF",
+  background: "#ffffffff",
   primary: "#2E7D32",
   textPrimary: "#1A1A1A",
   textMuted: "#8E8E8E",
