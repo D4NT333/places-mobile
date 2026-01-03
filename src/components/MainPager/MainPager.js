@@ -3,7 +3,13 @@ import { View, StyleSheet } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import FooterNav from "../FooterNav";
-import {HomeScreen, SearchScreen, AddPlacesScreen, MetricsScreen, ProfileScreen} from "../../screens";
+import styles from "./styles";
+
+import HomeScreen from "../../screens/home/HomeScreen";
+import SearchScreen from "../../screens/search/SearchScreen";
+import AddPlacesScreen from "../../screens/add/AddPlacesScreen";
+import MetricsScreen from "../../screens/metrics/MetricsScreen";
+import ProfileScreen from "../../screens/profile/ProfileScreen";
 
 export default function MainPager() {
   const pagerRef = useRef(null);
@@ -33,8 +39,3 @@ export default function MainPager() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  pager: { flex: 1 },
-});

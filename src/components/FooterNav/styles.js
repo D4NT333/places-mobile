@@ -2,23 +2,23 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
     wrapper: {
-    backgroundColor: "#fff", 
+    backgroundColor: "#157059ff", 
   },
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 14,
-    margin: 16,
+    //margin: 16,
     borderWidth: 2,
-    borderColor: "#ffffffff",
+    borderColor: "#000000ff",
     borderRadius: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#c53d3dff",
     //marginBottom: 50, 
   },
   icon: {
-    width: 33,
-    height: 33,
+    width: 36,
+    height: 36,
     resizeMode: "contain",
   },
 });

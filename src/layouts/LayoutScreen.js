@@ -10,11 +10,11 @@ export default function LayoutScreen({
   keyboard = false,
   header = null,
   footer = null,
-  padding = spacing.xl,
+  padding = spacing.md,
   bg = list.background,
   barStyle = "dark-content", // light-content o dark-content
   safeArea = true,
-  edges = ['top', 'bottom'],
+  edges = ['top'],
   keyboardOffset = Platform.OS === 'ios' ? 0 : 20,
   dismissKeyboard = true,
   contentContainerStyle = {},
@@ -27,6 +27,7 @@ export default function LayoutScreen({
   // Props específicas según el tipo de wrapper
   const wrapperProps = scroll
     ? {
+      
         keyboardShouldPersistTaps: "handled",
         showsVerticalScrollIndicator: false,
         contentContainerStyle: {
@@ -42,7 +43,7 @@ export default function LayoutScreen({
       }
     : {
         style: {
-          flex: 1,
+          flex: 1,  
           padding: typeof padding === 'number' ? padding : 0,
           paddingTop: typeof padding === 'object' ? padding.top : undefined,
           paddingBottom: typeof padding === 'object' ? padding.bottom : undefined,
@@ -78,11 +79,13 @@ export default function LayoutScreen({
   // Aplicar SafeAreaView si es necesario
   const safeContent = safeArea ? (
     <SafeAreaView 
-      style={[styles.safeArea, { backgroundColor: bg }]} 
-      edges={edges}
+     // style={[styles.safeArea, { backgroundColor: bg }]} 
+      //edges={edges}
+      style={{ flex: 1, backgroundColor: "yellow" }} edges={edges}
     >
       {mainContent}
     </SafeAreaView>
+    
   ) : (
     <View style={[styles.container, { backgroundColor: bg }]}>
       {mainContent}
