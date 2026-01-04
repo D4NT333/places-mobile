@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import ProfileAvatar from "../ProfileAvatar";
 import styles from "./styles";
+import {icons} from "../../../../assets/icons"
 
 export default function ProfileHeader({ name, description, onEditPress }) {
   return (
@@ -10,12 +11,12 @@ export default function ProfileHeader({ name, description, onEditPress }) {
 
       <View style={styles.info}>
         <Text style={styles.title}>Mi perfil</Text>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
-        <Text style={styles.desc} numberOfLines={2}>{description}</Text>
+        <Text style={styles.name} numberOfLines={2}>{name}</Text>
+        <Text style={styles.desc} numberOfLines={3}>{description}</Text>
       </View>
 
-      <Pressable onPress={onEditPress} style={styles.editBtn} hitSlop={10}>
-        <Text style={styles.editIcon}>✏️</Text>
+      <Pressable onPress={onEditPress} hitSlop={10}>
+        <Image source={icons.lapiz} style={styles.editBtn} />
       </Pressable>
     </View>
   );

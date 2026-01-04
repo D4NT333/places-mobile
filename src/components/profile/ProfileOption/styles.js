@@ -3,22 +3,24 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   row: {
     paddingHorizontal: 16,
-    paddingVertical: 18,
+    paddingVertical: 26,
     justifyContent: "center",
   },
   label: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
   },
   right: {
     position: "absolute",
-    right: 16,
+    right: 12,
     top: 0,
     bottom: 0,
     justifyContent: "center",
   },
   icon: {
-    fontSize: 18,
+    width: 38,
+    height: 38,
+    marginRight: 1,
   },
   line: {
     position: "absolute",
@@ -26,6 +28,6 @@ export default StyleSheet.create({
     right: 16,
     bottom: 0,
     height: 2,
-    backgroundColor: "#111",
+    backgroundColor: "#000000ff",
   },
 });

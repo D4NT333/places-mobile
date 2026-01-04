@@ -3,17 +3,19 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     flexDirection: "row",
+    paddingTop: 40,
     padding: 16,
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
   },
   info: {
-    flex: 1,
-    paddingLeft: 12,
+    flexShrink: 1,
+    paddingLeft: 16,
   },
   title: {
     fontSize: 14,
     fontWeight: "600",
-    marginBottom: 4,
+    marginBottom: 11,
   },
   name: {
     fontSize: 13,
@@ -25,10 +27,10 @@ export default StyleSheet.create({
     opacity: 0.8,
   },
   editBtn: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    padding: 6,
+     width: 40,
+     height: 40,
+     resizeMode: "contain",
+     marginRight: 1,
   },
   editIcon: {
     fontSize: 16,

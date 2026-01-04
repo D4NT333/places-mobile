@@ -1,11 +1,11 @@
 import React from 'react';  
 import { View, Text } from 'react-native';  
 
-export default function AddedPlacesScreen({ route }) {
+export default function EditProfileScreen({ route }) {
 
   return (
     <View>
-      <Text>Holi desde AddedPlacesScreen</Text>
+      <Text>Detalle del lugar</Text>
     </View>
   );
 }

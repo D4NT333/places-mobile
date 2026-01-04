@@ -79,9 +79,8 @@ export default function LayoutScreen({
   // Aplicar SafeAreaView si es necesario
   const safeContent = safeArea ? (
     <SafeAreaView 
-     // style={[styles.safeArea, { backgroundColor: bg }]} 
-      //edges={edges}
-      style={{ flex: 1, backgroundColor: "yellow" }} edges={edges}
+      style={[styles.safeArea, { backgroundColor: bg }]} 
+      edges={edges}
     >
       {mainContent}
     </SafeAreaView>

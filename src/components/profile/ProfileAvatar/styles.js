@@ -2,13 +2,14 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   circle: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 100,
+    height: 100,
+    borderRadius: 120,
     borderWidth: 2,
     borderColor: "#111",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 16,
   },
   text: {
     fontSize: 12,

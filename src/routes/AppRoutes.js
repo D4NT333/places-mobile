@@ -3,7 +3,11 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import {MainPager} from "../components";
-import {PlaceDetailScreen} from "../screens";
+import {AddPlacesScreen, PlaceDetailScreen} from "../screens";
+import {EditProfileScreen} from "../screens";
+import {FavoritesScreen} from "../screens"; 
+import {AddedPlacesScreen} from "../screens"; 
+import {SettingsProfileScreen} from "../screens";
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +25,32 @@ export default function AppRoutes() {
           name="PlaceDetailScreen"
           component={PlaceDetailScreen}
         />
+
+
+          {/* Pantalla de edición de perfil */}
+
+          <Stack.Screen
+          name="EditProfileScreen"
+          component={EditProfileScreen}
+        />
+
+         <Stack.Screen
+          name="FavoritesScreen"
+          component={FavoritesScreen}
+        />
+
+         <Stack.Screen
+          name="AddedPlacesScreen"
+          component={AddedPlacesScreen}
+        />
+
+        <Stack.Screen
+          name="SettingsProfileScreen"
+          component={SettingsProfileScreen}
+        />
+
+        {/* Fin de pantallas de las pantallas de edicion de perfil */}
+
       </Stack.Navigator>
   );
 }

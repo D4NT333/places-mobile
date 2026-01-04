@@ -4,8 +4,13 @@ export default StyleSheet.create({
   container: {
     flex: 1,
   },
+  options: {
+    marginTop: 16,
+  },
   divider: {
-    height: 2,
+    height: 1,
+    marginHorizontal: 12,
+    marginVertical: 12,
     backgroundColor: "#111",
   },
 });

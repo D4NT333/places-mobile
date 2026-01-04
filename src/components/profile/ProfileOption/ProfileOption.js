@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Image  } from "react-native";
 import styles from "./styles";
 
 export default function ProfileOption({ label, icon, onPress }) {
@@ -8,7 +8,7 @@ export default function ProfileOption({ label, icon, onPress }) {
       <Text style={styles.label}>{label}</Text>
 
       <View style={styles.right}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Image source={icon} style={styles.icon} />
       </View>
 
       <View style={styles.line} />
