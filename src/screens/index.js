@@ -14,4 +14,4 @@ export { default as PlaceDetailScreen } from "./home/PlaceDetailScreen/PlaceDeta
 export { default as EditProfileScreen } from "./profile/EditProfileScreen/EditProfileScreen";
 export { default as FavoritesScreen } from "./profile/FavoritesScreen";
 export { default as AddedPlacesScreen } from "./profile/AddedPlacesScreen";
-export { default as SettingsProfileScreen } from "./profile/SettingsProfileScreen";
+export { default as SettingsProfileScreen } from "./profile/settings/SettingsProfileScreen";
