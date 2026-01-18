@@ -29,10 +29,7 @@ export default function HomeScreen() {
         gap: 8,
       }}
     >
-      <Text style={{ fontSize: 22, fontWeight: "700", color: "#db20dbff" }}>
-        Explorar
-      </Text>
-
+    
       <View
         style={{
           height: 44,
@@ -82,7 +79,15 @@ export default function HomeScreen() {
       style={{ flex: 1 }}  
       data={data}
       keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => <PlaceCard item={item} index={index} />}
+     renderItem={({ item, index }) => (
+      <Pressable
+       onPress={() => navigation.navigate("PlaceDetailScreen", { placeId: item.id })}
+       style={{ flex: 1 }}
+      >
+       <PlaceCard item={item} index={index} />
+      </Pressable>
+     )}
+
       numColumns={2}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 3, paddingTop: 30, paddingBottom: 60 }} //16,16,16
@@ -92,14 +97,3 @@ export default function HomeScreen() {
     </LayoutScreen>
   );
 }
-
-   {/*<Text>Hola desde Home</Text> */}
-
-      {/* <Pressable
-        onPress={() =>
-          navigation.navigate("PlaceDetailScreen", { placeId: 42 })
-        }
-        style={{ marginTop: 20 }}
-      >
-        <Text style={{ color: "blue" }}>Ir a detalle</Text>
-      </Pressable> */}

@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../../layouts";
 
 import styles from "./styles";
-import {SettingSection, SettingRow} from "../../../../components/settings"
+import {SettingSection, SettingRow} from "./Components"
 import { settingsSections } from "./data";
 
 export default function SettingsProfileScreen() {

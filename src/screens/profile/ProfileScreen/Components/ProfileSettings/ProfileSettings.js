@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import ProfileOption from "../ProfileOption"; 
 import styles from "./styles";
-import { icons } from "../../../../assets/icons"
+import { icons } from "../../../../../../assets/icons"
 
 export default function ProfileSettings({ onFavorites, onAddedPlaces, onConfig }) {
   return (

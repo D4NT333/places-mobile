@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable, Image } from "react-native";
 import ProfileAvatar from "../ProfileAvatar";
 import styles from "./styles";
-import {icons} from "../../../../assets/icons"
+import {icons} from "../../../../../../assets/icons"
 
 export default function ProfileHeader({ name, description, onEditPress }) {
   return (

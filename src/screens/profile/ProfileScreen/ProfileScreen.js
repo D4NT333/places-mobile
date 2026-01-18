@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
 
-import {ProfileHeader, ProfileSettings} from "../../../components/profile";
+import {ProfileHeader, ProfileSettings} from "./Components/";
 
 import styles from "./styles";
 
