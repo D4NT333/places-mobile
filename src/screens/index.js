@@ -23,3 +23,6 @@ export { default as NotificationScreen } from "./profile/settings/NotificationSc
 export { default as SearchRadiusScreen } from "./profile/settings/SearchRadiusScreen";
 export { default as ReportProblemScreen } from "./profile/settings/ReportProblemScreen";
 export { default as SuggestImprovementScreen } from "./profile/settings/SuggestImprovementScreen";
+export { default as ChangePasswordScreen } from "./profile/settings/ChangePasswordScreen";
+export { default as ChangeEmailScreen } from "./profile/settings/ChangeEmailScreen";
+export { default as EliminateAccountScreen } from "./profile/settings/EliminateAccountScreen/EliminateAccountScreen";

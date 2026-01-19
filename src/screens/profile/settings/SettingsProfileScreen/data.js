@@ -20,9 +20,9 @@ export const settingsSections = [
   {
     title: "Cuenta",
     items: [
-      { label: "Cambiar contraseña", route: "ChangePassword" },
-      { label: "Cambiar correo", route: "ChangeEmail" },
-      { label: "Eliminar cuenta", route: "DeleteAccount" },
+      { label: "Cambiar contraseña", route: "ChangePasswordScreen" },
+      { label: "Cambiar correo", route: "ChangeEmailScreen" },
+      { label: "Eliminar cuenta", route: "EliminateAccountScreen" },
     ],
   },
 ];
