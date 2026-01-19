@@ -7,7 +7,13 @@ import {AddPlacesScreen, PlaceDetailScreen} from "../screens";
 import {EditProfileScreen} from "../screens";
 import {FavoritesScreen} from "../screens"; 
 import {AddedPlacesScreen} from "../screens"; 
+
+
 import {SettingsProfileScreen} from "../screens";
+import {NotificationScreen} from "../screens";
+import {SearchRadiusScreen} from "../screens";
+import {ReportProblemScreen} from "../screens";
+import {SuggestImprovementScreen} from "../screens";
 
 const Stack = createNativeStackNavigator();
 
@@ -44,12 +50,36 @@ export default function AppRoutes() {
           component={AddedPlacesScreen}
         />
 
+        {/* Fin de pantallas de las pantallas de edicion de perfil */}
+
+        {/* Pantallas de settings */}
+
         <Stack.Screen
           name="SettingsProfileScreen"
           component={SettingsProfileScreen}
         />
 
-        {/* Fin de pantallas de las pantallas de edicion de perfil */}
+        <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+        /> 
+        
+        <Stack.Screen
+          name="SearchRadiusScreen"
+          component={SearchRadiusScreen}
+        />
+
+        <Stack.Screen
+          name="ReportProblemScreen"
+          component={ReportProblemScreen}
+        />
+
+        <Stack.Screen
+          name="SuggestImprovementScreen"
+          component={SuggestImprovementScreen}
+        />
+
+        {/* Fin de pantallas de settings */}
 
       </Stack.Navigator>
   );

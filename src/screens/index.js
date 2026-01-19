@@ -14,4 +14,12 @@ export { default as PlaceDetailScreen } from "./home/PlaceDetailScreen/PlaceDeta
 export { default as EditProfileScreen } from "./profile/EditProfileScreen/EditProfileScreen";
 export { default as FavoritesScreen } from "./profile/FavoritesScreen";
 export { default as AddedPlacesScreen } from "./profile/AddedPlacesScreen";
+
+
+
+
 export { default as SettingsProfileScreen } from "./profile/settings/SettingsProfileScreen";
+export { default as NotificationScreen } from "./profile/settings/NotificationScreen";
+export { default as SearchRadiusScreen } from "./profile/settings/SearchRadiusScreen";
+export { default as ReportProblemScreen } from "./profile/settings/ReportProblemScreen";
+export { default as SuggestImprovementScreen } from "./profile/settings/SuggestImprovementScreen";

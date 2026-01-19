@@ -2,9 +2,9 @@ export const settingsSections = [
   {
     title: "Preferencias",
     items: [
-      { label: "Notificaciones", route: "NotificationsSettings" },
+      { label: "Notificaciones", route: "NotificationScreen" },
       { label: "Modo oscuro", route: "ThemeSettings" },
-      { label: "Radio de búsqueda", route: "SearchRadiusSettings" },
+      { label: "Radio de búsqueda", route: "SearchRadiusScreen" },
     ],
   },
   {
@@ -13,8 +13,8 @@ export const settingsSections = [
       { label: "Versión de la aplicación", route: "AppVersion" },
       { label: "Aviso de privacidad", route: "PrivacyNotice" },
       { label: "Términos y condiciones", route: "Terms" },
-      { label: "Reportar un problema", route: "ReportIssue" },
-      { label: "Sugerir mejora", route: "SuggestImprovement" },
+      { label: "Reportar un problema", route: "ReportProblemScreen" },
+      { label: "Sugerir mejora", route: "SuggestImprovementScreen" },
     ],
   },
   {
