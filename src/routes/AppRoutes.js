@@ -17,6 +17,8 @@ import {SuggestImprovementScreen} from "../screens";
 import {ChangePasswordScreen} from "../screens";
 import {ChangeEmailScreen} from "../screens";
 import {EliminateAccountScreen} from "../screens";
+import {TermsConditionsScreen} from "../screens";
+import {PrivacyNoticeScreen} from "../screens";
 
 const Stack = createNativeStackNavigator();
 
@@ -95,6 +97,16 @@ export default function AppRoutes() {
         <Stack.Screen
           name="EliminateAccountScreen"
           component={EliminateAccountScreen}
+        />
+
+        <Stack.Screen
+          name="TermsConditionsScreen"
+          component={TermsConditionsScreen}
+        />
+
+        <Stack.Screen
+          name="PrivacyNoticeScreen"
+          component={PrivacyNoticeScreen}
         />
 
         {/* Fin de pantallas de settings */}

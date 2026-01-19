@@ -10,9 +10,9 @@ export const settingsSections = [
   {
     title: "App",
     items: [
-      { label: "Versión de la aplicación", route: "AppVersion" },
-      { label: "Aviso de privacidad", route: "PrivacyNotice" },
-      { label: "Términos y condiciones", route: "Terms" },
+      //{ label: "Versión de la aplicación", route: "AppVersion" }, no se si sea relevante jaja
+      { label: "Aviso de privacidad", route: "PrivacyNoticeScreen" },
+      { label: "Términos y condiciones", route: "TermsConditionsScreen" },
       { label: "Reportar un problema", route: "ReportProblemScreen" },
       { label: "Sugerir mejora", route: "SuggestImprovementScreen" },
     ],

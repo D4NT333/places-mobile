@@ -26,3 +26,5 @@ export { default as SuggestImprovementScreen } from "./profile/settings/SuggestI
 export { default as ChangePasswordScreen } from "./profile/settings/ChangePasswordScreen";
 export { default as ChangeEmailScreen } from "./profile/settings/ChangeEmailScreen";
 export { default as EliminateAccountScreen } from "./profile/settings/EliminateAccountScreen/EliminateAccountScreen";
+export {default as TermsConditionsScreen} from "./profile/settings/TermsConditionsScreen";
+export {default as PrivacyNoticeScreen} from "./profile/settings/PrivacyNoticeScreen";
