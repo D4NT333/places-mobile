@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
     borderColor: "#E5E5E5",
     padding: 12,
     marginBottom: 16,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "#36578a",
   },
   title: { fontSize: 16, fontWeight: "700" },
   sub: { marginTop: 6, fontSize: 12, opacity: 0.6 },

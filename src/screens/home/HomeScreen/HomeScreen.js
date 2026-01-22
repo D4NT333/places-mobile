@@ -74,12 +74,12 @@ export default function HomeScreen() {
 
   return (
     <LayoutScreen header={header} padding={{ top: 24, left: 8, right: 8, bottom: 10 }} edges={['top']}>
-      <View style={{ flex: 1, backgroundColor: "#3f31c0ff"}}>
+      <View style={{ flex: 1, backgroundColor: "rgb(155, 30, 155)"}}>
       <FlatList
       style={{ flex: 1 }}  
       data={data}
       keyExtractor={(item) => item.id}
-     renderItem={({ item, index }) => (
+      renderItem={({ item, index }) => (
       <Pressable
        onPress={() => navigation.navigate("PlaceDetailScreen", { placeId: item.id })}
        style={{ flex: 1 }}

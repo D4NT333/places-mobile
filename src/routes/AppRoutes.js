@@ -38,6 +38,8 @@ export default function AppRoutes() {
         />
 
 
+
+
           {/* Pantalla de edición de perfil */}
 
           <Stack.Screen
