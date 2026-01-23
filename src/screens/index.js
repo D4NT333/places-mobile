@@ -5,15 +5,15 @@ export { default as MetricsScreen } from "./metrics/MetricsScreen";
 export { default as ProfileScreen } from "./profile/ProfileScreen";
 
 
-
-
-
-
-
 export { default as PlaceDetailScreen } from "./home/PlaceDetailScreen/PlaceDetailScreen";
-export { default as EditProfileScreen } from "./profile/EditProfileScreen/EditProfileScreen";
 export { default as FavoritesScreen } from "./profile/FavoritesScreen";
 export { default as AddedPlacesScreen } from "./profile/AddedPlacesScreen";
+
+
+export { default as EditProfileScreen } from "./profile/EditProfile/EditProfileScreen";
+export { default as EditProfileNameScreen } from "./profile/EditProfile/EditProfileNameScreen";
+export { default as EditProfileDescriptionScreen } from "./profile/EditProfile/EditProfileDescriptionScreen";
+export { default as EditProfilePhotoScreen } from "./profile/EditProfile/EditProfilePhotoScreen";    
 
 
 

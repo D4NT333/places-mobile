@@ -4,10 +4,14 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import {MainPager} from "../components";
 import {AddPlacesScreen, PlaceDetailScreen} from "../screens";
-import {EditProfileScreen} from "../screens";
 import {FavoritesScreen} from "../screens"; 
 import {AddedPlacesScreen} from "../screens"; 
 
+
+import {EditProfileScreen} from "../screens";
+import {EditProfileNameScreen} from "../screens";
+import {EditProfileDescriptionScreen} from "../screens";
+import {EditProfilePhotoScreen} from "../screens";  
 
 import {SettingsProfileScreen} from "../screens";
 import {NotificationScreen} from "../screens";
@@ -38,15 +42,31 @@ export default function AppRoutes() {
         />
 
 
-
-
           {/* Pantalla de edición de perfil */}
-
           <Stack.Screen
           name="EditProfileScreen"
           component={EditProfileScreen}
         />
 
+        <Stack.Screen
+          name="EditProfileNameScreen"
+          component={EditProfileNameScreen}
+        />  
+
+        <Stack.Screen
+          name="EditProfileDescriptionScreen"
+          component={EditProfileDescriptionScreen}
+        />
+
+        <Stack.Screen
+          name="EditProfilePhotoScreen"
+          component={EditProfilePhotoScreen}
+        />
+
+        {/* Fin de las pantallas de edición de perfil */}
+
+
+        {/* Pantalla de agregar lugares */}
          <Stack.Screen
           name="FavoritesScreen"
           component={FavoritesScreen}
@@ -56,8 +76,7 @@ export default function AppRoutes() {
           name="AddedPlacesScreen"
           component={AddedPlacesScreen}
         />
-
-        {/* Fin de pantallas de las pantallas de edicion de perfil */}
+        {/* Fin de la pantalla de agregar lugares */}
 
         {/* Pantallas de settings */}
 

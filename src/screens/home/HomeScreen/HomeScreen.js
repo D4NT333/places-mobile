@@ -1,35 +1,57 @@
-import React, { useMemo } from "react";
-import { FlatList } from "react-native";
-import  PlaceCard from "../../../components/PlaceCard";
-
-import { View, Text, Pressable } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { FlatList, View, Text, Pressable, ActivityIndicator } from "react-native";
+import PlaceCard from "../../../components/PlaceCard";
 import { useNavigation } from "@react-navigation/native";
-import {LayoutScreen} from "../../../layouts"
+import { LayoutScreen } from "../../../layouts";
+
+function makeBatch(startIndex, count = 15) {
+  return Array.from({ length: count }).map((_, i) => {
+    const n = startIndex + i + 1;
+    return {
+      id: String(n),
+      title: `Bosque del centinela ${n}`,
+      height: n % 3 === 0 ? 220 : n % 3 === 1 ? 160 : 190,
+    };
+  });
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation();
 
-    const data = useMemo(
-    () =>
-      Array.from({ length: 15 }).map((_, i) => ({
-        id: String(i + 1),
-        title: `Bosque del centinela ${i + 1}`,
-        height: i % 3 === 0 ? 220 : i % 3 === 1 ? 160 : 190,
-      })),
-    []
-  );
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0); // solo para simular tandas
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true); // luego esto vendrá del backend
 
-  //Header personalizado
-    const header = (
-    <View
-      style={{
-        paddingHorizontal: 16,
-        paddingTop: 8,
-        //paddingBottom: 12,
-        gap: 8,
-      }}
-    >
-    
+  // Carga inicial
+  useEffect(() => {
+    const first = makeBatch(0, 15);
+    setData(first);
+    setPage(1);
+  }, []);
+
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+
+    // Simula “llamada” (cuando tengas backend, aquí haces fetch)
+    setTimeout(() => {
+      const nextBatch = makeBatch(page * 15, 15);
+
+      setData((prev) => [...prev, ...nextBatch]);
+      setPage((p) => p + 1);
+
+      // Si quieres simular que se acaba:
+      // if (page >= 5) setHasMore(false);
+
+      setLoadingMore(false);
+    }, 700);
+  }, [loadingMore, hasMore, page]);
+
+  // Header personalizado (lo dejé tal cual tuyo)
+  const header = (
+    <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 8 }}>
       <View
         style={{
           height: 44,
@@ -69,31 +91,37 @@ export default function HomeScreen() {
       </View>
     </View>
   );
-//Fin header personalizado
-
 
   return (
-    <LayoutScreen header={header} padding={{ top: 24, left: 8, right: 8, bottom: 10 }} edges={['top']}>
-      <View style={{ flex: 1, backgroundColor: "rgb(155, 30, 155)"}}>
-      <FlatList
-      style={{ flex: 1 }}  
-      data={data}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => (
-      <Pressable
-       onPress={() => navigation.navigate("PlaceDetailScreen", { placeId: item.id })}
-       style={{ flex: 1 }}
-      >
-       <PlaceCard item={item} index={index} />
-      </Pressable>
-     )}
-
-      numColumns={2}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 3, paddingTop: 30, paddingBottom: 60 }} //16,16,16
-      columnWrapperStyle={{ justifyContent: "space-between" }}
-    />
-    </View>
+    <LayoutScreen header={header} padding={{ top: 24, left: 8, right: 8, bottom: 10 }} edges={["top"]}>
+      <View style={{ flex: 1, backgroundColor: "rgb(155, 30, 155)" }}>
+        <FlatList
+          style={{ flex: 1 }}
+          data={data}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 3, paddingTop: 30, paddingBottom: 60 }}
+          columnWrapperStyle={{ justifyContent: "space-between" }}
+          renderItem={({ item, index }) => (
+            <Pressable
+              onPress={() => navigation.navigate("PlaceDetailScreen", { placeId: item.id })}
+              style={{ width: "48%" }} // ✅ evita que la última se estire
+            >
+              <PlaceCard item={item} index={index} />
+            </Pressable>
+          )}
+          onEndReached={loadMore}                 // ✅ aquí va
+          onEndReachedThreshold={0.6}             // ✅ dispara antes de llegar al final
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ paddingVertical: 18 }}>
+                <ActivityIndicator />
+              </View>
+            ) : null
+          }
+        />
+      </View>
     </LayoutScreen>
   );
 }
