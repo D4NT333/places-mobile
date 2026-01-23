@@ -66,4 +66,24 @@ export default StyleSheet.create({
     fontSize: 12,
     color: "#333",
   },
+
+  
+    improveBtn: {
+    alignSelf: "flex-start",
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "#111",
+    borderRadius: 14,
+    backgroundColor: "#FFF",
+  },
+  improveBtnPressed: {
+    opacity: 0.75,
+  },
+  improveBtnText: {
+    fontSize: 12,
+    color: "#111",
+  },
+
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import styles from "./styles";
 
 function Stars({ rating = 0 }) {
@@ -23,6 +23,7 @@ export default function PlaceInfo({
   rating,
   reviewsCount,
   tags = [],
+  onImproveDescription,
 }) {
   return (
     <View style={styles.card}>
@@ -34,6 +35,14 @@ export default function PlaceInfo({
       </View>
 
       <Text style={styles.desc}>{description}</Text>
+
+      <Pressable
+        onPress={onImproveDescription}
+        style={({ pressed }) => [styles.improveBtn, pressed && styles.improveBtnPressed]}
+        hitSlop={10}
+      >
+        <Text style={styles.improveBtnText}>¿Colocar una mejor descripción?</Text>
+      </Pressable>
 
       <View style={styles.ratingRow}>
         <Text style={styles.ratingText}>{rating?.toFixed?.(1) ?? rating}</Text>
