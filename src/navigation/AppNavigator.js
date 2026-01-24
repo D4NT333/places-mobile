@@ -28,7 +28,7 @@ import {PrivacyNoticeScreen} from "../screens";
 
 const Stack = createNativeStackNavigator();
 
-export default function AppRoutes() {
+export default function AppNavigator() {
   return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {/* Pantalla base: Pager + Footer */}

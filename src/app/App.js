@@ -1,14 +1,15 @@
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
-import AppRoutes from "../routes/AppRoutes";
+import RootNavigator from "../navigation/RootNavigator";
 
-import { StatusBar } from 'expo-status-bar';
 
 export default function App() {
+   const isLogged = false;
+
   return (
     <SafeAreaProvider>
     <NavigationContainer>
-      <AppRoutes />
+      <RootNavigator isLogged={isLogged} />
     </NavigationContainer>
   </SafeAreaProvider>
   );

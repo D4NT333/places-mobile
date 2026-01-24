@@ -1,3 +1,8 @@
+export {default as LoginScreen} from "./auth/LoginScreen";
+export { default as LoginPasswordScreen } from "./auth/LoginPasswordScreen";
+export { default as LoginRegisterScreen } from "./auth/LoginRegisterScreen";
+export { default as LoginRecoverScreen } from "./auth/LoginRecoverScreen";
+
 export { default as HomeScreen } from "./home/HomeScreen";
 export { default as SearchScreen } from "./search/SearchScreen";
 export { default as AddPlacesScreen } from "./add/AddPlacesScreen";
