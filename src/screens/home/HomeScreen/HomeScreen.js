@@ -4,6 +4,12 @@ import PlaceCard from "../../../components/PlaceCard";
 import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../layouts";
 
+import FiltersScreen from "../FiltersScreen/FiltersScreen";
+import { filtersData } from "../FiltersScreen/data";
+
+import { getCurrentLocationService } from "../../../services/location/getCurrentLocation.service";
+import { sendCurrentLocationToBackendService } from "../../../services/api/sendCurrentLocationToBackend.service";
+
 function makeBatch(startIndex, count = 15) {
   return Array.from({ length: count }).map((_, i) => {
     const n = startIndex + i + 1;
@@ -19,11 +25,28 @@ export default function HomeScreen() {
   const navigation = useNavigation();
 
   const [data, setData] = useState([]);
-  const [page, setPage] = useState(0); // solo para simular tandas
+  const [page, setPage] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true); // luego esto vendrá del backend
+  const [hasMore, setHasMore] = useState(true);
 
-  // Carga inicial
+  // ✅ NUEVO: estado del panel
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    categoryKey: filtersData.categories[0].key,
+    subtags: [],
+    price: 0,
+    rating: 0,
+  });
+
+  const applyFilters = (f) => {
+    // ✅ aquí luego haces tu fetch real
+    console.log("Aplicar filtros:", f);
+
+    // si quieres, al aplicar puedes resetear lista y simular recarga:
+    // setData(makeBatch(0, 15));
+    // setPage(1);
+  };
+
   useEffect(() => {
     const first = makeBatch(0, 15);
     setData(first);
@@ -35,35 +58,52 @@ export default function HomeScreen() {
 
     setLoadingMore(true);
 
-    // Simula “llamada” (cuando tengas backend, aquí haces fetch)
     setTimeout(() => {
       const nextBatch = makeBatch(page * 15, 15);
 
       setData((prev) => [...prev, ...nextBatch]);
       setPage((p) => p + 1);
 
-      // Si quieres simular que se acaba:
-      // if (page >= 5) setHasMore(false);
-
       setLoadingMore(false);
     }, 700);
   }, [loadingMore, hasMore, page]);
 
-  // Header personalizado (lo dejé tal cual tuyo)
+  // ✅ Header con botón de filtros a la derecha
   const header = (
     <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 8 }}>
-      <View
-        style={{
-          height: 44,
-          borderRadius: 14,
-          backgroundColor: "rgba(212, 65, 65, 0.15)",
-          paddingHorizontal: 12,
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ color: "rgba(233, 75, 75, 0.85)" }}>
-          Buscar lugares, tags, zonas...
-        </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        {/* Buscador fake (tu cajita) */}
+        <View
+          style={{
+            flex: 1,
+            height: 44,
+            borderRadius: 14,
+            backgroundColor: "rgba(212, 65, 65, 0.15)",
+            paddingHorizontal: 12,
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "rgba(233, 75, 75, 0.85)" }}>
+            Buscar lugares, tags, zonas...
+          </Text>
+        </View>
+
+        {/* ✅ Botón filtros */}
+        <Pressable
+          onPress={() => setFiltersOpen(true)}
+          style={{
+            height: 44,
+            paddingHorizontal: 14,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: "rgba(0,0,0,0.12)",
+            backgroundColor: "rgba(255,255,255,0.85)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontWeight: "900" }}>Filtros</Text>
+        </Pressable>
       </View>
 
       <View style={{ flexDirection: "row", gap: 8 }}>
@@ -92,8 +132,30 @@ export default function HomeScreen() {
     </View>
   );
 
+
+  useEffect(() => { //NEW
+  const initializeLocation = async () => {
+    try {
+      const coords = await getCurrentLocationService();
+      console.log("Coords obtenidas:", coords);
+
+      const result = await sendCurrentLocationToBackendService(coords);
+      console.log("Respuesta backend:", result);
+    } catch (error) {
+      console.error("Error al obtener o mandar ubicación:", error);
+    }
+  };
+
+  initializeLocation();
+}, []);
+
   return (
-    <LayoutScreen header={header} padding={{ top: 24, left: 8, right: 8, bottom: 10 }} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+    <LayoutScreen
+      header={header}
+      padding={{ top: 24, left: 8, right: 8, bottom: 10 }}
+      edges={["top"]}
+    >
       <View style={{ flex: 1, backgroundColor: "rgb(155, 30, 155)" }}>
         <FlatList
           style={{ flex: 1 }}
@@ -101,18 +163,24 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 3, paddingTop: 30, paddingBottom: 60 }}
+          contentContainerStyle={{
+            paddingHorizontal: 3,
+            paddingTop: 30,
+            paddingBottom: 60,
+          }}
           columnWrapperStyle={{ justifyContent: "space-between" }}
           renderItem={({ item, index }) => (
             <Pressable
-              onPress={() => navigation.navigate("PlaceDetailScreen", { placeId: item.id })}
-              style={{ width: "48%" }} // ✅ evita que la última se estire
+              onPress={() =>
+                navigation.navigate("PlaceDetailScreen", { placeId: item.id })
+              }
+              style={{ width: "48%" }}
             >
               <PlaceCard item={item} index={index} />
             </Pressable>
           )}
-          onEndReached={loadMore}                 // ✅ aquí va
-          onEndReachedThreshold={0.6}             // ✅ dispara antes de llegar al final
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.6}
           ListFooterComponent={
             loadingMore ? (
               <View style={{ paddingVertical: 18 }}>
@@ -123,5 +191,16 @@ export default function HomeScreen() {
         />
       </View>
     </LayoutScreen>
+
+     {/* ✅ PANEL (va al final para que quede encima) */}
+      <FiltersScreen
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        onApply={applyFilters}
+        value={filters}
+        onChange={setFilters}
+        data={filtersData}
+      />
+    </View>
   );
 }
