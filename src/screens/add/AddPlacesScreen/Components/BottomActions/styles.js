@@ -19,8 +19,8 @@ export default StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   btnPrimary: {
-    backgroundColor: "#111",
-    borderColor: "#111",
+    backgroundColor: "#000000",
+    borderColor: "#000000",
   },
   btnText: {
     fontSize: 14,

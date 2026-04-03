@@ -9,6 +9,8 @@ export { default as AddPlacesScreen } from "./add/AddPlacesScreen";
 export { default as MetricsScreen } from "./metrics/MetricsScreen";
 export { default as ProfileScreen } from "./profile/ProfileScreen";
 
+export { default as FilterSectionScreen } from "./add/FilterSectionScreen";
+
 
 export { default as PlaceDetailScreen } from "./home/PlaceDetailScreen/PlaceDetailScreen";
 export { default as ChangeDescriptionScreen } from "./home/ChangeDescriptionScreen";

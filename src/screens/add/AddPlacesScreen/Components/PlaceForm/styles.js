@@ -59,4 +59,20 @@ export default StyleSheet.create({
   chipTextInactive: {
     color: "#111",
   },
+  filterButton: {
+  marginTop: 8,
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  borderWidth: 1,
+  borderColor: "#9CA3AF",
+  alignSelf: "flex-start",
+},
+
+filterButtonText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#111827",
+},
 });

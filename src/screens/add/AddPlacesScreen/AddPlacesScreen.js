@@ -1,26 +1,20 @@
 import React, { useMemo, useState } from "react";
 import { View, Text } from "react-native";
-import { LayoutScreen } from "../../layouts";
+import { LayoutScreen } from "../../../layouts";
+import { useNavigation } from "@react-navigation/native";
 
 import styles from "./styles";
 
-import {LocationToggle,PlaceForm, PhotoPicker, LocationMap, BottomActions} from "./Components";
+import {PlaceForm, PhotoPicker, LocationMap, BottomActions} from "./Components";
 
 export default function AddPlaceScreen() {
-  const [locationMode, setLocationMode] = useState("city"); // "city" | "outside"
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [filters, setFilters] = useState([]); // array de strings
 
-  const availableFilters = useMemo(
-    () => ["Café", "Bar", "Familiar", "Pet-friendly", "Económico", "Premium"],
-    []
-  );
+  const navigation = useNavigation();
 
-  const toggleFilter = (label) => {
-    setFilters((prev) =>
-      prev.includes(label) ? prev.filter((f) => f !== label) : [...prev, label]
-    );
+  const handleGoToFilters = () => {
+  navigation.navigate("FilterSectionScreen");
   };
 
   const handleCancel = () => {
@@ -28,12 +22,11 @@ export default function AddPlaceScreen() {
     setName("");
     setDescription("");
     setFilters([]);
-    setLocationMode("city");
   };
 
   const handleSubmit = () => {
     // placeholder: aquí luego llamas tu backend / firestore
-    console.log("SUBMIT", { locationMode, name, description, filters });
+    console.log("SUBMIT", { name, description, filters });
   };
 
   return (
@@ -46,16 +39,12 @@ export default function AddPlaceScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>Ubicación:</Text>
 
-        <LocationToggle value={locationMode} onChange={setLocationMode} />
-
         <PlaceForm
           name={name}
           description={description}
           onChangeName={setName}
           onChangeDescription={setDescription}
-          filters={filters}
-          availableFilters={availableFilters}
-          onToggleFilter={toggleFilter}
+          onPressFilters={handleGoToFilters}
         />
 
         <PhotoPicker />

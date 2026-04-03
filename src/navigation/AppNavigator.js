@@ -7,7 +7,9 @@ import {PlaceDetailScreen} from "../screens";
 import {ChangeDescriptionScreen} from "../screens";
 
 import {FavoritesScreen} from "../screens"; 
-import {AddedPlacesScreen} from "../screens"; 
+import {AddedPlacesScreen} from "../screens";
+
+import {FilterSectionScreen} from "../screens";
 
 
 import {EditProfileScreen} from "../screens";
@@ -81,6 +83,11 @@ export default function AppNavigator() {
          <Stack.Screen
           name="AddedPlacesScreen"
           component={AddedPlacesScreen}
+        />
+
+        <Stack.Screen
+          name="FilterSectionScreen"
+          component={FilterSectionScreen}
         />
         {/* Fin de la pantalla de agregar lugares */}
 
