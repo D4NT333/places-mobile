@@ -1,6 +1,6 @@
 import { API_URL } from "./client";
 
-export async function sendCurrentLocationToBackendService({ latitude, longitude }) {
+export default async function sendCurrentLocationToBackendService({ latitude, longitude }) {
   const response = await fetch(`${API_URL}/api/feed/location`, {
     method: "POST",
     headers: {

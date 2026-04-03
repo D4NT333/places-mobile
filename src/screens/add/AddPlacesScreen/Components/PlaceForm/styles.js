@@ -75,4 +75,39 @@ filterButtonText: {
   fontWeight: "600",
   color: "#111827",
 },
+charCount: {
+  marginTop: 6,
+  alignSelf: "flex-end",
+  fontSize: 12,
+  color: "#6B7280",
+},
+
+charCount: {
+  marginTop: 6,
+  alignSelf: "flex-end",
+  fontSize: 12,
+  color: "#6B7280", // gris
+},
+
+charCountWarning: {
+  marginTop: 6,
+  alignSelf: "flex-end",
+  fontSize: 12,
+  color: "#F59E0B", // amarillo
+},
+
+charCountDanger: {
+  marginTop: 6,
+  alignSelf: "flex-end",
+  fontSize: 12,
+  color: "#DC2626", // rojo
+},
+
+inputWarning: {
+  borderColor: "#F59E0B",
+},
+
+inputDanger: {
+  borderColor: "#DC2626",
+},
 });
