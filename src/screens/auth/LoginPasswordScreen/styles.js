@@ -5,9 +5,10 @@ export default StyleSheet.create({
     borderWidth: 2,
     borderColor: "#111",
     borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    gap: 14,
+    paddingVertical: 24,
+    paddingHorizontal: 24,
+    gap: 24,
+    height: "60%",
   },
   section: {
     gap: 12,

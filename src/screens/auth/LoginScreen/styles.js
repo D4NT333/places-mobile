@@ -4,7 +4,7 @@ export default StyleSheet.create({
   card: {
     height: 720,
     borderWidth: 2,
-    borderColor: "#111",
+    borderColor: "#000000",
     borderRadius: 18,
     paddingVertical: 18,
     paddingHorizontal: 16,

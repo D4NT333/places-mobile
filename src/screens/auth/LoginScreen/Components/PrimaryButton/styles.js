@@ -9,6 +9,7 @@ export default StyleSheet.create({
     backgroundColor: "#DADFE6",
     alignItems: "center",
     justifyContent: "center",
+    top: 6,
   },
   btnPressed: {
     transform: [{ scale: 0.99 }],

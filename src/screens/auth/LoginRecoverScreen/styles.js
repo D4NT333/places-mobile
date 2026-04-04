@@ -5,10 +5,11 @@ export default StyleSheet.create({
     borderWidth: 2,
     borderColor: "#111",
     borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     gap: 12,
-    minHeight: 520,
+    minHeight: 490,
+    
   },
   desc: {
     fontSize: 12.5,

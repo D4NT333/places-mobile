@@ -2,7 +2,8 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   wrap: {
-    paddingVertical: 6,
+    paddingVertical: 10,
+    
   },
   pressed: {
     opacity: 0.7,
