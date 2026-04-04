@@ -2,10 +2,10 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   btn: {
-    height: 44,
+    height: 46,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#111",
+    borderColor: "#000000",
     backgroundColor: "#DADFE6",
     alignItems: "center",
     justifyContent: "center",

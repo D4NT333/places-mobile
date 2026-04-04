@@ -8,4 +8,5 @@ export const icons = {
   corazon: require("./logoCorazon.png"),
   flecha: require("./logoFlecha.png"),
   configurar: require("./logoSettings.png"),
+  google: require("./logoGoogle.jpg"),
 };

@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   card: {
+    height: 720,
     borderWidth: 2,
     borderColor: "#111",
     borderRadius: 18,
@@ -10,8 +11,8 @@ export default StyleSheet.create({
     gap: 14,
   },
   form: {
-    gap: 12,
-    paddingTop: 6,
+    gap: 20,
+    paddingTop: 8,
   },
   hint: {
     marginTop: 10,

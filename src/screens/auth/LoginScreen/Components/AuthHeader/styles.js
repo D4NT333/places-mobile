@@ -3,25 +3,29 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     alignItems: "center",
-    gap: 12,
-    paddingTop: 6,
+    gap: 42,
+    paddingTop: 36,
   },
   logoWrap: {
-    width: 170,
-    height: 170,
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: "#111",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoText: {
-    fontSize: 18,
-    color: "#333",
+  width: 200,
+  height: 200,
+  borderRadius: 999,
+  borderWidth: 2,
+  borderColor: "#111",
+  alignItems: "center",
+  justifyContent: "center",
+  overflow: "hidden", 
   },
   subtitle: {
-    fontSize: 13,
-    color: "#333",
+    fontSize: 15,
+    color: "#1f1d1d",
     textAlign: "center",
+    height: 40,
+  },
+  logo: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+
   },
 });

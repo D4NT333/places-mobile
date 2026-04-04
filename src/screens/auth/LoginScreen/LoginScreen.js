@@ -48,7 +48,6 @@ export default function LoginScreen() {
       >
         <View style={styles.card}>
           <AuthHeader
-            title="Imagen"
             subtitle="Explora, guarda y descubre nuevos lugares"
           />
 

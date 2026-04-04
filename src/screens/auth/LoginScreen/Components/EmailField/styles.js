@@ -6,7 +6,7 @@ export default StyleSheet.create({
     borderColor: "#111",
     borderRadius: 999,
     paddingHorizontal: 14,
-    height: 44,
+    height: 46,
     justifyContent: "center",
   },
   input: {

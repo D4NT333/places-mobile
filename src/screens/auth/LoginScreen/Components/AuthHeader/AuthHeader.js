@@ -1,12 +1,15 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Image } from "react-native";
 import styles from "./styles";
 
-export default function AuthHeader({ title = "Imagen", subtitle }) {
+export default function AuthHeader({subtitle}) {
   return (
     <View style={styles.container}>
       <View style={styles.logoWrap}>
-        <Text style={styles.logoText}>{title}</Text>
+        <Image
+        source={require("../../../../../../assets/pool.jpg")}
+        style={styles.logo}
+       />
       </View>
 
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
