@@ -1,32 +1,41 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { View, Text } from "react-native";
 import { LayoutScreen } from "../../../layouts";
 import { useNavigation } from "@react-navigation/native";
 
 import styles from "./styles";
-
-import {PlaceForm, PhotoPicker, LocationMap, BottomActions} from "./Components";
+import {
+  PlaceForm,
+  PhotoPicker,
+  LocationMap,
+  BottomActions,
+} from "./Components";
 
 export default function AddPlaceScreen() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const navigation = useNavigation();
 
   const handleGoToFilters = () => {
-  navigation.navigate("FilterSectionScreen");
+    navigation.navigate("FilterSectionScreen");
   };
 
   const handleCancel = () => {
-    // placeholder: aquí luego navegas back o limpias
     setName("");
     setDescription("");
-    setFilters([]);
+    setPhotos([]);
   };
 
   const handleSubmit = () => {
-    // placeholder: aquí luego llamas tu backend / firestore
-    console.log("SUBMIT", { name, description, filters });
+    console.log("SUBMIT", {
+      name,
+      description,
+      photos,
+      selectedLocation,
+    });
   };
 
   return (
@@ -47,9 +56,15 @@ export default function AddPlaceScreen() {
           onPressFilters={handleGoToFilters}
         />
 
-        <PhotoPicker />
+        <PhotoPicker
+          photos={photos}
+          onChangePhotos={setPhotos}
+        />
 
-        <LocationMap />
+        <LocationMap
+          selectedLocation={selectedLocation}
+          onChangeLocation={setSelectedLocation}
+        />
 
         <BottomActions onCancel={handleCancel} onSubmit={handleSubmit} />
       </View>

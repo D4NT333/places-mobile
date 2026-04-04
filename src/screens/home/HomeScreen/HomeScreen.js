@@ -7,8 +7,8 @@ import { LayoutScreen } from "../../../layouts";
 import FiltersScreen from "../FiltersScreen/FiltersScreen";
 import { filtersData } from "../FiltersScreen/data";
 
-import { getCurrentLocationService } from "../../../services/location/getCurrentLocation.service";
-import { sendCurrentLocationToBackendService } from "../../../services/api/sendCurrentLocationToBackend.service";
+import { getCurrentLocationService } from "../../../services/";
+import  sendCurrentLocationToBackendService  from "../../../services/api/sendCurrentLocationToBackend.service";
 
 function makeBatch(startIndex, count = 15) {
   return Array.from({ length: count }).map((_, i) => {
