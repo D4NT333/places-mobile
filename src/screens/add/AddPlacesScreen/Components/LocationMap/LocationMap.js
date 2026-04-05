@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import styles from "./styles";
 
 import { getCurrentLocationService } from "../../../../../services/";
@@ -61,16 +61,15 @@ export default function LocationMap({
           <Text>Cargando ubicación...</Text>
         </View>
       ) : (
-        <MapView
-          style={styles.map}
-          initialRegion={initialRegion}
-          showsUserLocation
-          onPress={handleMapPress}
-        >
-          {selectedLocation && (
-            <Marker coordinate={selectedLocation} />
-          )}
-        </MapView>
+       <MapView
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={initialRegion}
+        showsUserLocation
+        onPress={handleMapPress}
+      >
+        {selectedLocation && <Marker coordinate={selectedLocation} />}
+      </MapView>
       )}
     </View>
   );
