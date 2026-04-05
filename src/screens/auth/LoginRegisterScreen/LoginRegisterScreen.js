@@ -5,7 +5,7 @@ import { LayoutScreen } from "../../../layouts";
 
 import styles from "./styles";
 import ModalHeader from "../LoginPasswordScreen/Components/ModalHeader";
-import GoogleButton from "./Components/GoogleButton";
+import GoogleButton from "../LoginScreen/Components/GoogleButton";
 import Divider from "../LoginScreen/Components/Divider";
 import TextField from "./Components/TextField";
 import PrimaryButton from "../LoginScreen/Components/PrimaryButton";
@@ -25,6 +25,8 @@ export default function LoginRegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [touchedPassword, setTouchedPassword] = useState(false);
+  const [touchedConfirm, setTouchedConfirm] = useState(false);
 
   const canRegister = useMemo(() => {
     if (!name.trim()) return false;
@@ -35,6 +37,17 @@ export default function LoginRegisterScreen() {
     if (!acceptedTerms) return false;
     return true;
   }, [name, birthDateText, email, password, confirmPassword, acceptedTerms]);
+
+
+  const passwordError = useMemo(() => {
+  if (!touchedConfirm) return "";
+
+  if (!confirmPassword) return "";
+
+  if (password !== confirmPassword) return "No coincide";
+
+  return "";
+}, [password, confirmPassword, touchedConfirm]);
 
   const onGoogle = () => {
     Alert.alert("Google", "Aquí conectamos Google Sign-Up después 👀");
@@ -66,20 +79,16 @@ export default function LoginRegisterScreen() {
         <ModalHeader title="Registrarse" onBack={() => navigation.goBack()} />
 
         <View style={styles.section}>
-          <GoogleButton label="Registrarse con Google" onPress={onGoogle} />
+          <GoogleButton
+            text="Registrarse con Google"
+            onPress={onGoogle}
+          />
 
           <Divider text="o" />
 
           <TextField value={name} onChangeText={setName} placeholder="Nombre" />
 
           {/* Fecha (por ahora es input tocable) */}
-          <TextField
-            value={birthDateText}
-            onChangeText={setBirthDateText}
-            placeholder="Fecha de nacimiento"
-            rightHint="📅"
-            onPressField={onPickBirthDate}
-          />
 
           <TextField
             value={email}
@@ -89,26 +98,34 @@ export default function LoginRegisterScreen() {
             autoCapitalize="none"
           />
 
-          <TextField
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Contraseña"
-            secureTextEntry
-            helperText="Minimo 8 caracteres, 1 número y 1 letra"
-          />
+            <TextField
+              value={password}
+              onChangeText={setPassword}
+              onBlur={() => setTouchedPassword(true)}
+              placeholder="Contraseña"
+              secureTextEntry
+              helperText={
+                touchedPassword
+                  ? "Mínimo 8 caracteres, 1 número y 1 letra"
+                  : ""
+              }
+            />
 
-          <TextField
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Confirmar contraseña"
-            secureTextEntry
-            helperText="La contraseña debe coincidir"
-            errorText={
-              confirmPassword.length > 0 && password !== confirmPassword
-                ? "No coincide"
-                : ""
-            }
-          />
+            <TextField
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              onBlur={() => setTouchedConfirm(true)}
+              placeholder="Confirmar contraseña"
+              secureTextEntry
+              errorText={passwordError}
+            />
+            <TextField
+              value={birthDateText}
+              onChangeText={setBirthDateText}
+              placeholder="Fecha de nacimiento"
+              rightHint="📅"
+              onPressField={onPickBirthDate}
+            />
 
           <TermsRow checked={acceptedTerms} onToggle={() => setAcceptedTerms((v) => !v)} />
 

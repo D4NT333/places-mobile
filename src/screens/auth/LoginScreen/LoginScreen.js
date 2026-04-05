@@ -62,7 +62,10 @@ export default function LoginScreen() {
 
             <Divider text="o continuar con" />
 
-            <GoogleButton onPress={handleGoogle} />
+            <GoogleButton
+              text="Continuar con Google"
+              onPress={handleGoogle}
+            />
           </View>
 
           <AuthFooterLink

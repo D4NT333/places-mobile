@@ -1,5 +1,5 @@
 import React from "react";
-import { TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 
 export default function TextField({
@@ -9,20 +9,55 @@ export default function TextField({
   secureTextEntry,
   keyboardType,
   autoCapitalize = "none",
+  helperText = "",
+  errorText = "",
+  rightHint = "",
+  onPressField,
 }) {
+  const isTouchable = !!onPressField;
+
   return (
-    <View style={styles.wrap}>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#666"
-        secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
-        autoCapitalize={autoCapitalize}
-        autoCorrect={false}
-        style={styles.input}
-      />
+    <View style={styles.block}>
+      {isTouchable ? (
+        <Pressable
+          onPress={onPressField}
+          style={[
+            styles.wrap,
+            styles.wrapTouchable,
+            !!errorText && styles.wrapError,
+          ]}
+        >
+          <Text style={[styles.input, !value && styles.placeholderText]}>
+            {value || placeholder}
+          </Text>
+
+          {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
+        </Pressable>
+      ) : (
+        <View
+          style={[
+            styles.wrap,
+            !!errorText && styles.wrapError,
+          ]}
+        >
+          <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor="#666"
+            secureTextEntry={secureTextEntry}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            autoCorrect={false}
+            style={styles.input}
+          />
+
+          {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
+        </View>
+      )}
+
+      {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
+      {!errorText && helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
     </View>
   );
 }

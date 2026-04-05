@@ -48,7 +48,10 @@ export default function LoginPasswordScreen() {
         <ModalHeader title="Iniciar sesion" onBack={() => navigation.goBack()} />
 
         <View style={styles.section}>
-          <GoogleButton onPress={onGoogle} />
+          <GoogleButton
+            text="Continuar con Google"
+            onPress={onGoogle}
+          />
           <Divider text="o" />
 
           <TextField

@@ -16,7 +16,7 @@ export default StyleSheet.create({
   
   },
   text: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#444",
   },
 });

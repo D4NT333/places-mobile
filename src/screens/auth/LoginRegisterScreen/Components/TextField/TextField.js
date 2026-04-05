@@ -12,36 +12,51 @@ export default function TextField({
   helperText = "",
   errorText = "",
   rightHint = "",
-  onPressField, // si existe, el field funciona como "tocable" (para fecha)
+  onPressField,
+  onBlur, // 👈 agrégalo
 }) {
-  const Container = onPressField ? Pressable : View;
+  const isTouchable = !!onPressField;
 
   return (
     <View style={styles.block}>
-      <Container
-        onPress={onPressField}
-        style={[
-          styles.wrap,
-          !!errorText && styles.wrapError,
-          onPressField && styles.wrapTouchable,
-        ]}
-      >
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#666"
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          autoCorrect={false}
-          editable={!onPressField} // ✅ si es fecha, no se escribe manual (por ahora)
-          pointerEvents={onPressField ? "none" : "auto"}
-          style={styles.input}
-        />
+      {isTouchable ? (
+        <Pressable
+          onPress={onPressField}
+          style={[
+            styles.wrap,
+            styles.wrapTouchable,
+            !!errorText && styles.wrapError,
+          ]}
+        >
+          <Text style={[styles.input, !value && styles.placeholderText]}>
+            {value || placeholder}
+          </Text>
 
-        {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
-      </Container>
+          {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
+        </Pressable>
+      ) : (
+        <View
+          style={[
+            styles.wrap,
+            !!errorText && styles.wrapError,
+          ]}
+        >
+          <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            onBlur={onBlur} // 👈 pásalo aquí
+            placeholder={placeholder}
+            placeholderTextColor="#666"
+            secureTextEntry={secureTextEntry}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            autoCorrect={false}
+            style={styles.input}
+          />
+
+          {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
+        </View>
+      )}
 
       {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
       {!errorText && helperText ? <Text style={styles.helper}>{helperText}</Text> : null}

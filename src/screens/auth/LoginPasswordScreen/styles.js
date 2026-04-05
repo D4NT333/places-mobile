@@ -8,10 +8,10 @@ export default StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 24,
     gap: 24,
-    height: "60%",
+    height: "66%",
   },
   section: {
-    gap: 12,
+    gap: 14,
     paddingTop: 6,
   },
   footer: {
