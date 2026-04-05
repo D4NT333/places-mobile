@@ -20,10 +20,16 @@
         "foregroundImage": "./assets/pool.jpg",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.dante_orozzco.placesmobile"
     },
     "web": {
       "favicon": "./assets/pool.jpg"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c2472174-98d6-4e9b-bfdc-1da6025dec4b"
+      }
     }
   }
 }
