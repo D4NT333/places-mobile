@@ -8,6 +8,7 @@ export default async function syncSessionWithBackendService({ idToken }) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
+      body: JSON.stringify({}),
     });
 
     const data = await response.json();

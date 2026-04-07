@@ -7,8 +7,21 @@ import styles from "./styles";
 import {SettingSection, SettingRow} from "./Components"
 import { settingsSections } from "./data";
 
+import logoutService from "../../../../services/auth/logout.service";
+
 export default function SettingsProfileScreen() {
   const navigation = useNavigation();
+
+
+  const handleLogout = async () => {
+  try {
+    await logoutService();
+    console.log("Sesión cerrada con éxito");
+
+  } catch (error) {
+    console.log("Error al cerrar sesión:", error);
+  }
+};
 
   return (
     <LayoutScreen
@@ -43,7 +56,7 @@ export default function SettingsProfileScreen() {
 
       {/* Cerrar sesión */}
       <Pressable
-        onPress={() => console.log("Cerrar sesión")}
+        onPress={handleLogout}
         style={({ pressed }) => [styles.logoutBtn, pressed && styles.logoutPressed]}
       >
         <Text style={styles.logoutText}>Cerrar sesión</Text>

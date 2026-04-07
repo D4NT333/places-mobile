@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../layouts";
 
 import googleSignInService from "../../../services/auth/googleSignIn.service";
+import syncSessionWithBackendService from "../../../services/auth/syncSessionWithBackend.service";
 
 import styles from "./styles";
 import AuthHeader from "./Components/AuthHeader";
@@ -34,7 +35,7 @@ export default function LoginScreen() {
     navigation.navigate("LoginPasswordScreen", { email: email.trim() });
   };
 
-    const handleGoogle = async () => {
+   const handleGoogle = async () => {
       if (isGoogleLoading) return;
 
       try {
@@ -42,12 +43,19 @@ export default function LoginScreen() {
 
         const { firebaseUser } = await googleSignInService();
 
+        const idToken = await firebaseUser.getIdToken();
+
+        const sessionData = await syncSessionWithBackendService({ idToken });
+
         console.log("firebaseUser:", firebaseUser);
+        console.log("sessionData:", sessionData);
 
         Alert.alert(
           "Bienvenido",
           firebaseUser?.displayName || firebaseUser?.email || "Usuario"
         );
+
+        // navigation.navigate("HomeScreen"); // o la ruta que toque
       } catch (error) {
         Alert.alert(
           "Error",
@@ -57,6 +65,7 @@ export default function LoginScreen() {
         setIsGoogleLoading(false);
       }
     };
+
 
   const goToRegister = () => {
     navigation.navigate("LoginRegisterScreen");
