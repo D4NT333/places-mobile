@@ -1,25 +1,31 @@
 import React from "react";
-import { Pressable, Text, View, Image } from "react-native";
+import { Pressable, Text, ActivityIndicator, Image } from "react-native";
 import styles from "./styles";
 import { icons } from "../.././../../../../assets/icons";
 
 export default function GoogleButton({
   onPress,
-  text,
+  disabled = false,
+  loading = false,
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled || loading}
       style={({ pressed }) => [
         styles.btn,
-        pressed && styles.pressed,
+        pressed && !disabled && !loading ? styles.pressed : null,
+        disabled || loading ? styles.disabled : null,
       ]}
     >
-      <View style={styles.iconCircle}>
-        <Image source={icons.google} style={styles.icon} />
-      </View>
-
-      <Text style={styles.text}>{text}</Text>
+      {loading ? (
+        <ActivityIndicator />
+      ) : (
+        <>
+         <Image source={icons.google} style={styles.icon} />
+          <Text style={styles.text}>Continuar con Google</Text>
+        </>
+      )}
     </Pressable>
   );
 }

@@ -3,6 +3,8 @@ import { View, Text, KeyboardAvoidingView, Platform, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../layouts";
 
+import googleSignInService from "../../../services/auth/googleSignIn.service";
+
 import styles from "./styles";
 import AuthHeader from "./Components/AuthHeader";
 import EmailField from "./Components/EmailField";
@@ -14,6 +16,7 @@ import AuthFooterLink from "./Components/AuthFooterLink";
 export default function LoginScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const isEmailValid = useMemo(() => {
     const v = email.trim();
@@ -31,10 +34,29 @@ export default function LoginScreen() {
     navigation.navigate("LoginPasswordScreen", { email: email.trim() });
   };
 
-  const handleGoogle = () => {
-    // UI listo; auth real luego (Firebase/Google)
-    Alert.alert("Google", "Aquí conectamos el login con Google después 👀");
-  };
+    const handleGoogle = async () => {
+      if (isGoogleLoading) return;
+
+      try {
+        setIsGoogleLoading(true);
+
+        const { firebaseUser } = await googleSignInService();
+
+        console.log("firebaseUser:", firebaseUser);
+
+        Alert.alert(
+          "Bienvenido",
+          firebaseUser?.displayName || firebaseUser?.email || "Usuario"
+        );
+      } catch (error) {
+        Alert.alert(
+          "Error",
+          error?.message || "No se pudo iniciar sesión con Google."
+        );
+      } finally {
+        setIsGoogleLoading(false);
+      }
+    };
 
   const goToRegister = () => {
     navigation.navigate("LoginRegisterScreen");
@@ -65,6 +87,7 @@ export default function LoginScreen() {
             <GoogleButton
               text="Continuar con Google"
               onPress={handleGoogle}
+              loading={isGoogleLoading}
             />
           </View>
 
