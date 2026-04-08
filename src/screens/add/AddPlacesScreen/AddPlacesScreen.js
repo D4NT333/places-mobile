@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text } from "react-native";
 import { LayoutScreen } from "../../../layouts";
 import { useNavigation } from "@react-navigation/native";
@@ -11,31 +11,22 @@ import {
   BottomActions,
 } from "./Components";
 
-export default function AddPlaceScreen() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [photos, setPhotos] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+import { useAddPlaceDraft } from "../../../context/AddPlaceDraftContext";
 
+export default function AddPlaceScreen() {
   const navigation = useNavigation();
+  const { draft, updateDraft, resetDraft } = useAddPlaceDraft();
 
   const handleGoToFilters = () => {
     navigation.navigate("FilterSectionScreen");
   };
 
   const handleCancel = () => {
-    setName("");
-    setDescription("");
-    setPhotos([]);
+    resetDraft();
   };
 
   const handleSubmit = () => {
-    console.log("SUBMIT", {
-      name,
-      description,
-      photos,
-      selectedLocation,
-    });
+    console.log("SUBMIT", draft);
   };
 
   return (
@@ -49,24 +40,28 @@ export default function AddPlaceScreen() {
         <Text style={styles.title}>Ubicación:</Text>
 
         <PlaceForm
-          name={name}
-          description={description}
-          onChangeName={setName}
-          onChangeDescription={setDescription}
+          name={draft.name}
+          description={draft.description}
+          filters={draft.filters}
+          onChangeName={(value) => updateDraft({ name: value })}
+          onChangeDescription={(value) => updateDraft({ description: value })}
           onPressFilters={handleGoToFilters}
         />
 
         <PhotoPicker
-          photos={photos}
-          onChangePhotos={setPhotos}
+          photos={draft.photos}
+          onChangePhotos={(value) => updateDraft({ photos: value })}
         />
 
         <LocationMap
-          selectedLocation={selectedLocation}
-          onChangeLocation={setSelectedLocation}
+          selectedLocation={draft.selectedLocation}
+          onChangeLocation={(value) => updateDraft({ selectedLocation: value })}
         />
 
-        <BottomActions onCancel={handleCancel} onSubmit={handleSubmit} />
+        <BottomActions
+          onCancel={handleCancel}
+          onSubmit={handleSubmit}
+        />
       </View>
     </LayoutScreen>
   );

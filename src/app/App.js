@@ -6,6 +6,8 @@ import RootNavigator from "../navigation/RootNavigator";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { AddPlaceDraftProvider } from "../context/AddPlaceDraftContext";
+
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/config";
 
@@ -29,9 +31,11 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
+        <AddPlaceDraftProvider>
         <NavigationContainer>
           <RootNavigator isLogged={isLogged} />
         </NavigationContainer>
+        </AddPlaceDraftProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

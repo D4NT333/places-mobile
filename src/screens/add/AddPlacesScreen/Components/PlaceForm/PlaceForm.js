@@ -2,9 +2,12 @@ import React from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import styles from "./styles";
 
+import FiltersSummary from "../FiltersSummary";
+
 export default function PlaceForm({
   name,
   description,
+  filters,
   onChangeName,
   onChangeDescription,
   onPressFilters,
@@ -67,11 +70,17 @@ export default function PlaceForm({
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Filtros:</Text>
-
-        <Pressable style={styles.filterButton} onPress={onPressFilters}>
-          <Text style={styles.filterButtonText}>Elegir filtros</Text>
-        </Pressable>
+       <Text style={styles.label}>Filtros:</Text>
+        {filters ? (
+          <FiltersSummary
+            filters={filters}
+            onPress={onPressFilters}
+          />
+        ) : (
+          <Pressable style={styles.filtersButton} onPress={onPressFilters}>
+            <Text style={styles.filtersButtonText}>Elegir filtros</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
