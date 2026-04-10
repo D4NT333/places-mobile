@@ -10,14 +10,18 @@ export default function ChipGroup({
 }) {
   return (
     <View style={styles.container}>
-      {options.map((item) => (
-        <SelectableChip
-          key={item}
-          label={item}
-          selected={selectedValues.includes(item)}
-          onPress={() => onToggle(item)}
-        />
-      ))}
+      {options.map((item) => {
+        const isSelected = selectedValues.some((value) => value.id === item.id);
+
+        return (
+          <SelectableChip
+            key={item.id}
+            label={item.label}
+            selected={isSelected}
+            onPress={() => onToggle(item)}
+          />
+        );
+      })}
     </View>
   );
 }

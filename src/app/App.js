@@ -9,7 +9,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AddPlaceDraftProvider } from "../context/AddPlaceDraftContext";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase/config";
+import { auth } from "../services/firebase/config";
+
+import { warmCatalogsCache } from "../services/firebase/warmCatalogsCache.service";
 
 export default function App() {
   const [isLogged, setIsLogged] = useState(false);
@@ -23,6 +25,10 @@ export default function App() {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+  warmCatalogsCache();
+}, []);
 
   if (isCheckingAuth) {
     return null;

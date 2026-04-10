@@ -3,8 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../layouts";
 
-import googleSignInService from "../../../services/auth/googleSignIn.service";
-import syncSessionWithBackendService from "../../../services/auth/syncSessionWithBackend.service";
+import { googleSignInService, syncSessionWithBackendService } from "../../../services";
 
 import styles from "./styles";
 import AuthHeader from "./Components/AuthHeader";

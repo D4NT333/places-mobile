@@ -9,4 +9,14 @@ export const icons = {
   flecha: require("./logoFlecha.png"),
   configurar: require("./logoSettings.png"),
   google: require("./logoGoogle.jpg"),
+  
+  art: require("./art.png"),
+  entertainment: require("./entertainment.png"),
+  gastronomy: require("./gastronomy.png"),
+  learning: require("./learning.png"),
+  lodging: require("./lodging.png"),
+  nature: require("./nature.png"),
+  service: require("./service.png"),
+  shopping: require("./shopping.png"),
+  sport: require("./sport.png"),
 };

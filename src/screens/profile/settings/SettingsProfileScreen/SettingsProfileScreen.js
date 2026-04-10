@@ -7,7 +7,7 @@ import styles from "./styles";
 import {SettingSection, SettingRow} from "./Components"
 import { settingsSections } from "./data";
 
-import logoutService from "../../../../services/auth/logout.service";
+import { logoutService } from "../../../../services";
 
 export default function SettingsProfileScreen() {
   const navigation = useNavigation();

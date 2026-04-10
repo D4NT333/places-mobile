@@ -1,5 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { Alert, ScrollView, Text, View, Pressable } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  Text,
+  View,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { LayoutScreen } from "../../../layouts";
 
 import { useAddPlaceDraft } from "../../../context/AddPlaceDraftContext";
@@ -11,11 +18,20 @@ import {
   SectionTitle,
 } from "./Components";
 
-import { CATEGORY_OPTIONS } from "./constants";
+import { getTagsService } from "../../../services/firebase/firestore/tags/getTags.service";
+import { getSubtagsByTagId } from "../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";
+import { getApproachesByTagId } from "../../../services/firebase/firestore/approaches/getApproachesByTagId.service";
 import styles from "./styles";
 
 export default function FilterSectionScreen({ navigation }) {
   const [step, setStep] = useState(1);
+
+  const [categories, setCategories] = useState([]);
+  const [subtags, setSubtags] = useState([]);
+  const [focuses, setFocuses] = useState([]);
+
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoadingStepData, setIsLoadingStepData] = useState(false);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubtags, setSelectedSubtags] = useState([]);
@@ -25,37 +41,82 @@ export default function FilterSectionScreen({ navigation }) {
 
   const { updateDraft } = useAddPlaceDraft();
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadTags() {
+      try {
+        setIsLoadingCategories(true);
+        const data = await getTagsService();
+
+        if (isMounted) {
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+        Alert.alert("Error", "No se pudieron cargar las categorías.");
+      } finally {
+        if (isMounted) {
+          setIsLoadingCategories(false);
+        }
+      }
+    }
+
+    loadTags();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const categoryConfig = useMemo(() => {
-    return CATEGORY_OPTIONS.find((c) => c.id === selectedCategoryId);
-  }, [selectedCategoryId]);
+    return categories.find((c) => c.id === selectedCategoryId) ?? null;
+  }, [categories, selectedCategoryId]);
 
-  // 🧠 STEP 1 → categoría
-  const handleSelectCategory = (category) => {
-    setSelectedCategoryId(category.id);
-    setSelectedSubtags([]);
-    setSelectedFocuses([]);
-    setIsFree(false);
-    setPriceValue(category.price.defaultValue);
+  const handleSelectCategory = async (category) => {
+    try {
+      setSelectedCategoryId(category.id);
+      setSelectedSubtags([]);
+      setSelectedFocuses([]);
+      setSubtags([]);
+      setFocuses([]);
+      setIsFree(false);
+      setPriceValue(category.price?.defaultValue ?? 0);
 
-    setStep(2);
+      setIsLoadingStepData(true);
+
+      const [subtagsData, approachesData] = await Promise.all([
+        getSubtagsByTagId(category.id),
+        getApproachesByTagId(category.id),
+      ]);
+
+      setSubtags(subtagsData);
+      setFocuses(approachesData);
+      setStep(2);
+    } catch (error) {
+      console.error("Error cargando subtags/enfoques:", error);
+      Alert.alert("Error", "No se pudieron cargar las opciones de esta categoría.");
+    } finally {
+      setIsLoadingStepData(false);
+    }
   };
 
-  // 🧠 STEP 2 → subetiquetas
-  const toggleSubtag = (value) => {
+  const toggleSubtag = (item) => {
     setSelectedSubtags((prev) => {
+      const exists = prev.some((v) => v.id === item.id);
+
       let next;
 
-      if (prev.includes(value)) {
-        next = prev.filter((v) => v !== value);
+      if (exists) {
+        next = prev.filter((v) => v.id !== item.id);
       } else {
         if (prev.length >= 2) {
           Alert.alert("Máximo 2 subetiquetas");
           return prev;
         }
-        next = [...prev, value];
+        next = [...prev, item];
       }
 
-      // avanzar automático
       if (next.length >= 1) {
         setTimeout(() => setStep(3), 200);
       }
@@ -64,22 +125,12 @@ export default function FilterSectionScreen({ navigation }) {
     });
   };
 
-  // 🧠 STEP 3 → enfoques
-  const toggleFocus = (value) => {
+  const toggleFocus = (item) => {
     setSelectedFocuses((prev) => {
-      let next;
+      const exists = prev.some((v) => v.id === item.id);
+      const next = exists ? [] : [item];
 
-      if (prev.includes(value)) {
-        next = prev.filter((v) => v !== value);
-      } else {
-        if (prev.length >= 4) {
-          Alert.alert("Máximo 4 enfoques");
-          return prev;
-        }
-        next = [...prev, value];
-      }
-
-      if (next.length >= 2) {
+      if (next.length >= 1) {
         setTimeout(() => setStep(4), 200);
       }
 
@@ -87,8 +138,7 @@ export default function FilterSectionScreen({ navigation }) {
     });
   };
 
-  // 🧠 STEP FINAL → submit automático
- const handleFinish = () => {
+  const handleFinish = () => {
     if (!selectedCategoryId) {
       Alert.alert("Selecciona una categoría");
       return;
@@ -99,15 +149,15 @@ export default function FilterSectionScreen({ navigation }) {
       return;
     }
 
-    if (selectedFocuses.length < 2) {
-      Alert.alert("Selecciona al menos 2 enfoques");
+    if (selectedFocuses.length < 1) {
+      Alert.alert("Selecciona 1 enfoque");
       return;
     }
 
     const payload = {
       categoryId: selectedCategoryId,
-      subtags: selectedSubtags,
-      focuses: selectedFocuses,
+      subtags: selectedSubtags.map((item) => item.id),
+      focuses: selectedFocuses.map((item) => item.id),
       price: isFree ? 0 : priceValue,
       isFree,
     };
@@ -119,8 +169,6 @@ export default function FilterSectionScreen({ navigation }) {
   return (
     <LayoutScreen edges={["top"]}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        
-        {/* HEADER */}
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()}>
             <Text style={styles.back}>←</Text>
@@ -129,80 +177,89 @@ export default function FilterSectionScreen({ navigation }) {
           <Text style={styles.title}>Filtros</Text>
         </View>
 
-        {/* RESUMEN (cuando avanzas) */}
-        {selectedCategoryId && (
-          <View style={styles.summary}>
-            <Text style={styles.summaryText}>
-              {categoryConfig?.emoji} {categoryConfig?.label}
-            </Text>
-
-            {selectedSubtags.length > 0 && (
-              <Text style={styles.summarySub}>
-                {selectedSubtags.join(", ")}
-              </Text>
-            )}
-
-            {selectedFocuses.length > 0 && (
-              <Text style={styles.summarySub}>
-                {selectedFocuses.join(", ")}
-              </Text>
-            )}
+        {isLoadingCategories ? (
+          <View style={{ paddingVertical: 40, alignItems: "center" }}>
+            <ActivityIndicator size="large" />
+            <Text style={{ marginTop: 12 }}>Cargando categorías...</Text>
           </View>
-        )}
-
-        {/* STEP 1 */}
-        {step === 1 && (
+        ) : (
           <>
-            <SectionTitle subtitle="Selecciona la categoría que mejor describe el lugar" />
+            {selectedCategoryId && (
+              <View style={styles.summary}>
+                <Text style={styles.summaryText}>{categoryConfig?.label}</Text>
 
-            <CategoryGrid
-              categories={CATEGORY_OPTIONS}
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={handleSelectCategory}
-            />
-          </>
-        )}
+                {selectedSubtags.length > 0 && (
+                  <Text style={styles.summarySub}>
+                    {selectedSubtags.map((item) => item.label).join(", ")}
+                  </Text>
+                )}
 
-        {/* STEP 2 */}
-        {step === 2 && categoryConfig && (
-          <>
-            <SectionTitle subtitle="Elige las etiquetas que lo representen" />
+                {selectedFocuses.length > 0 && (
+                  <Text style={styles.summarySub}>
+                    {selectedFocuses.map((item) => item.label).join(", ")}
+                  </Text>
+                )}
+              </View>
+            )}
 
-            <ChipGroup
-              options={categoryConfig.subtags}
-              selectedValues={selectedSubtags}
-              onToggle={toggleSubtag}
-            />
-          </>
-        )}
+            {step === 1 && (
+              <>
+                <SectionTitle subtitle="Selecciona la categoría que mejor describe el lugar" />
 
-        {/* STEP 3 */}
-        {step === 3 && categoryConfig && (
-          <>
-            <SectionTitle title="Enfoque" />
+                <CategoryGrid
+                  categories={categories}
+                  selectedCategoryId={selectedCategoryId}
+                  onSelectCategory={handleSelectCategory}
+                />
+              </>
+            )}
 
-            <ChipGroup
-              options={categoryConfig.focuses}
-              selectedValues={selectedFocuses}
-              onToggle={toggleFocus}
-            />
-          </>
-        )}
+            {isLoadingStepData && (
+              <View style={{ paddingVertical: 30, alignItems: "center" }}>
+                <ActivityIndicator size="large" />
+                <Text style={{ marginTop: 12 }}>Cargando opciones...</Text>
+              </View>
+            )}
 
-        {/* STEP 4 */}
-        {step === 4 && categoryConfig && (
-          <>
-            <PriceSection
-              config={categoryConfig.price}
-              value={priceValue}
-              isFree={isFree}
-              onChangeValue={setPriceValue}
-              onToggleFree={() => setIsFree((prev) => !prev)}
-            />
+            {!isLoadingStepData && step === 2 && (
+              <>
+                <SectionTitle subtitle="Elige las etiquetas que lo representen" />
 
-            <Pressable style={styles.finishBtn} onPress={handleFinish}>
-              <Text style={styles.finishText}>Listo</Text>
-            </Pressable>
+                <ChipGroup
+                  options={subtags}
+                  selectedValues={selectedSubtags}
+                  onToggle={toggleSubtag}
+                />
+              </>
+            )}
+
+            {!isLoadingStepData && step === 3 && (
+              <>
+                <SectionTitle title="Enfoque" />
+
+                <ChipGroup
+                  options={focuses}
+                  selectedValues={selectedFocuses}
+                  onToggle={toggleFocus}
+                />
+              </>
+            )}
+
+            {!isLoadingStepData && step === 4 && categoryConfig && (
+              <>
+                <PriceSection
+                  config={categoryConfig.price}
+                  value={priceValue}
+                  isFree={isFree}
+                  onChangeValue={setPriceValue}
+                  onToggleFree={() => setIsFree((prev) => !prev)}
+                />
+
+                <Pressable style={styles.finishBtn} onPress={handleFinish}>
+                  <Text style={styles.finishText}>Listo</Text>
+                </Pressable>
+              </>
+            )}
           </>
         )}
       </ScrollView>

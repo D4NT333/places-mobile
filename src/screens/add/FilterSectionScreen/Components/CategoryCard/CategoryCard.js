@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import styles from "./styles";
 
 export default function CategoryCard({ item, selected, onPress }) {
@@ -8,7 +8,12 @@ export default function CategoryCard({ item, selected, onPress }) {
       onPress={onPress}
       style={[styles.card, selected && styles.selected]}
     >
-      <Text style={styles.emoji}>{item.emoji}</Text>
+      {item.iconSource ? (
+        <Image source={item.iconSource} style={styles.icon} />
+      ) : (
+        <View style={styles.iconFallback} />
+      )}
+
       <Text style={styles.label}>{item.label}</Text>
     </Pressable>
   );

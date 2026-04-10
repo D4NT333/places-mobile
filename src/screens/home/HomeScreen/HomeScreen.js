@@ -10,6 +10,8 @@ import { filtersData } from "../FiltersScreen/data";
 import { getCurrentLocationService } from "../../../services/";
 import  sendCurrentLocationToBackendService  from "../../../services/api/sendCurrentLocationToBackend.service";
 
+import { getTagsService } from "../../../services/firebase/firestore/tags/getTags.service";
+
 function makeBatch(startIndex, count = 15) {
   return Array.from({ length: count }).map((_, i) => {
     const n = startIndex + i + 1;
@@ -38,6 +40,36 @@ export default function HomeScreen() {
     rating: 0,
   });
 
+
+  const [tags, setTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(true);
+
+  useEffect(() => {
+  let isMounted = true;
+
+  const loadTags = async () => {
+    try {
+      const tagsData = await getTagsService();
+
+      if (isMounted) {
+        setTags(tagsData);
+      }
+    } catch (error) {
+      console.error("Error al cargar tags:", error);
+    } finally {
+      if (isMounted) {
+        setLoadingTags(false);
+      }
+    }
+  };
+
+  loadTags();
+
+  return () => {
+    isMounted = false;
+    };
+  }, []);
+  
   const applyFilters = (f) => {
     // ✅ aquí luego haces tu fetch real
     console.log("Aplicar filtros:", f);

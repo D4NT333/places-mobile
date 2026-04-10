@@ -1,4 +1,4 @@
-import { API_URL } from "../api/client";
+import { API_URL } from "../../api/client";
 
 export default async function syncSessionWithBackendService({ idToken }) {
   try {

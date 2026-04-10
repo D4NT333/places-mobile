@@ -26,4 +26,18 @@ export default StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
   },
+  icon: {
+  width: 42,
+  height: 42,
+  resizeMode: "contain",
+  marginBottom: 10,
+},
+
+iconFallback: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: "#DDD",
+  marginBottom: 10,
+},
 });
