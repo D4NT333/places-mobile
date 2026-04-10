@@ -5,9 +5,9 @@ export const icons = {
   metrics: require("./logoMetrics.png"),
   usuario: require("./logoUsuario.png"),
   lapiz: require("./logoLapiz.png"),
-  corazon: require("./logoCorazon.png"),
+  heart: require("./logoCorazon.png"),
   flecha: require("./logoFlecha.png"),
-  configurar: require("./logoSettings.png"),
+  settings: require("./logoSettings.png"),
   google: require("./logoGoogle.jpg"),
   
   art: require("./art.png"),

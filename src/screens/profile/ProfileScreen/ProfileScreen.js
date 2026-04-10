@@ -3,8 +3,7 @@ import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
-
-import {ProfileHeader, ProfileSettings} from "./Components/";
+import { ProfileHeader, ProfileSettings } from "./Components";
 
 import styles from "./styles";
 
@@ -19,14 +18,18 @@ export default function ProfileScreen() {
     >
       <View style={styles.card}>
         <ProfileHeader
-          name="Dante Orozco Gomez Serrano Soy todo un guarrindongo"
-          description="Soy un apasionado por descubrir nuevos lugares y compartir mis experiencias con otros viajeros."
+          name="Dante Orozco Gomez Serrano"
+          description="Descripción"
           onEditPress={() => navigation.navigate("EditProfileScreen")}
         />
 
         <ProfileSettings
           onFavorites={() => navigation.navigate("FavoritesScreen")}
           onAddedPlaces={() => navigation.navigate("AddedPlacesScreen")}
+          onAddedDescriptions={() =>
+            navigation.navigate("AddedDescriptionScreen")
+          }
+          onAddedPhotos={() => navigation.navigate("AddedPhotosScreen")}
           onConfig={() => navigation.navigate("SettingsProfileScreen")}
         />
       </View>

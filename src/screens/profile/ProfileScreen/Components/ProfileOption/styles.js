@@ -1,33 +1,60 @@
 import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
+  pressable: {
+    width: "100%",
+  },
+
   row: {
-    paddingHorizontal: 16,
-    paddingVertical: 26,
-    justifyContent: "center",
+    minHeight: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 10,
   },
+
+  subRow: {
+    minHeight: 44,
+    paddingLeft: 22,
+  },
+
   label: {
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#2B2B2B",
   },
-  right: {
-    position: "absolute",
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
+
+  subLabel: {
+    fontSize: 15,
+    fontWeight: "400",
+    color: "#444",
+  },
+
+  divider: {
+    height: 1.7,
+    backgroundColor: "#7D7D7D",
+    marginHorizontal: 10,
+  },
+
+  subDivider: {
+    marginLeft: 10,
+    marginRight: 180,
+  },
+
+  emptyIconSpace: {
+    width: 28,
+    height: 28,
   },
   icon: {
-    width: 38,
-    height: 38,
-    marginRight: 1,
-  },
-  line: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 0,
-    height: 2,
-    backgroundColor: "#000000ff",
-  },
+  width: 46,
+  height: 46,
+},
+heartIcon: {
+  width: 68,
+  height: 68,
+  left: 11,
+},
 });
+
+export default styles;

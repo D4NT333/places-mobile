@@ -1,19 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import { View } from "react-native";
-import ProfileOption from "../ProfileOption"; 
+
+import { ProfileOption } from "../";
 import styles from "./styles";
-import { icons } from "../../../../../../assets/icons"
 
-export default function ProfileSettings({ onFavorites, onAddedPlaces, onConfig }) {
+export default function ProfileSettings({
+  onFavorites,
+  onAddedPlaces,
+  onAddedDescriptions,
+  onAddedPhotos,
+  onConfig,
+}) {
+  const [isAddedOpen, setIsAddedOpen] = useState(false);
+
   return (
-
     <View style={styles.container}>
-      <View style={styles.divider}/>
-    <View style={styles.options}>
-      <ProfileOption label="Favoritos" icon={icons.corazon} onPress={onFavorites} />
-      <ProfileOption label="Lugares añadidos" icon={icons.add} onPress={onAddedPlaces} />
-      <ProfileOption label="Configuracion" icon={icons.configurar} onPress={onConfig} />
-    </View>
+      <ProfileOption
+        label="Favoritos"
+        icon="heart"
+        onPress={onFavorites}
+      />
+
+      <ProfileOption
+        label="Añadidos"
+        icon="add"
+        onPress={() => setIsAddedOpen((prev) => !prev)}
+      />
+
+      {isAddedOpen && (
+        <View style={styles.dropdown}>
+          <ProfileOption
+            label="Lugares añadidos"
+            isSubOption
+            onPress={onAddedPlaces}
+          />
+          <ProfileOption
+            label="Descripciones añadidas"
+            isSubOption
+            onPress={onAddedDescriptions}
+          />
+          <ProfileOption
+            label="Fotos añadidas"
+            isSubOption
+            onPress={onAddedPhotos}
+          />
+        </View>
+      )}
+
+      <ProfileOption
+        label="Configuración"
+        icon="settings"
+        onPress={onConfig}
+      />
     </View>
   );
 }

@@ -8,5 +8,6 @@ export default StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#fff",
+    justifyContent: "flex-start",
   },
 });
