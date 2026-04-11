@@ -1,11 +1,9 @@
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
-
-import  AddedPlaceCard  from "./Components";
-
+import AddedPlaceCard from "./Components";
 import styles from "./styles";
 
 const MOCK_PLACES = [
@@ -51,6 +49,10 @@ const MOCK_PLACES = [
 export default function AddedPlacesScreen() {
   const navigation = useNavigation();
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   const handlePressCard = (place) => {
     if (place.status === "approved") {
       navigation.navigate("NewPlaceCardScreen", {
@@ -83,7 +85,13 @@ export default function AddedPlacesScreen() {
     >
       <View style={styles.card}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Lugares añadidos</Text>
+          <View style={styles.titleRow}>
+            <Pressable onPress={handleGoBack} style={styles.backButton}>
+              <Text style={styles.backIcon}>←</Text>
+            </Pressable>
+
+            <Text style={styles.title}>Lugares añadidos</Text>
+          </View>
 
           <Text style={styles.helperText}>
             Si es aprobado lo toca y lo lleva a la card del lugar nuevo

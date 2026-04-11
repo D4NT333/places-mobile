@@ -10,29 +10,52 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
 
-  headerContainer: {
-    marginBottom: 14,
-  },
-
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#2E2E2E",
-    marginBottom: 8,
-  },
-
-  helperText: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: "#5F5F5F",
-    textAlign: "center",
-    paddingHorizontal: 18,
-  },
 
   scrollContent: {
     paddingBottom: 24,
     gap: 14,
   },
+
+headerTextContainer: {
+  flex: 1,
+},
+headerContainer: {
+  marginBottom: 16,
+},
+
+titleRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 6,
+},
+
+backButton: {
+  width: 32,
+  height: 32,
+  justifyContent: "center",
+  alignItems: "center",
+  marginRight: 8,
+},
+
+backIcon: {
+  fontSize: 22,
+  fontWeight: "700",
+  color: "#111827",
+},
+
+title: {
+  flex: 1,
+  fontSize: 22,
+  fontWeight: "700",
+  color: "#111827",
+},
+
+helperText: {
+  fontSize: 12,
+  color: "#374151",
+  lineHeight: 16,
+  marginLeft: 40,
+},
 });
 
 export default styles;

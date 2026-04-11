@@ -16,6 +16,9 @@ export { default as PlaceDetailScreen } from "./home/PlaceDetailScreen/PlaceDeta
 export { default as ChangeDescriptionScreen } from "./home/ChangeDescriptionScreen";
 
 export { default as FavoritesScreen } from "./profile/FavoritesScreen";
+export { default as AddedDescriptionScreen } from "./profile/AddedDescriptionsScreen";
+export { default as AddedPhotosScreen } from "./profile/AddedPhotosScreen";
+
 export { default as AddedPlacesScreen } from "./profile/AddedPlacesScreen";
 
 

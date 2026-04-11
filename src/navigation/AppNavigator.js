@@ -7,7 +7,11 @@ import {PlaceDetailScreen} from "../screens";
 import {ChangeDescriptionScreen} from "../screens";
 
 import {FavoritesScreen} from "../screens"; 
+
 import {AddedPlacesScreen} from "../screens";
+import {AddedPhotosScreen} from "../screens";
+import {AddedDescriptionScreen} from "../screens";
+
 
 import {FilterSectionScreen} from "../screens";
 
@@ -83,6 +87,16 @@ export default function AppNavigator() {
          <Stack.Screen
           name="AddedPlacesScreen"
           component={AddedPlacesScreen}
+        />
+
+        <Stack.Screen
+          name="AddedPhotosScreen"
+          component={AddedPhotosScreen}
+        />
+
+        <Stack.Screen
+          name="AddedDescriptionScreen"
+          component={AddedDescriptionScreen}
         />
 
         <Stack.Screen
