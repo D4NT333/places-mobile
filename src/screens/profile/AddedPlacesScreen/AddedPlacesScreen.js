@@ -54,11 +54,9 @@ export default function AddedPlacesScreen() {
   };
 
   const handlePressCard = (place) => {
-    if (place.status === "approved") {
-      navigation.navigate("NewPlaceCardScreen", {
-        placeId: place.id,
-      });
-    }
+    navigation.navigate("VisualizedAddedPlacesScreen", {
+      placeId: place.id,
+    });
   };
 
   const handleEdit = (place) => {

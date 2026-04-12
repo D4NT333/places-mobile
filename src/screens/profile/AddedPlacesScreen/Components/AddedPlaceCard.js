@@ -57,13 +57,10 @@ export default function AddedPlaceCard({
   const actions = getActions(place.status);
   const chips = [place.tag, ...(place.subtags || [])].slice(0, 3);
 
-  const isPressable = place.status === "approved";
-  const Container = isPressable ? Pressable : View;
-
   return (
-    <Container
+    <Pressable
       style={styles.card}
-      onPress={isPressable ? () => onPressCard?.(place) : undefined}
+      onPress={() => onPressCard?.(place)}
     >
       <View style={styles.topRow}>
         <Image
@@ -127,6 +124,6 @@ export default function AddedPlaceCard({
           </Pressable>
         ) : null}
       </View>
-    </Container>
+    </Pressable>
   );
 }

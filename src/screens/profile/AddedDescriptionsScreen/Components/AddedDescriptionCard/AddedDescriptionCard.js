@@ -1,84 +1,106 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-
 import styles from "./styles";
 
-const STATUS_LABELS = {
-  approved: "Aprobado",
-  in_review: "En revisión",
-  returned: "Devuelto",
-  rejected: "Rechazado",
-};
+function getStatusLabel(status) {
+  switch (status) {
+    case "approved":
+      return "Aprobado";
+    case "in_review":
+      return "En revisión";
+    case "returned":
+      return "Devuelto";
+    case "rejected":
+      return "Rechazado";
+    default:
+      return "Pendiente";
+  }
+}
+
+function getActions(status) {
+  switch (status) {
+    case "approved":
+      return ["delete"];
+    case "in_review":
+      return [];
+    case "returned":
+      return ["edit", "delete"];
+    case "rejected":
+      return ["reason", "delete"];
+    default:
+      return ["delete"];
+  }
+}
 
 export default function AddedDescriptionCard({
   item,
+  onPressCard,
   onDelete,
   onEdit,
   onViewReason,
 }) {
-  const isApproved = item.status === "approved";
-  const isInReview = item.status === "in_review";
-  const isReturned = item.status === "returned";
-  const isRejected = item.status === "rejected";
+  const statusLabel = getStatusLabel(item.status);
+  const actions = getActions(item.status);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.topRow}>
-        <View style={styles.imageCircle}>
-          <Text style={styles.imageText}>Imagen</Text>
-        </View>
+    <Pressable style={styles.card} onPress={() => onPressCard?.(item)}>
+      <View style={styles.content}>
+        <Text style={styles.name} numberOfLines={1}>
+          {item.name}
+        </Text>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.name} numberOfLines={1}>
-            {item.name}
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description}
+        </Text>
+
+        <View style={styles.metaRow}>
+          <Text style={styles.dateText} numberOfLines={1}>
+            {item.submittedAtLabel}
           </Text>
 
-          <Text style={styles.description} numberOfLines={1}>
-            {item.description}
-          </Text>
-
-          <Text style={styles.submittedAt}>{item.submittedAtLabel}</Text>
+          <Text style={styles.statusText}>{statusLabel}</Text>
         </View>
       </View>
 
-      <View style={styles.bottomSection}>
-        <View style={styles.divider} />
+      <View style={styles.divider} />
 
-        <View style={styles.statusRow}>
-          <Text style={styles.statusText}>{STATUS_LABELS[item.status]}</Text>
-        </View>
+      <View style={styles.actionsRow}>
+        {actions.includes("reason") ? (
+          <Pressable
+            style={styles.actionButton}
+            onPress={(event) => {
+              event.stopPropagation();
+              onViewReason?.(item.id);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Ver motivo</Text>
+          </Pressable>
+        ) : null}
 
-        {!isInReview && (
-          <View style={styles.actionsRow}>
-            {isRejected && (
-              <Pressable
-                style={styles.button}
-                onPress={() => onViewReason?.(item.id)}
-              >
-                <Text style={styles.buttonText}>Ver motivo</Text>
-              </Pressable>
-            )}
+        {actions.includes("edit") ? (
+          <Pressable
+            style={styles.actionButton}
+            onPress={(event) => {
+              event.stopPropagation();
+              onEdit?.(item.id);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Editar</Text>
+          </Pressable>
+        ) : null}
 
-            {isReturned && (
-              <Pressable
-                style={styles.button}
-                onPress={() => onEdit?.(item.id)}
-              >
-                <Text style={styles.buttonText}>Editar</Text>
-              </Pressable>
-            )}
-
-            {(isApproved || isReturned || isRejected) && (
-              <Pressable
-                style={styles.button}
-                onPress={() => onDelete?.(item.id)}
-              >
-                <Text style={styles.buttonText}>Eliminar</Text>
-              </Pressable>
-            )}
-          </View>
-        )}
+        {actions.includes("delete") ? (
+          <Pressable
+            style={styles.actionButton}
+            onPress={(event) => {
+              event.stopPropagation();
+              onDelete?.(item.id);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Eliminar</Text>
+          </Pressable>
+        ) : null}
       </View>
-    </View>
+    </Pressable>
   );
 }

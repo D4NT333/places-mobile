@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 
-import { ProfileOption } from "../";
+import  ProfileOption  from "../ProfileOption/ProfileOption";
 import styles from "./styles";
 
 export default function ProfileSettings({

@@ -3,7 +3,7 @@ import { ScrollView, Text, View, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
-import  AddedDescriptionCard  from "./Components/AddedDescriptionCard";
+import AddedDescriptionCard from "./Components/AddedDescriptionCard";
 
 import styles from "./styles";
 
@@ -23,13 +23,6 @@ const MOCK_DESCRIPTIONS = [
     status: "in_review",
   },
   {
-    id: "3",
-    name: "Nombre",
-    description: "Descripcion",
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "returned",
-  },
-  {
     id: "4",
     name: "Nombre",
     description: "Descripcion",
@@ -43,6 +36,20 @@ export default function AddedDescriptionsScreen() {
 
   const handleGoBack = () => {
     navigation.goBack();
+  };
+
+  const handlePressCard = (item) => {
+    navigation.navigate("VisualizedAddedDescriptionScreen", {
+      descriptionData: {
+        id: item.id,
+        placeName: item.name,
+        status: item.status,
+        submittedAtLabel: item.submittedAtLabel,
+        currentDescription:
+          "Aquí irá la descripción actual del lugar para visualizar el comparativo.",
+        proposedDescription: item.description,
+      },
+    });
   };
 
   const handleDelete = (descriptionId) => {
@@ -77,6 +84,7 @@ export default function AddedDescriptionsScreen() {
               <AddedDescriptionCard
                 key={item.id}
                 item={item}
+                onPressCard={handlePressCard}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onViewReason={handleViewReason}
