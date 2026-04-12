@@ -73,6 +73,8 @@ export default function FilterSectionScreen({ navigation }) {
     return categories.find((c) => c.id === selectedCategoryId) ?? null;
   }, [categories, selectedCategoryId]);
 
+  const hasFocuses = focuses.length > 0;
+
   const handleSelectCategory = async (category) => {
     try {
       setSelectedCategoryId(category.id);
@@ -118,7 +120,9 @@ export default function FilterSectionScreen({ navigation }) {
       }
 
       if (next.length >= 1) {
-        setTimeout(() => setStep(3), 200);
+        setTimeout(() => {
+          setStep(hasFocuses ? 3 : 4);
+        }, 200);
       }
 
       return next;
@@ -149,7 +153,7 @@ export default function FilterSectionScreen({ navigation }) {
       return;
     }
 
-    if (selectedFocuses.length < 1) {
+    if (hasFocuses && selectedFocuses.length < 1) {
       Alert.alert("Selecciona 1 enfoque");
       return;
     }
@@ -233,7 +237,7 @@ export default function FilterSectionScreen({ navigation }) {
               </>
             )}
 
-            {!isLoadingStepData && step === 3 && (
+            {!isLoadingStepData && step === 3 && hasFocuses && (
               <>
                 <SectionTitle title="Enfoque" />
 
