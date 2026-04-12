@@ -1,5 +1,12 @@
-import React, { useEffect, useMemo } from "react";
-import { Dimensions, Pressable, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Dimensions,
+  Pressable,
+  Text,
+  View,
+  ActivityIndicator,
+  ScrollView,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Animated, {
@@ -16,7 +23,10 @@ import styles from "./styles";
 import CategoryChips from "./Components/CategoryChips";
 import SubtagList from "./Components/SubtagList";
 import PriceSlider from "./Components/PriceSlider";
-import RatingPicker from "./Components/RatingPicker";
+
+import { getTagsService } from "../../../services/firebase/firestore/tags/getTags.service";
+import { getSubtagsByTagId } from "../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";
+import { getApproachesByTagId } from "../../../services/firebase/firestore/approaches/getApproachesByTagId.service";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const PANEL_W = Math.min(Math.round(SCREEN_W * 0.72), 360);
@@ -27,17 +37,121 @@ export default function FiltersScreen({
   onApply,
   value,
   onChange,
-  data,
 }) {
   const progress = useSharedValue(0);
   const insets = useSafeAreaInsets();
+  
+
+  const [categories, setCategories] = useState([]);
+  const [subtags, setSubtags] = useState([]);
+  const [approaches, setApproaches] = useState([]);
+
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+
+  const hasApproaches = approaches.length > 0;
 
   useEffect(() => {
     progress.value = withTiming(open ? 1 : 0, {
       duration: open ? 260 : 220,
       easing: Easing.out(Easing.cubic),
     });
-  }, [open]);
+  }, [open, progress]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCategories() {
+      try {
+        setIsLoadingCategories(true);
+
+        const tags = await getTagsService();
+
+        if (!isMounted) return;
+
+        const normalizedCategories = tags.map((tag) => ({
+          key: tag.id,
+          label: tag.label,
+          price: tag.price,
+        }));
+
+        setCategories(normalizedCategories);
+
+        const firstCategoryKey = normalizedCategories[0]?.key ?? null;
+
+        if (!value.categoryKey && firstCategoryKey) {
+          onChange({
+            ...value,
+            categoryKey: firstCategoryKey,
+            subtags: [],
+            approaches: [],
+            priceIndex: 0,
+            isFree: false,
+          });
+        }
+      } catch (error) {
+        console.error("Error cargando categorías del panel:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingCategories(false);
+        }
+      }
+    }
+
+    loadCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const selectedCategoryKey = value.categoryKey ?? categories[0]?.key ?? null;
+
+  const currentCategory =
+    categories.find((item) => item.key === selectedCategoryKey) ?? null;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCategoryOptions() {
+      if (!selectedCategoryKey) {
+        setSubtags([]);
+        setApproaches([]);
+        return;
+      }
+
+      try {
+        setIsLoadingOptions(true);
+
+        const [subtagsData, approachesData] = await Promise.all([
+          getSubtagsByTagId(selectedCategoryKey),
+          getApproachesByTagId(selectedCategoryKey),
+        ]);
+
+        if (!isMounted) return;
+
+        setSubtags(subtagsData.map((item) => item.label));
+        setApproaches(approachesData.map((item) => item.label));
+      } catch (error) {
+        console.error("Error cargando subtags/enfoques del panel:", error);
+
+        if (isMounted) {
+          setSubtags([]);
+          setApproaches([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingOptions(false);
+        }
+      }
+    }
+
+    loadCategoryOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCategoryKey]);
 
   const overlayStyle = useAnimatedStyle(() => {
     return {
@@ -50,7 +164,6 @@ export default function FiltersScreen({
     return { transform: [{ translateX: tx }] };
   });
 
-  // Swipe to close (derecha)
   const pan = useMemo(() => {
     return Gesture.Pan()
       .onUpdate((e) => {
@@ -74,21 +187,55 @@ export default function FiltersScreen({
           });
         }
       });
-  }, [onClose]);
+  }, [onClose, progress]);
 
   const containerPointer = open ? "auto" : "none";
 
-  const selectedCategory = value.categoryKey ?? data.categories[0].key;
-  const currentCategory = data.categories.find((c) => c.key === selectedCategory);
+  const handleSelectCategory = (key) => {
+    onChange({
+      ...value,
+      categoryKey: key,
+      subtags: [],
+      approaches: [],
+      priceIndex: 0,
+      isFree: false,
+    });
+  };
+
+  const handleToggleSubtag = (tag) => {
+    const prev = value.subtags ?? [];
+    const exists = prev.includes(tag);
+
+    const next = exists
+      ? prev.filter((item) => item !== tag)
+      : [...prev, tag];
+
+    onChange({
+      ...value,
+      subtags: next,
+    });
+  };
+
+  const handleToggleApproach = (approach) => {
+    const prev = value.approaches ?? [];
+    const exists = prev.includes(approach);
+
+    const next = exists
+      ? prev.filter((item) => item !== approach)
+      : [...prev, approach];
+
+    onChange({
+      ...value,
+      approaches: next,
+    });
+  };
 
   return (
     <View style={styles.root} pointerEvents={containerPointer}>
-      {/* Overlay */}
       <Animated.View style={[styles.overlay, overlayStyle]}>
         <Pressable style={styles.overlayPressable} onPress={onClose} />
       </Animated.View>
 
-      {/* ✅ Panel (YA NO está envuelto por GestureDetector) */}
       <Animated.View
         style={[
           styles.panel,
@@ -102,7 +249,6 @@ export default function FiltersScreen({
           panelStyle,
         ]}
       >
-        {/* ✅ SOLO el header es draggable */}
         <GestureDetector gesture={pan}>
           <View style={styles.header}>
             <Text style={styles.title}>Filtros</Text>
@@ -119,58 +265,84 @@ export default function FiltersScreen({
           </View>
         </GestureDetector>
 
-        {/* Categorías (ahora sí puede hacer swipe horizontal) */}
-        <CategoryChips
-          items={data.categories}
-          selectedKey={selectedCategory}
-          onSelect={(key) => onChange({ ...value, categoryKey: key })}
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          nestedScrollEnabled
+        >
+          {isLoadingCategories ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="small" />
+              <Text style={styles.loadingText}>Cargando categorías...</Text>
+            </View>
+          ) : (
+            <>
+              <CategoryChips
+                items={categories}
+                selectedKey={selectedCategoryKey}
+                onSelect={handleSelectCategory}
+              />
 
-        {/* Subtags */}
-        <Text style={styles.sectionLabel}>Subetiquetas</Text>
-        <SubtagList
-          items={currentCategory?.subtags ?? []}
-          selected={value.subtags ?? []}
-          onToggle={(tag) => {
-            const prev = value.subtags ?? [];
-            const exists = prev.includes(tag);
-            const next = exists ? prev.filter((t) => t !== tag) : [...prev, tag];
-            onChange({ ...value, subtags: next });
-          }}
-        />
+              <Text style={styles.sectionLabel}>Subetiquetas</Text>
 
-        {/* Precio */}
-        <Text style={styles.sectionLabel}>Precio</Text>
-        <PriceSlider
-          min={0}
-          max={200}
-          value={value.price ?? 0}
-          onChange={(v) => onChange({ ...value, price: v })}
-        />
+              {isLoadingOptions ? (
+                <View style={styles.loadingBox}>
+                  <ActivityIndicator size="small" />
+                  <Text style={styles.loadingText}>Cargando opciones...</Text>
+                </View>
+              ) : (
+                <SubtagList
+                  items={subtags}
+                  selected={value.subtags ?? []}
+                  onToggle={handleToggleSubtag}
+                />
+              )}
 
-        {/* Popularidad */}
-        <Text style={styles.sectionLabel}>Popularidad</Text>
-        <RatingPicker
-          value={value.rating ?? 0}
-          onChange={(r) => onChange({ ...value, rating: r })}
-        />
+              {isLoadingOptions ? (
+              <View style={styles.loadingBox}>
+                <ActivityIndicator size="small" />
+                <Text style={styles.loadingText}>Cargando opciones...</Text>
+              </View>
+            ) : hasApproaches ? (
+              <>
+                <Text style={styles.sectionLabel}>Enfoques</Text>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Pressable
-            onPress={() =>
-              onChange({
-                categoryKey: data.categories[0].key,
-                subtags: [],
-                price: 0,
-                rating: 0,
-              })
-            }
-            style={styles.clearBtn}
-          >
-            <Text style={styles.clearText}>Limpiar filtros</Text>
-          </Pressable>
-        </View>
+                <SubtagList
+                  items={approaches}
+                  selected={value.approaches ?? []}
+                  onToggle={handleToggleApproach}
+                />
+              </>
+            ) : null}
+
+              {!!currentCategory?.price?.ranges?.length && (
+                <>
+                  <Text style={styles.sectionLabel}>Precio</Text>
+
+                  <PriceSlider
+                    ranges={currentCategory.price.ranges}
+                    selectedIndex={value.priceIndex ?? 0}
+                    onChangeIndex={(index) =>
+                      onChange({
+                        ...value,
+                        priceIndex: index,
+                        isFree: false,
+                      })
+                    }
+                    hasFreeOption={currentCategory.price.hasFreeOption ?? false}
+                    isFree={value.isFree ?? false}
+                    onToggleFree={(nextIsFree) =>
+                      onChange({
+                        ...value,
+                        isFree: nextIsFree,
+                      })
+                    }
+                  />
+                </>
+              )}
+            </>
+          )}
+        </ScrollView>
       </Animated.View>
     </View>
   );
