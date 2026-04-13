@@ -36,7 +36,7 @@ export default function FilterSectionScreen({ navigation }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubtags, setSelectedSubtags] = useState([]);
   const [selectedFocuses, setSelectedFocuses] = useState([]);
-  const [priceValue, setPriceValue] = useState(0);
+  const [selectedPriceRangeId, setSelectedPriceRangeId] = useState(null);
   const [isFree, setIsFree] = useState(false);
 
   const { updateDraft } = useAddPlaceDraft();
@@ -74,16 +74,24 @@ export default function FilterSectionScreen({ navigation }) {
   }, [categories, selectedCategoryId]);
 
   const hasFocuses = focuses.length > 0;
+  const shouldShowPriceSummary = step >= 4;
+
+  const selectedPriceRange = useMemo(() => {
+    const ranges = categoryConfig?.price?.ranges ?? [];
+    return ranges.find((item) => item.id === selectedPriceRangeId) ?? null;
+  }, [categoryConfig, selectedPriceRangeId]);
 
   const handleSelectCategory = async (category) => {
     try {
+      const defaultRangeId = category.price?.ranges?.[0]?.id ?? null;
+
       setSelectedCategoryId(category.id);
       setSelectedSubtags([]);
       setSelectedFocuses([]);
       setSubtags([]);
       setFocuses([]);
       setIsFree(false);
-      setPriceValue(category.price?.defaultValue ?? 0);
+      setSelectedPriceRangeId(defaultRangeId);
 
       setIsLoadingStepData(true);
 
@@ -158,11 +166,16 @@ export default function FilterSectionScreen({ navigation }) {
       return;
     }
 
+    if (!isFree && !selectedPriceRangeId) {
+      Alert.alert("Selecciona un rango de precio");
+      return;
+    }
+
     const payload = {
       categoryId: selectedCategoryId,
       subtags: selectedSubtags.map((item) => item.id),
       focuses: selectedFocuses.map((item) => item.id),
-      price: isFree ? 0 : priceValue,
+      priceRangeId: isFree ? null : selectedPriceRangeId,
       isFree,
     };
 
@@ -203,6 +216,14 @@ export default function FilterSectionScreen({ navigation }) {
                     {selectedFocuses.map((item) => item.label).join(", ")}
                   </Text>
                 )}
+
+                {shouldShowPriceSummary ? (
+                  isFree ? (
+                    <Text style={styles.summarySub}>Gratis</Text>
+                  ) : selectedPriceRange ? (
+                    <Text style={styles.summarySub}>{selectedPriceRange.label}</Text>
+                  ) : null
+                ) : null}
               </View>
             )}
 
@@ -253,9 +274,9 @@ export default function FilterSectionScreen({ navigation }) {
               <>
                 <PriceSection
                   config={categoryConfig.price}
-                  value={priceValue}
+                  selectedRangeId={selectedPriceRangeId}
                   isFree={isFree}
-                  onChangeValue={setPriceValue}
+                  onChangeRangeId={setSelectedPriceRangeId}
                   onToggleFree={() => setIsFree((prev) => !prev)}
                 />
 

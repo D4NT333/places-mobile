@@ -1,41 +1,89 @@
 import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    marginTop: 12,
+    gap: 14,
   },
 
   title: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+
+  currentLabel: {
+    fontSize: 28,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+
+  freeBtn: {
+    alignSelf: "flex-start",
+    minWidth: 110,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  freeBtnActive: {
+    backgroundColor: "#222",
+    borderColor: "#222",
+  },
+
+  freeBtnText: {
     fontSize: 16,
     fontWeight: "700",
-    marginBottom: 10,
   },
 
-  freeRow: {
+  freeBtnTextActive: {
+    color: "#FFF",
+  },
+
+  controlsRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    marginBottom: 10,
+    gap: 14,
   },
 
-  box: {
-    width: 20,
-    height: 20,
+  controlBtn: {
+    width: 54,
+    height: 54,
+    borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "#111",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  boxActive: {
-    backgroundColor: "#111",
+  controlBtnDisabled: {
+    opacity: 0.35,
   },
 
-  freeText: {
+  controlBtnText: {
+    fontSize: 30,
     fontWeight: "700",
+    lineHeight: 32,
   },
 
-  labels: {
+  stepsTrack: {
+    flex: 1,
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
+    alignItems: "center",
+    gap: 8,
+  },
+
+  step: {
+    flex: 1,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#E4E4E4",
+  },
+
+  stepActive: {
+    backgroundColor: "#222",
   },
 });
+
+export default styles;

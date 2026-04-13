@@ -54,6 +54,19 @@ export default function FiltersSummary({ filters, onPress }) {
     return focuses.filter((item) => filters.focuses.includes(item.id));
   }, [focuses, filters?.focuses]);
 
+  const selectedPriceLabel = useMemo(() => {
+    if (filters?.isFree) {
+      return "Gratis";
+    }
+
+    const ranges = category?.price?.ranges ?? [];
+    const selectedRange = ranges.find(
+      (item) => item.id === filters?.priceRangeId
+    );
+
+    return selectedRange?.label ?? null;
+  }, [category, filters?.isFree, filters?.priceRangeId]);
+
   if (!filters) return null;
 
   return (
@@ -83,9 +96,9 @@ export default function FiltersSummary({ filters, onPress }) {
         </View>
       ) : null}
 
-      <Text style={styles.priceText}>
-        {filters.isFree ? "Gratis" : `Precio aprox. $${filters.price}`}
-      </Text>
+      {selectedPriceLabel ? (
+        <Text style={styles.priceText}>{selectedPriceLabel}</Text>
+      ) : null}
     </Pressable>
   );
 }
