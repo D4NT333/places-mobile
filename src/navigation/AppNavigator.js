@@ -6,6 +6,8 @@ import {MainPager} from "../components";
 import {PlaceDetailScreen} from "../screens";
 import {ChangeDescriptionScreen} from "../screens";
 
+import {CommentScreen} from "../screens";
+
 import {FavoritesScreen} from "../screens"; 
 
 import {AddedPlacesScreen} from "../screens";
@@ -55,6 +57,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ChangeDescriptionScreen"
           component={ChangeDescriptionScreen}
+        />
+
+        <Stack.Screen
+          name="CommentScreen"
+          component={CommentScreen}
         />
         
           {/* Pantalla de edición de perfil */}

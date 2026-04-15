@@ -31,10 +31,15 @@ export default function PlaceDetailScreen({ route }) {
     return mockComments;
   }, [placeId]);
 
-  const handleAddComment = () => console.log("Add comment");
+  const handleAddComment = () => {
+    navigation.navigate("CommentScreen", {
+      placeId,
+      placeName: place.name,
+    });
+  };
+
   const handleLoadMore = () => console.log("Load more comments");
 
-  // ✅ NUEVO: ir a pantalla de cambio de descripción
   const handleImproveDescription = () => {
     navigation.navigate("ChangeDescriptionScreen", {
       placeId,
@@ -66,7 +71,7 @@ export default function PlaceDetailScreen({ route }) {
           rating={place.rating}
           reviewsCount={place.reviewsCount}
           tags={place.tags}
-          onImproveDescription={handleImproveDescription} // ✅ NUEVO
+          onImproveDescription={handleImproveDescription}
         />
 
         <View style={styles.sectionGap} />
