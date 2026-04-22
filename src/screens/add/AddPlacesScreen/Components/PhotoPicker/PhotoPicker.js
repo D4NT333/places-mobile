@@ -1,24 +1,71 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, Image } from "react-native";
 import styles from "./styles";
 import { pickImages } from "../../../../../services";
 
 export default function PhotoPicker({ photos = [], onChangePhotos }) {
-  const handlePickImages = async () => {
-    try {
-      const selectedImages = await pickImages();
+  const MIN_PHOTOS = 3;
+  const MAX_PHOTOS = 6;
 
-      if (!selectedImages.length) return;
+  const [showMinPhotosWarning, setShowMinPhotosWarning] = useState(false);
+  const [showMaxPhotosWarning, setShowMaxPhotosWarning] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
-      onChangePhotos(selectedImages);
-    } catch (error) {
-      console.error("Error al seleccionar fotos:", error);
+  const [isPickingImages, setIsPickingImages] = useState(false);
+
+  const validatePhotos = (photosToValidate) => {
+    const total = photosToValidate.length;
+
+    setShowMinPhotosWarning(hasInteracted && total < MIN_PHOTOS);
+    setShowMaxPhotosWarning(total > MAX_PHOTOS);
+  };
+
+const handlePickImages = async () => {
+  try {
+    setHasInteracted(true);
+    setIsPickingImages(true);
+
+    const t0 = Date.now();
+    const selectedImages = await pickImages();
+    console.log("A. pickImages terminó en:", Date.now() - t0, "ms");
+
+    if (!selectedImages.length) {
+      validatePhotos(photos);
+      return;
     }
+
+    const updatedPhotos = [...photos, ...selectedImages];
+
+    if (updatedPhotos.length > MAX_PHOTOS) {
+      setShowMaxPhotosWarning(true);
+      setShowMinPhotosWarning(false);
+      return;
+    }
+
+    const t1 = Date.now();
+    onChangePhotos(updatedPhotos);
+    console.log("B. onChangePhotos ejecutado en:", Date.now() - t1, "ms");
+
+    setShowMaxPhotosWarning(false);
+    setShowMinPhotosWarning(updatedPhotos.length < MIN_PHOTOS);
+
+    requestAnimationFrame(() => {
+      console.log("C. Primer frame después de actualizar fotos");
+    });
+  } catch (error) {
+    console.error("Error al seleccionar fotos:", error);
+  } finally {
+    setIsPickingImages(false);
+  }
   };
 
   const handleRemovePhoto = (indexToRemove) => {
     const updatedPhotos = photos.filter((_, index) => index !== indexToRemove);
     onChangePhotos(updatedPhotos);
+
+    setHasInteracted(true);
+    setShowMaxPhotosWarning(false);
+    setShowMinPhotosWarning(updatedPhotos.length < MIN_PHOTOS);
   };
 
   return (
@@ -63,6 +110,18 @@ export default function PhotoPicker({ photos = [], onChangePhotos }) {
             <Text style={styles.buttonText}>Cambiar fotos</Text>
           </Pressable>
         </>
+      )}
+
+      {showMinPhotosWarning && (
+        <Text style={styles.inputErrorText}>
+          Selecciona al menos 3 fotos.
+        </Text>
+      )}
+
+      {showMaxPhotosWarning && (
+        <Text style={styles.inputErrorText}>
+          El máximo permitido es 6 fotos.
+        </Text>
       )}
     </View>
   );

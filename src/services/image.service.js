@@ -2,26 +2,34 @@ import * as ImagePicker from "expo-image-picker";
 
 export default async function pickImages() {
   try {
-    // pedir permisos
+    const t0 = Date.now();
+
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    console.log("Permisos:", Date.now() - t0, "ms");
 
     if (!permissionResult.granted) {
       throw new Error("Permiso denegado");
     }
 
-    // abrir galería
+    const t1 = Date.now();
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsMultipleSelection: true,
-      quality: 0.7,
+      selectionLimit: 6,
     });
+
+    console.log("Picker completo:", Date.now() - t1, "ms");
 
     if (result.canceled) {
       return [];
     }
 
-    return result.assets; // 🔥 aquí vienen las imágenes
+    console.log("Assets devueltos:", result.assets?.length ?? 0);
+
+    return result.assets;
   } catch (error) {
     console.error("Error en pickImages:", error);
     throw error;

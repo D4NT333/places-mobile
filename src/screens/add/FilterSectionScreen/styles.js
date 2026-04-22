@@ -55,4 +55,8 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
   },
+  
+  disabledBtn: {
+  opacity: 0.5,
+},
 });

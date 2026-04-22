@@ -111,31 +111,31 @@ export default function FilterSectionScreen({ navigation }) {
     }
   };
 
-  const toggleSubtag = (item) => {
-    setSelectedSubtags((prev) => {
-      const exists = prev.some((v) => v.id === item.id);
+ const toggleSubtag = (item) => {
+  setSelectedSubtags((prev) => {
+    const exists = prev.some((v) => v.id === item.id);
 
-      let next;
+    if (exists) {
+      return prev.filter((v) => v.id !== item.id);
+    }
 
-      if (exists) {
-        next = prev.filter((v) => v.id !== item.id);
-      } else {
-        if (prev.length >= 2) {
-          Alert.alert("Máximo 2 subetiquetas");
-          return prev;
-        }
-        next = [...prev, item];
-      }
+    if (prev.length >= 2) {
+      Alert.alert("Máximo 2 subetiquetas");
+      return prev;
+    }
 
-      if (next.length >= 1) {
-        setTimeout(() => {
-          setStep(hasFocuses ? 3 : 4);
-        }, 200);
-      }
-
-      return next;
-    });
+    return [...prev, item];
+  });
   };
+
+  const handleContinueFromSubtags = () => {
+  if (selectedSubtags.length < 1) {
+    Alert.alert("Selecciona al menos 1 subetiqueta");
+    return;
+  }
+
+  setStep(hasFocuses ? 3 : 4);
+};
 
   const toggleFocus = (item) => {
     setSelectedFocuses((prev) => {
@@ -248,13 +248,24 @@ export default function FilterSectionScreen({ navigation }) {
 
             {!isLoadingStepData && step === 2 && (
               <>
-                <SectionTitle subtitle="Elige las etiquetas que lo representen" />
+                <SectionTitle subtitle="Selecciona 1 o 2 subetiquetas" />
 
                 <ChipGroup
                   options={subtags}
                   selectedValues={selectedSubtags}
                   onToggle={toggleSubtag}
                 />
+
+                <Pressable
+                  style={[
+                    styles.finishBtn,
+                    selectedSubtags.length < 1 && styles.disabledBtn
+                  ]}
+                  onPress={handleContinueFromSubtags}
+                  disabled={selectedSubtags.length < 1}
+                >
+                  <Text style={styles.finishText}>Continuar</Text>
+                </Pressable>
               </>
             )}
 

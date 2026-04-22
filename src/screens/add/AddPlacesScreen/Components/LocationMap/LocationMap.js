@@ -11,6 +11,7 @@ export default function LocationMap({
 }) {
   const [initialRegion, setInitialRegion] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasUserSelectedLocation, setHasUserSelectedLocation] = useState(false);
 
   useEffect(() => {
     loadUserLocation();
@@ -30,14 +31,6 @@ export default function LocationMap({
       };
 
       setInitialRegion(region);
-
-      // si no hay ubicación seleccionada, usa la del usuario
-      if (!selectedLocation) {
-        onChangeLocation({
-          latitude: location.latitude,
-          longitude: location.longitude,
-        });
-      }
     } catch (error) {
       console.log("Error ubicación:", error.message);
     } finally {
@@ -48,6 +41,7 @@ export default function LocationMap({
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
 
+    setHasUserSelectedLocation(true);
     onChangeLocation({ latitude, longitude });
   };
 
@@ -61,15 +55,17 @@ export default function LocationMap({
           <Text>Cargando ubicación...</Text>
         </View>
       ) : (
-       <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        initialRegion={initialRegion}
-        showsUserLocation
-        onPress={handleMapPress}
-      >
-        {selectedLocation && <Marker coordinate={selectedLocation} />}
-      </MapView>
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          initialRegion={initialRegion}
+          showsUserLocation
+          onPress={handleMapPress}
+        >
+          {hasUserSelectedLocation && selectedLocation && (
+            <Marker coordinate={selectedLocation} />
+          )}
+        </MapView>
       )}
     </View>
   );

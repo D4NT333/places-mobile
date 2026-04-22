@@ -4,20 +4,20 @@ const styles = StyleSheet.create({
   container: {
     borderWidth: 2,
     borderColor: "#2A2A2A",
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: "#FFFFFF",
-    paddingVertical: 16,
-    paddingHorizontal: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
 
   row: {
-    minHeight: 28,
+    minHeight: 22,
     justifyContent: "center",
   },
 
   text: {
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 20,
     fontWeight: "500",
     color: "#3F3F46",
     textAlign: "center",

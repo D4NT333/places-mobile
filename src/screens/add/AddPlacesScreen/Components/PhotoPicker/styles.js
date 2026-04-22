@@ -117,4 +117,9 @@ removeButtonText: {
   fontWeight: "700",
   lineHeight: 20,
 },
+inputErrorText: {
+  color: "#DC2626",
+  marginTop: 8,
+  fontSize: 12,
+},
 });
