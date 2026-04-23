@@ -1,22 +1,18 @@
-import { API_URL } from "./client";
+import client from "./client";
 
 export default async function sendCurrentLocationToBackendService({ latitude, longitude }) {
-  const response = await fetch(`${API_URL}/api/feed/location`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  try {
+    const response = await client.post("/api/feed/location", {
       latitude,
       longitude,
-    }),
-  });
+    });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Error al enviar ubicación al backend");
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error al enviar ubicación al backend:",
+      error?.response?.data || error.message
+    );
+    throw error;
   }
-
-  return data;
 }

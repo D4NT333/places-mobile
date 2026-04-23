@@ -40,6 +40,13 @@ export default async function googleSignInService() {
     const firebaseUser = userCredential.user;
     const firebaseIdToken = await firebaseUser.getIdToken();
 
+    console.log("googleIdToken length:", googleIdToken?.length);
+    console.log("googleIdToken first chars:", googleIdToken?.slice(0, 30));
+
+    console.log("firebaseIdToken length:", firebaseIdToken?.length);
+    console.log("firebaseIdToken first chars:", firebaseIdToken?.slice(0, 30));
+    console.log("firebaseIdToken parts:", firebaseIdToken?.split(".")?.length);
+
     return {
       firebaseUser,
       idToken: firebaseIdToken,

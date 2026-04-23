@@ -1,25 +1,23 @@
-import { API_URL } from "../../api/client";
+import client from "../../api/client";
 
 export default async function syncSessionWithBackendService({ idToken }) {
   try {
-    const response = await fetch(`${API_URL}/api/auth/session`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({}),
-    });
+    const response = await client.post(
+      "/api/auth/session",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      }
+    );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data?.message || "No se pudo sincronizar la sesión con el backend.");
-    }
-
-    return data;
+    return response.data;
   } catch (error) {
-    console.error("syncSessionWithBackendService error:", error);
+    console.error(
+      "syncSessionWithBackendService error:",
+      error?.response?.data || error.message
+    );
     throw error;
   }
 }

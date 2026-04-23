@@ -10,6 +10,8 @@ import { filtersData } from "../FiltersScreen/data";
 import { getCurrentLocationService } from "../../../services/";
 import  sendCurrentLocationToBackendService  from "../../../services/api/sendCurrentLocationToBackend.service";
 
+import { auth } from "../../../services/firebase/config";
+
 import { getTagsService } from "../../../services/firebase/firestore/tags/getTags.service";
 
 function makeBatch(startIndex, count = 15) {
@@ -180,6 +182,12 @@ export default function HomeScreen() {
 
   initializeLocation();
 }, []);
+
+useEffect(() => {
+  console.log("Usuario actual de auth:", auth.currentUser);
+  console.log("UID actual:", auth.currentUser?.uid);
+}, []);
+  
 
   return (
     <View style={{ flex: 1 }}>
