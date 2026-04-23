@@ -2,10 +2,19 @@ import React from "react";
 import { View, Pressable, Text } from "react-native";
 import styles from "./styles";
 
-export default function BottomActions({ onCancel, onSubmit, submitDisabled = false }) {
+export default function BottomActions({
+  onCancel,
+  onSubmit,
+  submitDisabled = false,
+  isSubmitting = false,
+}) {
   return (
     <View style={styles.row}>
-      <Pressable onPress={onCancel} style={[styles.btn, styles.btnGhost]}>
+      <Pressable
+        onPress={onCancel}
+        style={[styles.btn, styles.btnGhost]}
+        disabled={isSubmitting}
+      >
         <Text style={[styles.btnText, styles.textGhost]}>Cancelar</Text>
       </Pressable>
 
@@ -25,7 +34,7 @@ export default function BottomActions({ onCancel, onSubmit, submitDisabled = fal
             submitDisabled && styles.submitTextDisabled,
           ]}
         >
-          Subir
+          {isSubmitting ? "Subiendo..." : "Subir"}
         </Text>
       </Pressable>
     </View>

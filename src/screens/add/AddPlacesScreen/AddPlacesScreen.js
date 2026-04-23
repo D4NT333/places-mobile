@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text } from "react-native";
 import { LayoutScreen } from "../../../layouts";
 import { useNavigation } from "@react-navigation/native";
@@ -21,9 +21,18 @@ import createPlaceSubmissionService from "../../../services/api/createPlaceSubmi
 
 import uploadPlaceSubmissionPhotosToStorageService   from "../../../services/firebase/storage/uploadPlaceSubmissionPhotosToStorage.service";
 
+import LoadingOverlay from "../../../components/LoadingOverlay";
+
 export default function AddPlaceScreen() {
   const navigation = useNavigation();
   const { draft, updateDraft, resetDraft } = useAddPlaceDraft();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFinished, setSubmitFinished] = useState(false);
+  const [overlayTitle, setOverlayTitle] = useState("Subiendo lugar...");
+  const [overlayMessage, setOverlayMessage] = useState(
+    "Estamos cargando las fotos y registrando tu propuesta."
+  );
 
   const handleGoToFilters = () => {
     navigation.navigate("FilterSectionScreen");
@@ -70,9 +79,14 @@ export default function AddPlaceScreen() {
     isLocationValid;
 
   const handleSubmit = async () => {
-  if (!isFormValid) return;
+  if (!isFormValid || isSubmitting) return;
 
   try {
+    setIsSubmitting(true);
+    setSubmitFinished(false);
+    setOverlayTitle("Subiendo lugar...");
+    setOverlayMessage("Estamos cargando las fotos y registrando tu propuesta.");
+
     const categoryId = filters.categoryId ?? null;
 
     let categoryLabel = "Sin categoría";
@@ -109,15 +123,15 @@ export default function AddPlaceScreen() {
       }
     }
 
-    const submissionId = `sub_${Date.now()}`;
+    const placeSubmissionId = `place_sub_${Date.now()}`;
 
-    const uploadedPhotos = await uploadPlaceSubmissionPhotosToStorageService ({
+    const uploadedPhotos = await uploadPlaceSubmissionPhotosToStorageService({
       photos,
-      placeSubmissionId: submissionId,
+      placeSubmissionId,
     });
 
     const payload = {
-      submissionId,
+      placeSubmissionId,
       name: trimmedName,
       description: trimmedDescription,
       category: categoryLabel,
@@ -133,26 +147,31 @@ export default function AddPlaceScreen() {
         : null,
     };
 
-    console.log("========== NUEVO LUGAR ==========");
-    console.log("submissionId:", payload.submissionId);
-    console.log("Nombre:", payload.name);
-    console.log("Descripción:", payload.description);
-    console.log("Categoría:", payload.category);
-    console.log("Subtags:", payload.subtags);
-    console.log("Enfoques:", payload.focuses);
-    console.log("Precio:", payload.price);
-    console.log("Fotos subidas:", payload.photos);
-    console.log("Ubicación:", payload.location);
-    console.log("=================================");
-
     const response = await createPlaceSubmissionService(payload);
     console.log("Respuesta backend:", response);
 
-    resetDraft();
+    setSubmitFinished(true);
+    setOverlayTitle("Lugar enviado");
+    setOverlayMessage("Tu propuesta fue enviada correctamente a revisión.");
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmitFinished(false);
+      resetDraft();
+    }, 1400);
   } catch (error) {
     console.error("Error armando submit del lugar:", error);
+
+    setSubmitFinished(true);
+    setOverlayTitle("No se pudo enviar");
+    setOverlayMessage("Ocurrió un error al subir el lugar. Intenta de nuevo.");
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmitFinished(false);
+    }, 1700);
   }
-};
+  };
 
   return (
     <LayoutScreen
@@ -186,7 +205,15 @@ export default function AddPlaceScreen() {
         <BottomActions
           onCancel={handleCancel}
           onSubmit={handleSubmit}
-          submitDisabled={!isFormValid}
+          submitDisabled={!isFormValid || isSubmitting}
+          isSubmitting={isSubmitting}
+        />
+
+        <LoadingOverlay
+          visible={isSubmitting}
+          loading={!submitFinished}
+          title={overlayTitle}
+          message={overlayMessage}
         />
       </View>
     </LayoutScreen>
