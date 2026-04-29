@@ -1,4 +1,5 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import * as ImageManipulator from "expo-image-manipulator";
 import { storage, auth } from "../config";
 
 function getFileExtension(photo) {
@@ -10,6 +11,89 @@ function getFileExtension(photo) {
   if (photo?.mimeType === "image/webp") return "webp";
 
   return "jpg";
+}
+
+function getContentTypeByExtension(extension) {
+  const map = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+  };
+
+  return map[extension] || "image/jpeg";
+}
+
+function getSafeResizeWidth(currentWidth, maxWidth) {
+  if (!currentWidth || typeof currentWidth !== "number") {
+    return maxWidth;
+  }
+
+  return currentWidth > maxWidth ? maxWidth : currentWidth;
+}
+
+async function uriToBlob(uri) {
+  const response = await fetch(uri);
+  return await response.blob();
+}
+
+async function uploadSingleImageVersion({
+  uri,
+  storagePath,
+  contentType,
+  metadata,
+}) {
+  const blob = await uriToBlob(uri);
+  const storageRef = ref(storage, storagePath);
+
+  await uploadBytes(storageRef, blob, {
+    contentType,
+    customMetadata: metadata,
+  });
+
+  const downloadURL = await getDownloadURL(storageRef);
+
+  return {
+    storagePath,
+    downloadURL,
+  };
+}
+
+async function createImageVersions(photo) {
+  const originalUri = photo.uri;
+
+  const mediumResizeWidth = getSafeResizeWidth(photo?.width, 1000);
+  const thumbnailResizeWidth = getSafeResizeWidth(photo?.width, 300);
+
+  const mediumResult = await ImageManipulator.manipulateAsync(
+    originalUri,
+    [{ resize: { width: mediumResizeWidth } }],
+    {
+      compress: 0.75,
+      format: ImageManipulator.SaveFormat.JPEG,
+    }
+  );
+
+  const thumbnailResult = await ImageManipulator.manipulateAsync(
+    originalUri,
+    [{ resize: { width: thumbnailResizeWidth } }],
+    {
+      compress: 0.65,
+      format: ImageManipulator.SaveFormat.JPEG,
+    }
+  );
+
+  return {
+    originalUri,
+    mediumUri: mediumResult.uri,
+    thumbnailUri: thumbnailResult.uri,
+
+    mediumWidth: mediumResult.width ?? null,
+    mediumHeight: mediumResult.height ?? null,
+
+    thumbnailWidth: thumbnailResult.width ?? null,
+    thumbnailHeight: thumbnailResult.height ?? null,
+  };
 }
 
 export default async function uploadPlaceSubmissionPhotosToStorageService({
@@ -39,36 +123,91 @@ export default async function uploadPlaceSubmissionPhotosToStorageService({
       throw new Error(`La foto en posición ${index} no tiene uri.`);
     }
 
-    const extension = getFileExtension(photo);
-    const fileName = `photo-${index + 1}.${extension}`;
-    const storagePath = `submissions/${uid}/placeSubmissions/${placeSubmissionId}/${fileName}`;
+    const originalExtension = getFileExtension(photo);
+    const originalContentType =
+      photo?.mimeType || getContentTypeByExtension(originalExtension);
 
-    const response = await fetch(photo.uri);
-    const blob = await response.blob();
+    const originalFileName = `photo-${index + 1}.${originalExtension}`;
+    const mediumFileName = `photo-${index + 1}-medium.jpg`;
+    const thumbnailFileName = `photo-${index + 1}-thumbnail.jpg`;
 
-    const storageRef = ref(storage, storagePath);
+    const basePath = `submissions/${uid}/placeSubmissions/${placeSubmissionId}`;
 
-    await uploadBytes(storageRef, blob, {
-      contentType: photo?.mimeType || "image/jpeg",
-      customMetadata: {
-        uid,
-        submissionType: "place",
-        placeSubmissionId,
-        originalFileName: photo?.fileName || fileName,
-        source: "mobile_place_submission",
+    const originalStoragePath = `${basePath}/original/${originalFileName}`;
+    const mediumStoragePath = `${basePath}/medium/${mediumFileName}`;
+    const thumbnailStoragePath = `${basePath}/thumbnail/${thumbnailFileName}`;
+
+    const {
+      originalUri,
+      mediumUri,
+      thumbnailUri,
+      mediumWidth,
+      mediumHeight,
+      thumbnailWidth,
+      thumbnailHeight,
+    } = await createImageVersions(photo);
+
+    const commonMetadata = {
+      uid,
+      submissionType: "place",
+      placeSubmissionId,
+      originalFileName: photo?.fileName || originalFileName,
+      source: "mobile_place_submission",
+    };
+
+    const originalUpload = await uploadSingleImageVersion({
+      uri: originalUri,
+      storagePath: originalStoragePath,
+      contentType: originalContentType,
+      metadata: {
+        ...commonMetadata,
+        version: "original",
       },
     });
 
-    const downloadURL = await getDownloadURL(storageRef);
+    const mediumUpload = await uploadSingleImageVersion({
+      uri: mediumUri,
+      storagePath: mediumStoragePath,
+      contentType: "image/jpeg",
+      metadata: {
+        ...commonMetadata,
+        version: "medium",
+      },
+    });
+
+    const thumbnailUpload = await uploadSingleImageVersion({
+      uri: thumbnailUri,
+      storagePath: thumbnailStoragePath,
+      contentType: "image/jpeg",
+      metadata: {
+        ...commonMetadata,
+        version: "thumbnail",
+      },
+    });
 
     uploadedPhotos.push({
-      storagePath,
-      downloadURL,
-      fileName: photo?.fileName || fileName,
-      mimeType: photo?.mimeType || "image/jpeg",
+      fileName: photo?.fileName || originalFileName,
+      mediumFileName,
+      thumbnailFileName,
+
+      mimeType: originalContentType,
+
+      storagePath: originalUpload.storagePath,
+      mediumPath: mediumUpload.storagePath,
+      thumbnailPath: thumbnailUpload.storagePath,
+
+      downloadURL: originalUpload.downloadURL,
+      mediumURL: mediumUpload.downloadURL,
+      thumbnailURL: thumbnailUpload.downloadURL,
+
       width: photo?.width ?? null,
       height: photo?.height ?? null,
       fileSize: photo?.fileSize ?? null,
+
+      mediumWidth,
+      mediumHeight,
+      thumbnailWidth,
+      thumbnailHeight,
     });
   }
 

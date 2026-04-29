@@ -19,7 +19,7 @@ import { getApproachesByTagId } from "../../../services/firebase/firestore/appro
 
 import createPlaceSubmissionService from "../../../services/api/createPlaceSubmission.service";
 
-import uploadPlaceSubmissionPhotosToStorageService   from "../../../services/firebase/storage/uploadPlaceSubmissionPhotosToStorage.service";
+import uploadPlaceSubmissionPhotosToStorageService from "../../../services/firebase/storage/uploadPlaceSubmissionPhotosToStorage.service";
 
 import LoadingOverlay from "../../../components/LoadingOverlay";
 
@@ -49,10 +49,14 @@ export default function AddPlaceScreen() {
   const photos = draft.photos ?? [];
   const selectedLocation = draft.selectedLocation ?? null;
 
-  const hasCategory = !!filters.categoryId;
-  const hasSubtags = Array.isArray(filters.subtags) && filters.subtags.length >= 1;
+  const tagId = filters.tagId ?? filters.categoryId ?? null;
+
+  const hasTag = !!tagId;
+  const hasSubtags =
+    Array.isArray(filters.subtags) && filters.subtags.length >= 1;
   const hasFocuses =
-    !filters.hasFocuses || (Array.isArray(filters.focuses) && filters.focuses.length >= 1);
+    !filters.hasFocuses ||
+    (Array.isArray(filters.focuses) && filters.focuses.length >= 1);
 
   const hasPrice = !!filters.isFree || !!filters.priceRangeId;
 
@@ -65,11 +69,7 @@ export default function AddPlaceScreen() {
     typeof selectedLocation.latitude === "number" &&
     typeof selectedLocation.longitude === "number";
 
-  const areFiltersValid =
-    hasCategory &&
-    hasSubtags &&
-    hasFocuses &&
-    hasPrice;
+  const areFiltersValid = hasTag && hasSubtags && hasFocuses && hasPrice;
 
   const isFormValid =
     isNameValid &&
@@ -79,98 +79,136 @@ export default function AddPlaceScreen() {
     isLocationValid;
 
   const handleSubmit = async () => {
-  if (!isFormValid || isSubmitting) return;
+    if (!isFormValid || isSubmitting) return;
 
-  try {
-    setIsSubmitting(true);
-    setSubmitFinished(false);
-    setOverlayTitle("Subiendo lugar...");
-    setOverlayMessage("Estamos cargando las fotos y registrando tu propuesta.");
+    try {
+      setIsSubmitting(true);
+      setSubmitFinished(false);
+      setOverlayTitle("Subiendo lugar...");
+      setOverlayMessage(
+        "Estamos cargando las fotos y registrando tu propuesta."
+      );
 
-    const categoryId = filters.categoryId ?? null;
+      let tagLabel =
+        filters.tagLabel ??
+        filters.categoryLabel ??
+        "Sin etiqueta";
 
-    let categoryLabel = "Sin categoría";
-    let selectedSubtagLabels = [];
-    let selectedFocusLabels = [];
-    let selectedPriceLabel = filters.isFree ? "Gratis" : "Sin rango";
+      let selectedSubtagLabels = Array.isArray(filters.subtagLabels)
+        ? filters.subtagLabels
+        : [];
 
-    if (categoryId) {
-      const [tagsData, subtagsData, approachesData] = await Promise.all([
-        getTagsService(),
-        getSubtagsByTagId(categoryId),
-        getApproachesByTagId(categoryId),
-      ]);
+      let selectedFocusLabels = Array.isArray(filters.focusLabels)
+        ? filters.focusLabels
+        : [];
 
-      const category = tagsData.find((item) => item.id === categoryId) ?? null;
-      categoryLabel = category?.label ?? "Sin categoría";
+      let selectedPriceLabel =
+        filters.priceLabel ??
+        (filters.isFree ? "Gratis" : "Sin rango");
 
-      selectedSubtagLabels = subtagsData
-        .filter((item) => (filters.subtags ?? []).includes(item.id))
-        .map((item) => item.label);
-
-      selectedFocusLabels = approachesData
-        .filter((item) => (filters.focuses ?? []).includes(item.id))
-        .map((item) => item.label);
-
-      if (!filters.isFree) {
-        const selectedRange = category?.price?.ranges?.find(
-          (item) => item.id === filters.priceRangeId
+      const needsFallbackData =
+        tagId &&
+        (
+          !tagLabel ||
+          tagLabel === "Sin etiqueta" ||
+          selectedSubtagLabels.length === 0 ||
+          (!filters.isFree && selectedPriceLabel === "Sin rango")
         );
 
-        if (selectedRange?.label) {
-          selectedPriceLabel = selectedRange.label;
+      if (needsFallbackData) {
+        const [tagsData, subtagsData, approachesData] = await Promise.all([
+          getTagsService(),
+          getSubtagsByTagId(tagId),
+          getApproachesByTagId(tagId),
+        ]);
+
+        const tag = tagsData.find((item) => item.id === tagId) ?? null;
+
+        if (!tagLabel || tagLabel === "Sin etiqueta") {
+          tagLabel = tag?.label ?? "Sin etiqueta";
+        }
+
+        if (selectedSubtagLabels.length === 0) {
+          selectedSubtagLabels = subtagsData
+            .filter((item) => (filters.subtags ?? []).includes(item.id))
+            .map((item) => item.label);
+        }
+
+        if (selectedFocusLabels.length === 0) {
+          selectedFocusLabels = approachesData
+            .filter((item) => (filters.focuses ?? []).includes(item.id))
+            .map((item) => item.label);
+        }
+
+        if (!filters.isFree && selectedPriceLabel === "Sin rango") {
+          const ranges =
+            tag?.priceConfig?.ranges ??
+            tag?.price?.ranges ??
+            [];
+
+          const selectedRange = ranges.find(
+            (item) => item.id === filters.priceRangeId
+          );
+
+          if (selectedRange?.label) {
+            selectedPriceLabel = selectedRange.label;
+          }
         }
       }
+
+      const placeSubmissionId = `place_sub_${Date.now()}`;
+
+      const uploadedPhotos = await uploadPlaceSubmissionPhotosToStorageService({
+        photos,
+        placeSubmissionId,
+      });
+
+      const payload = {
+        placeSubmissionId,
+        name: trimmedName,
+        description: trimmedDescription,
+
+        tagId,
+        tagLabel,
+
+        subtags: selectedSubtagLabels,
+        focuses: selectedFocusLabels,
+        price: selectedPriceLabel,
+        photos: uploadedPhotos,
+        location: selectedLocation
+          ? {
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+            }
+          : null,
+      };
+
+      console.log("PAYLOAD PLACE SUBMISSION:", payload);
+
+      const response = await createPlaceSubmissionService(payload);
+      console.log("Respuesta backend:", response);
+
+      setSubmitFinished(true);
+      setOverlayTitle("Lugar enviado");
+      setOverlayMessage("Tu propuesta fue enviada correctamente a revisión.");
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setSubmitFinished(false);
+        resetDraft();
+      }, 1400);
+    } catch (error) {
+      console.error("Error armando submit del lugar:", error);
+
+      setSubmitFinished(true);
+      setOverlayTitle("No se pudo enviar");
+      setOverlayMessage("Ocurrió un error al subir el lugar. Intenta de nuevo.");
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setSubmitFinished(false);
+      }, 1700);
     }
-
-    const placeSubmissionId = `place_sub_${Date.now()}`;
-
-    const uploadedPhotos = await uploadPlaceSubmissionPhotosToStorageService({
-      photos,
-      placeSubmissionId,
-    });
-
-    const payload = {
-      placeSubmissionId,
-      name: trimmedName,
-      description: trimmedDescription,
-      category: categoryLabel,
-      subtags: selectedSubtagLabels,
-      focuses: selectedFocusLabels,
-      price: selectedPriceLabel,
-      photos: uploadedPhotos,
-      location: selectedLocation
-        ? {
-            latitude: selectedLocation.latitude,
-            longitude: selectedLocation.longitude,
-          }
-        : null,
-    };
-
-    const response = await createPlaceSubmissionService(payload);
-    console.log("Respuesta backend:", response);
-
-    setSubmitFinished(true);
-    setOverlayTitle("Lugar enviado");
-    setOverlayMessage("Tu propuesta fue enviada correctamente a revisión.");
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitFinished(false);
-      resetDraft();
-    }, 1400);
-  } catch (error) {
-    console.error("Error armando submit del lugar:", error);
-
-    setSubmitFinished(true);
-    setOverlayTitle("No se pudo enviar");
-    setOverlayMessage("Ocurrió un error al subir el lugar. Intenta de nuevo.");
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitFinished(false);
-    }, 1700);
-  }
   };
 
   return (

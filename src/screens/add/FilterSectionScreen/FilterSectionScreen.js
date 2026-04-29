@@ -171,16 +171,34 @@ export default function FilterSectionScreen({ navigation }) {
       return;
     }
 
-    const payload = {
-      categoryId: selectedCategoryId,
-      subtags: selectedSubtags.map((item) => item.id),
-      focuses: selectedFocuses.map((item) => item.id),
-      priceRangeId: isFree ? null : selectedPriceRangeId,
-      isFree,
-    };
+  const payload = {
+  // Nuevo modelo bueno
+  tagId: selectedCategoryId,
+  tagLabel: categoryConfig?.label ?? "Sin etiqueta",
 
-    updateDraft({ filters: payload });
-    navigation.goBack();
+  // Compatibilidad para que el summary viejo no se rompa
+  categoryId: selectedCategoryId,
+  categoryLabel: categoryConfig?.label ?? "Sin categoría",
+
+  // IDs para lógica
+  subtags: selectedSubtags.map((item) => item.id),
+  focuses: selectedFocuses.map((item) => item.id),
+
+  // Labels para summary / UI
+  subtagLabels: selectedSubtags.map((item) => item.label),
+  focusLabels: selectedFocuses.map((item) => item.label),
+
+  priceRangeId: isFree ? null : selectedPriceRangeId,
+  priceLabel: isFree
+    ? "Gratis"
+    : selectedPriceRange?.label ?? "Sin rango",
+
+  isFree,
+  hasFocuses,
+};
+
+updateDraft({ filters: payload });
+navigation.goBack();
   };
 
   return (
