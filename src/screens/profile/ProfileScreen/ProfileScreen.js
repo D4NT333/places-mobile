@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -7,8 +7,16 @@ import { ProfileHeader, ProfileSettings } from "./Components";
 
 import styles from "./styles";
 
+import { preloadAddedPlacesSubmissions } from "../../../services/api/addedPlacesSubmissionsCache.service";
+
 export default function ProfileScreen() {
   const navigation = useNavigation();
+
+useEffect(() => {
+  preloadAddedPlacesSubmissions().catch((error) => {
+    console.log("Error al precargar lugares añadidos:", error);
+  });
+  }, []);
 
   return (
     <LayoutScreen

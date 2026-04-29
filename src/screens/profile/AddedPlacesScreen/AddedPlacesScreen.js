@@ -1,58 +1,89 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
 import AddedPlaceCard from "./Components/AddedPlaceCard";
 import DeletePlaceModal from "./Components/DeletePlaceModal";
 
+import {
+  getAddedPlacesCacheSnapshot,
+  loadMoreAddedPlacesSubmissions,
+  preloadAddedPlacesSubmissions,
+  removeAddedPlaceFromCache,
+  subscribeAddedPlacesCache,
+} from "../../../services/api/addedPlacesSubmissionsCache.service";
+
 import styles from "./styles";
 
-const MOCK_PLACES = [
-  {
-    id: "1",
-    name: "Nombre del lugar",
-    imageUrl: "https://via.placeholder.com/200x200.png?text=Lugar",
-    tag: "Etiqueta",
-    subtags: ["Etiqueta", "Etiqueta"],
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "approved",
-  },
-  {
-    id: "2",
-    name: "Nombre del lugar",
-    imageUrl: "https://via.placeholder.com/200x200.png?text=Lugar",
-    tag: "Etiqueta",
-    subtags: ["Etiqueta", "Etiqueta"],
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "in_review",
-  },
-  {
-    id: "3",
-    name: "Nombre del lugar",
-    imageUrl: "https://via.placeholder.com/200x200.png?text=Lugar",
-    tag: "Etiqueta",
-    subtags: ["Etiqueta", "Etiqueta"],
-    submittedAtLabel: "Enviado el 14 de junio",
-    returnedAtLabel: "Devuelto el 18 de junio",
-    status: "returned",
-  },
-  {
-    id: "4",
-    name: "Nombre del lugar",
-    imageUrl: "https://via.placeholder.com/200x200.png?text=Lugar",
-    tag: "Etiqueta",
-    subtags: ["Etiqueta"],
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "rejected",
-  },
-];
+function formatDateLabel(dateValue, prefix = "Enviado") {
+  if (!dateValue) return `${prefix} recientemente`;
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return `${prefix} recientemente`;
+  }
+
+  const months = [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+  ];
+
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+
+  return `${prefix} el ${day} de ${month}`;
+}
+
+function mapSubmissionToPlace(submission) {
+  return {
+    id: submission.id,
+    name: submission.name || "Lugar sin nombre",
+    imageUrl:
+      submission.imageUrl ||
+      "https://via.placeholder.com/200x200.png?text=Lugar",
+    tag: submission.tag || "Sin categoría",
+    subtags: Array.isArray(submission.subtags) ? submission.subtags : [],
+    submittedAtLabel: formatDateLabel(submission.createdAt, "Enviado"),
+    returnedAtLabel: formatDateLabel(submission.returnedAt, "Devuelto"),
+    status: submission.status || "in_review",
+  };
+}
 
 export default function AddedPlacesScreen() {
   const navigation = useNavigation();
 
+  const [cacheSnapshot, setCacheSnapshot] = useState(
+    getAddedPlacesCacheSnapshot()
+  );
+
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedPlaceToDelete, setSelectedPlaceToDelete] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeAddedPlacesCache((nextSnapshot) => {
+      setCacheSnapshot(nextSnapshot);
+    });
+
+    preloadAddedPlacesSubmissions().catch((error) => {
+      console.log("Error al cargar lugares añadidos:", error);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const places = cacheSnapshot.items.map(mapSubmissionToPlace);
 
   const handleCancelDelete = () => {
     setDeleteModalVisible(false);
@@ -85,6 +116,8 @@ export default function AddedPlacesScreen() {
 
     console.log("Lugar eliminado:", selectedPlaceToDelete.id);
 
+    removeAddedPlaceFromCache(selectedPlaceToDelete.id);
+
     setDeleteModalVisible(false);
     setSelectedPlaceToDelete(null);
   };
@@ -93,6 +126,30 @@ export default function AddedPlacesScreen() {
     navigation.navigate("RejectedPlaceReasonScreen", {
       placeId: place.id,
     });
+  };
+
+  const handleScroll = (event) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+
+    const visibleHeight = layoutMeasurement.height;
+    const scrollY = contentOffset.y;
+    const contentHeight = contentSize.height;
+
+    const scrollPosition = visibleHeight + scrollY;
+    const threshold = contentHeight * 0.8;
+
+    const shouldLoadMore = scrollPosition >= threshold;
+
+    if (
+      shouldLoadMore &&
+      cacheSnapshot.hasMore &&
+      !cacheSnapshot.loadingMore &&
+      !cacheSnapshot.loadingInitial
+    ) {
+      loadMoreAddedPlacesSubmissions().catch((error) => {
+        console.log("Error al cargar más lugares añadidos:", error);
+      });
+    }
   };
 
   return (
@@ -119,8 +176,10 @@ export default function AddedPlacesScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         >
-          {MOCK_PLACES.map((place) => (
+          {places.map((place) => (
             <AddedPlaceCard
               key={place.id}
               place={place}
