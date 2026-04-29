@@ -12,7 +12,7 @@ export default function PlaceForm({
   onChangeDescription,
   onPressFilters,
 }) {
-  const NAME_LIMIT = 60;
+  const NAME_LIMIT = 30;
   const DESCRIPTION_LIMIT = 200;
 
   const MIN_NAME_LENGTH = 3;

@@ -172,7 +172,7 @@ export default function AddPlaceScreen() {
         tagLabel,
 
         subtags: selectedSubtagLabels,
-        focuses: selectedFocusLabels,
+        approaches: selectedFocusLabels,
         price: selectedPriceLabel,
         photos: uploadedPhotos,
         location: selectedLocation
