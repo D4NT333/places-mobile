@@ -17,6 +17,7 @@ import {AddedDescriptionScreen} from "../screens";
 import { VisualizedAddedPlacesScreen } from "../screens";
 import { VisualizedAddedDescriptionScreen } from "../screens";
 
+import {EditAddedPlacesScreen} from "../screens";
 
 import {FilterSectionScreen} from "../screens";
 
@@ -102,6 +103,11 @@ export default function AppNavigator() {
         <Stack.Screen
         name="VisualizedAddedPlacesScreen"
         component={VisualizedAddedPlacesScreen}
+        />
+
+        <Stack.Screen
+          name="EditAddedPlacesScreen"
+          component={EditAddedPlacesScreen}
         />
 
         <Stack.Screen

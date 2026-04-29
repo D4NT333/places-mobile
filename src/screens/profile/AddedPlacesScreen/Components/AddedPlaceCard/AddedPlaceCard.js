@@ -58,10 +58,7 @@ export default function AddedPlaceCard({
   const chips = [place.tag, ...(place.subtags || [])].slice(0, 3);
 
   return (
-    <Pressable
-      style={styles.card}
-      onPress={() => onPressCard?.(place)}
-    >
+    <Pressable style={styles.card} onPress={() => onPressCard?.(place)}>
       <View style={styles.topRow}>
         <Image
           source={{ uri: place.imageUrl }}
@@ -100,7 +97,10 @@ export default function AddedPlaceCard({
         {actions.includes("reason") ? (
           <Pressable
             style={styles.actionButton}
-            onPress={() => onViewReason?.(place)}
+            onPress={(event) => {
+              event.stopPropagation?.();
+              onViewReason?.(place);
+            }}
           >
             <Text style={styles.actionButtonText}>Ver motivo</Text>
           </Pressable>
@@ -109,7 +109,10 @@ export default function AddedPlaceCard({
         {actions.includes("edit") ? (
           <Pressable
             style={styles.actionButton}
-            onPress={() => onEdit?.(place)}
+            onPress={(event) => {
+              event.stopPropagation?.();
+              onEdit?.(place);
+            }}
           >
             <Text style={styles.actionButtonText}>Editar</Text>
           </Pressable>
@@ -118,7 +121,10 @@ export default function AddedPlaceCard({
         {actions.includes("delete") ? (
           <Pressable
             style={styles.actionButton}
-            onPress={() => onDelete?.(place)}
+            onPress={(event) => {
+              event.stopPropagation?.();
+              onDelete?.(place);
+            }}
           >
             <Text style={styles.actionButtonText}>Eliminar</Text>
           </Pressable>

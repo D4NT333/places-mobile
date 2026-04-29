@@ -70,7 +70,7 @@ export default function AddedPlacesScreen() {
   };
 
   const handleEdit = (place) => {
-    navigation.navigate("EditAddedPlaceScreen", {
+    navigation.navigate("EditAddedPlacesScreen", {
       placeId: place.id,
     });
   };
@@ -132,12 +132,13 @@ export default function AddedPlacesScreen() {
           ))}
         </ScrollView>
       </View>
+
       <DeletePlaceModal
         visible={deleteModalVisible}
         placeName={selectedPlaceToDelete?.name || "este lugar"}
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-      />  
+      />
     </LayoutScreen>
   );
 }
