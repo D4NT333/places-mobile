@@ -1,9 +1,11 @@
-import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
-import AddedPlaceCard from "./Components";
+import AddedPlaceCard from "./Components/AddedPlaceCard";
+import DeletePlaceModal from "./Components/DeletePlaceModal";
+
 import styles from "./styles";
 
 const MOCK_PLACES = [
@@ -49,6 +51,14 @@ const MOCK_PLACES = [
 export default function AddedPlacesScreen() {
   const navigation = useNavigation();
 
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedPlaceToDelete, setSelectedPlaceToDelete] = useState(null);
+
+  const handleCancelDelete = () => {
+    setDeleteModalVisible(false);
+    setSelectedPlaceToDelete(null);
+  };
+
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -66,7 +76,17 @@ export default function AddedPlacesScreen() {
   };
 
   const handleDelete = (place) => {
-    console.log("Eliminar:", place.id);
+    setSelectedPlaceToDelete(place);
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedPlaceToDelete) return;
+
+    console.log("Lugar eliminado:", selectedPlaceToDelete.id);
+
+    setDeleteModalVisible(false);
+    setSelectedPlaceToDelete(null);
   };
 
   const handleViewReason = (place) => {
@@ -112,6 +132,12 @@ export default function AddedPlacesScreen() {
           ))}
         </ScrollView>
       </View>
+      <DeletePlaceModal
+        visible={deleteModalVisible}
+        placeName={selectedPlaceToDelete?.name || "este lugar"}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />  
     </LayoutScreen>
   );
 }
