@@ -11,12 +11,30 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.01,
 };
 
-export default function SubmissionLocationMap({ region = DEFAULT_REGION }) {
+function getSafeRegion(region) {
+  if (!region) return DEFAULT_REGION;
+
+  const latitude = region.latitude || region.lat;
+  const longitude = region.longitude || region.lng;
+
+  if (!latitude || !longitude) return DEFAULT_REGION;
+
+  return {
+    latitude,
+    longitude,
+    latitudeDelta: region.latitudeDelta || 0.01,
+    longitudeDelta: region.longitudeDelta || 0.01,
+  };
+}
+
+export default function SubmissionLocationMap({ region }) {
+  const safeRegion = getSafeRegion(region);
+
   return (
     <View style={styles.container}>
       <MapView
         style={styles.map}
-        initialRegion={region}
+        initialRegion={safeRegion}
         scrollEnabled={false}
         zoomEnabled={false}
         rotateEnabled={false}
@@ -25,8 +43,8 @@ export default function SubmissionLocationMap({ region = DEFAULT_REGION }) {
       >
         <Marker
           coordinate={{
-            latitude: region.latitude,
-            longitude: region.longitude,
+            latitude: safeRegion.latitude,
+            longitude: safeRegion.longitude,
           }}
         />
       </MapView>

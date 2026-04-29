@@ -95,14 +95,16 @@ export default function AddedPlacesScreen() {
   };
 
   const handlePressCard = (place) => {
-    navigation.navigate("VisualizedAddedPlacesScreen", {
-      placeId: place.id,
+  navigation.navigate("VisualizedAddedPlacesScreen", {
+    placeId: place.id,
+    initialPlace: place,
     });
   };
 
   const handleEdit = (place) => {
-    navigation.navigate("EditAddedPlacesScreen", {
-      placeId: place.id,
+  navigation.navigate("EditAddedPlacesScreen", {
+    placeId: place.id,
+    initialPlace: place,
     });
   };
 
