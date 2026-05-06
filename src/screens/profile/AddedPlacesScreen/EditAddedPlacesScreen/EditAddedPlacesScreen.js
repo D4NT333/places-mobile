@@ -48,6 +48,16 @@ const FALLBACK_PLACE = {
   returnFields: EMPTY_RETURN_FIELDS,
 };
 
+const TAG_IDS_WITHOUT_APPROACHES = [
+  "tag_shopping",
+  "tag_lodging",
+  "tag_service",
+];
+
+function tagDoesNotUseApproaches(tagId) {
+  return TAG_IDS_WITHOUT_APPROACHES.includes(tagId);
+}
+
 function toArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -229,6 +239,13 @@ export default function EditAddedPlacesScreen() {
 
   const { oldPlace, newPlace, returnFields, generalMessage } = editSources;
 
+  const selectedTagHasNoApproaches = tagDoesNotUseApproaches(selectedTagId);
+
+  const approachPillsToShow = selectedTagHasNoApproaches
+
+  ? ["Sin enfoque"]
+  : approaches;
+
   useEffect(() => {
   if (!placeId) return;
 
@@ -361,12 +378,44 @@ useEffect(() => {
     navigation.goBack();
   };
 
-  const handleEditField = (fieldKey) => {
-    setEditingFields((prev) => ({
+  const clearFieldValue = (fieldKey) => {
+  switch (fieldKey) {
+    case "name":
+      setName("");
+      break;
+
+    case "description":
+      setDescription("");
+      break;
+
+    case "price":
+      setPriceRange("");
+      break;
+
+    case "schedule":
+      setSchedule("");
+      break;
+
+    default:
+      break;
+  }
+};
+
+const handleEditField = (fieldKey) => {
+  setEditingFields((prev) => {
+    const isCurrentlyEditing = Boolean(prev[fieldKey]);
+    const nextIsEditing = !isCurrentlyEditing;
+
+    if (nextIsEditing) {
+      clearFieldValue(fieldKey);
+    }
+
+    return {
       ...prev,
-      [fieldKey]: !prev[fieldKey],
-    }));
-  };
+      [fieldKey]: nextIsEditing,
+    };
+  });
+};
 
   const handleSubmitAgain = () => {
     console.log("Enviar de nuevo lugar:", {
@@ -387,8 +436,11 @@ useEffect(() => {
   };
 
   const handleSelectTag = (option) => {
+  const nextTagHasNoApproaches = tagDoesNotUseApproaches(option.id);
+
   setTag([option.label]);
   setSelectedTagId(option.id);
+
   setSubtags([]);
   setApproaches([]);
 
@@ -398,6 +450,10 @@ useEffect(() => {
     subtags: false,
     approaches: false,
   }));
+
+  if (nextTagHasNoApproaches) {
+    setApproachOptions([]);
+  }
 
   setActiveOptionModal(null);
 };
@@ -431,6 +487,13 @@ useEffect(() => {
  const handleSelectApproach = (option) => {
   if (!selectedTagId) {
     console.log("Selecciona primero una etiqueta.");
+    return;
+  }
+
+  if (selectedTagHasNoApproaches) {
+    console.log("Esta etiqueta no usa enfoques.");
+    setApproaches([]);
+    setActiveOptionModal(null);
     return;
   }
 
@@ -526,17 +589,18 @@ useEffect(() => {
             onPressEdit={() => setActiveOptionModal("subtags")}
           />
 
-          <EditablePillsField
-            label="Enfoque"
-            newLabel="Nuevo enfoque"
-            pills={oldPlace.approaches}
-            newPills={approaches}
-            helperText={returnFields.approaches.message || "Texto"}
-            reviewField={returnFields.approaches}
-            isEditing={Boolean(editingFields.approaches)}
-            onPressEdit={() => setActiveOptionModal("approaches")}
-          />
-
+            {!selectedTagHasNoApproaches && (
+              <EditablePillsField
+                label="Enfoque"
+                newLabel="Nuevo enfoque"
+                pills={oldPlace.approaches}
+                newPills={approaches}
+                helperText={returnFields.approaches.message || "Texto"}
+                reviewField={returnFields.approaches}
+                isEditing={Boolean(editingFields.approaches)}
+                onPressEdit={() => setActiveOptionModal("approaches")}
+              />
+            )}
           <EditableTextField
             label="Rango de precio"
             newLabel="Nuevo rango"
@@ -609,7 +673,7 @@ useEffect(() => {
         />
 
         <EditableOptionModal
-          visible={activeOptionModal === "approaches"}
+          visible={activeOptionModal === "approaches" && !selectedTagHasNoApproaches}
           title="Selecciona un enfoque"
           options={approachOptions}
           selectedValues={approaches}

@@ -1,37 +1,27 @@
 import * as ImagePicker from "expo-image-picker";
 
-export default async function pickImages() {
+export default async function pickSingleImage() {
   try {
-    const t0 = Date.now();
-
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    console.log("Permisos:", Date.now() - t0, "ms");
 
     if (!permissionResult.granted) {
       throw new Error("Permiso denegado");
     }
 
-    const t1 = Date.now();
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsMultipleSelection: true,
-      selectionLimit: 6,
+      allowsMultipleSelection: false,
+      selectionLimit: 1,
     });
 
-    console.log("Picker completo:", Date.now() - t1, "ms");
-
     if (result.canceled) {
-      return [];
+      return null;
     }
 
-    console.log("Assets devueltos:", result.assets?.length ?? 0);
-
-    return result.assets;
+    return result.assets?.[0] || null;
   } catch (error) {
-    console.error("Error en pickImages:", error);
+    console.log("Error en pickSingleImage:", error);
     throw error;
   }
 }

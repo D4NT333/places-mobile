@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Image, Modal, Pressable, Text, View } from "react-native";
+
+import { pickSingleImage } from "../../../../../../services";
 
 import styles from "./styles";
 
@@ -10,6 +12,7 @@ export default function EditablePhotosBox({
   helperText,
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [replacementPhotos, setReplacementPhotos] = useState({});
 
   const needsReview = Boolean(reviewField?.selected);
 
@@ -21,17 +24,61 @@ export default function EditablePhotosBox({
     setSelectedPhoto(null);
   };
 
-  const handleSelectNewPhoto = () => {
-    console.log("Aquí irá ImagePicker para foto:", selectedPhoto?.id);
+  const handleSelectNewPhoto = async () => {
+    if (!selectedPhoto?.id) return;
 
-    /**
-     * Luego aquí:
-     * 1. Abres ImagePicker.
-     * 2. Guardas la nueva imagen en estado.
-     * 3. Cierras modal.
-     */
-    setSelectedPhoto(null);
+    try {
+      const pickedPhoto = await pickSingleImage();
+
+      if (!pickedPhoto) return;
+
+      setReplacementPhotos((prev) => ({
+        ...prev,
+        [selectedPhoto.id]: pickedPhoto,
+      }));
+
+      setSelectedPhoto(null);
+    } catch (error) {
+      console.log("Error al seleccionar nueva foto:", error);
+    }
   };
+
+  const getPhotoUri = (photo) => {
+    if (!photo) return null;
+
+    return (
+      photo.uri ||
+      photo.url ||
+      photo.previewURL ||
+      photo.thumbnailURL ||
+      photo.mediumURL ||
+      photo.downloadURL ||
+      photo.imageUrl ||
+      null
+    );
+  };
+
+  const renderPhotoPreview = (photo, customBoxStyle) => {
+    const photoUri = getPhotoUri(photo);
+
+    return (
+      <View style={[styles.photoPlaceholder, customBoxStyle]}>
+        {photoUri ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={styles.photoImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text style={styles.emptyPhotoText}>Sin foto</Text>
+        )}
+      </View>
+    );
+  };
+
+  const selectedReplacementPhoto = selectedPhoto?.id
+    ? replacementPhotos[selectedPhoto.id]
+    : null;
 
   return (
     <View style={styles.container}>
@@ -40,6 +87,7 @@ export default function EditablePhotosBox({
       <View style={[styles.box, needsReview && styles.boxReview]}>
         {photos.map((photo) => {
           const photoNeedsReview = Boolean(photo.selected);
+          const replacementPhoto = replacementPhotos[photo.id];
 
           return (
             <View key={photo.id} style={styles.photoItem}>
@@ -51,17 +99,17 @@ export default function EditablePhotosBox({
                     onPress={() => handleOpenPhotoModal(photo)}
                     hitSlop={8}
                   >
-                    <Text style={styles.editText}>Editar</Text>
+                    <Text style={styles.editText}>
+                      {replacementPhoto ? "Cambiar" : "Editar"}
+                    </Text>
                   </Pressable>
                 )}
               </View>
 
-              <View
-                style={[
-                  styles.photoPlaceholder,
-                  photoNeedsReview && styles.photoPlaceholderReview,
-                ]}
-              />
+              {renderPhotoPreview(
+                replacementPhoto || photo,
+                photoNeedsReview && styles.photoPlaceholderReview
+              )}
 
               <Text
                 style={[
@@ -69,7 +117,11 @@ export default function EditablePhotosBox({
                   photoNeedsReview && styles.photoHelperReview,
                 ]}
               >
-                {photoNeedsReview ? photo.message || "texto" : "texto"}
+                {replacementPhoto
+                  ? "Nueva foto seleccionada."
+                  : photoNeedsReview
+                  ? photo.message || "Esta foto requiere revisión."
+                  : "texto"}
               </Text>
             </View>
           );
@@ -105,13 +157,8 @@ export default function EditablePhotosBox({
 
             <View style={styles.photoCompareRow}>
               <View style={styles.photoCompareColumn}>
-                <Text style={styles.compareLabel}>Old</Text>
-
-                <View style={styles.comparePhotoBox}>
-                  <Text style={styles.comparePhotoText}>
-                    {selectedPhoto?.label}
-                  </Text>
-                </View>
+                <Text style={styles.compareLabel}>Anterior</Text>
+                {renderPhotoPreview(selectedPhoto, styles.comparePhotoBox)}
               </View>
 
               <Text style={styles.arrowText}>→</Text>
@@ -120,20 +167,20 @@ export default function EditablePhotosBox({
                 style={styles.photoCompareColumn}
                 onPress={handleSelectNewPhoto}
               >
-                <Text style={styles.compareLabel}>New</Text>
+                <Text style={styles.compareLabel}>Nueva</Text>
 
-                <View style={styles.comparePhotoBox}>
-                  <Text style={styles.comparePhotoText}>Nueva foto</Text>
-                </View>
+                {selectedReplacementPhoto ? (
+                  renderPhotoPreview(
+                    selectedReplacementPhoto,
+                    styles.comparePhotoBox
+                  )
+                ) : (
+                  <View style={styles.comparePhotoBox}>
+                    <Text style={styles.comparePhotoText}>Nueva foto</Text>
+                  </View>
+                )}
               </Pressable>
             </View>
-
-            <Pressable
-              style={styles.modalButton}
-              onPress={handleSelectNewPhoto}
-            >
-              <Text style={styles.modalButtonText}>Seleccionar nueva foto</Text>
-            </Pressable>
           </View>
         </View>
       </Modal>

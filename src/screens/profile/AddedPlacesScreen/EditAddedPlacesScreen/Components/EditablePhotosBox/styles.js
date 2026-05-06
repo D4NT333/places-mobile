@@ -51,18 +51,6 @@ export default StyleSheet.create({
     color: "#4B5563",
   },
 
-  photoPlaceholder: {
-    height: 58,
-    borderWidth: 1.6,
-    borderColor: "#4B5563",
-    borderRadius: 6,
-    backgroundColor: "#FFFFFF",
-  },
-
-  photoPlaceholderReview: {
-    borderColor: "#EF4444",
-  },
-
   photoHelper: {
     marginTop: 4,
     fontSize: 12,
@@ -146,17 +134,6 @@ export default StyleSheet.create({
     color: "#111827",
   },
 
-  comparePhotoBox: {
-    width: "100%",
-    height: 86,
-    borderWidth: 1.8,
-    borderColor: "#4B5563",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-
   comparePhotoText: {
     fontSize: 13,
     fontWeight: "800",
@@ -184,4 +161,41 @@ export default StyleSheet.create({
     fontWeight: "900",
     color: "#4B5563",
   },
+  photoPlaceholder: {
+  height: 82,
+  borderWidth: 1.6,
+  borderColor: "#4B5563",
+  borderRadius: 6,
+  backgroundColor: "#FFFFFF",
+  overflow: "hidden",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+photoPlaceholderReview: {
+  borderColor: "#EF4444",
+},
+
+photoImage: {
+  width: "100%",
+  height: "100%",
+},
+
+emptyPhotoText: {
+  fontSize: 12,
+  fontWeight: "800",
+  color: "#9CA3AF",
+},
+
+comparePhotoBox: {
+  width: "100%",
+  height: 110,
+  borderWidth: 1.8,
+  borderColor: "#4B5563",
+  borderRadius: 8,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "#FFFFFF",
+  overflow: "hidden",
+},
 });
