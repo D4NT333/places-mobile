@@ -105,7 +105,9 @@ export default function AddedPlacesScreen() {
   navigation.navigate("EditAddedPlacesScreen", {
     placeId: place.id,
     initialPlace: place,
-    });
+    source: "added_places",
+    shouldFetchReturnedEditData: true,
+  });
   };
 
   const handleDelete = (place) => {

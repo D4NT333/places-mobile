@@ -1,42 +1,37 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
-  finalMessageBox: {
-    minHeight: 250,
-    borderWidth: 2,
+export default StyleSheet.create({
+  container: {
+    minHeight: 220,
+    borderWidth: 1.8,
     borderColor: "#111827",
     borderRadius: 8,
-    paddingHorizontal: 22,
-    paddingTop: 22,
+    paddingHorizontal: 18,
+    paddingTop: 28,
     alignItems: "center",
-    marginTop: 14,
+    marginBottom: 28,
   },
 
-  finalMessage: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#6b7280",
+  warningText: {
     textAlign: "center",
-    lineHeight: 17,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 20,
+    color: "#6B7280",
   },
 
-  submitButton: {
-    marginTop: 20,
-    height: 36,
-    borderWidth: 2,
-    borderColor: "#7b818a",
+  button: {
+    marginTop: 28,
+    borderWidth: 1.8,
+    borderColor: "#6B7280",
     borderRadius: 999,
     paddingHorizontal: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
+    paddingVertical: 8,
   },
 
-  submitButtonText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#4b5563",
+  buttonText: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#4B5563",
   },
 });
-
-export default styles;

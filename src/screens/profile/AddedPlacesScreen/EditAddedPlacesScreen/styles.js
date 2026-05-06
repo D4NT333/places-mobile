@@ -1,17 +1,44 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   screenCard: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 26,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
     overflow: "hidden",
   },
 
   scrollContent: {
-    paddingHorizontal: 22,
-    paddingBottom: 28,
+    paddingHorizontal: 16,
+    paddingBottom: 112,
   },
-});
+  stateText: {
+  marginBottom: 12,
+  fontSize: 14,
+  fontWeight: "700",
+  color: "#4B5563",
+},
 
-export default styles;
+errorText: {
+  marginBottom: 12,
+  fontSize: 14,
+  fontWeight: "800",
+  color: "#B91C1C",
+},
+
+generalMessageBox: {
+  marginBottom: 18,
+  borderWidth: 1.5,
+  borderColor: "#B91C1C",
+  borderRadius: 10,
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  backgroundColor: "#FEF2F2",
+},
+
+generalMessageText: {
+  fontSize: 14,
+  fontWeight: "800",
+  color: "#B91C1C",
+},
+});

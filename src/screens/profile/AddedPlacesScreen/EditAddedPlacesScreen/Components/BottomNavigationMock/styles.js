@@ -1,20 +1,22 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
-  bottomBar: {
-    height: 58,
-    borderTopWidth: 2,
+export default StyleSheet.create({
+  container: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 54,
+    borderTopWidth: 1.8,
     borderColor: "#111827",
-    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    justifyContent: "center",
   },
 
-  bottomBarText: {
-    fontSize: 18,
+  text: {
+    fontSize: 17,
     fontWeight: "800",
-    color: "#4b5563",
+    color: "#374151",
   },
 });
-
-export default styles;

@@ -1,39 +1,68 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 18,
+export default StyleSheet.create({
+  container: {
+    marginBottom: 26,
+  },
+
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
   },
 
   label: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#4b5563",
-    marginBottom: 8,
+    color: "#4B5563",
+  },
+
+  editText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#4B5563",
+  },
+
+  compareLabel: {
+    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#4B5563",
+  },
+
+  newMapLabel: {
+    marginTop: 18,
   },
 
   mapBox: {
-    height: 140,
-    borderWidth: 2,
-    borderColor: "#7b818a",
-    borderRadius: 8,
-    justifyContent: "center",
+    height: 112,
+    borderWidth: 1.8,
+    borderColor: "#4B5563",
+    borderRadius: 6,
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+
+  mapBoxReview: {
+    borderColor: "#EF4444",
   },
 
   mapText: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#4b5563",
+    color: "#4B5563",
   },
 
   helperText: {
-    fontSize: 12,
+    marginTop: 4,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#4b5563",
-    marginTop: 5,
+    color: "#4B5563",
+  },
+
+  helperReview: {
+    color: "#B91C1C",
   },
 });
-
-export default styles;

@@ -5,8 +5,8 @@ import styles from "./styles";
 
 export default function BottomNavigationMock() {
   return (
-    <View style={styles.bottomBar}>
-      <Text style={styles.bottomBarText}>Barra de navegación</Text>
+    <View style={styles.container}>
+      <Text style={styles.text}>Barra de navegación</Text>
     </View>
   );
 }

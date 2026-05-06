@@ -1,39 +1,129 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
-  section: {
+export default StyleSheet.create({
+  container: {
     marginBottom: 18,
   },
 
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+
   label: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#4b5563",
-    marginBottom: 8,
+    color: "#4B5563",
+  },
+
+  editText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#4B5563",
   },
 
   input: {
-    minHeight: 46,
-    borderWidth: 2,
-    borderColor: "#7b818a",
-    borderRadius: 23,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    fontSize: 19,
+    minHeight: 36,
+    borderWidth: 1.8,
+    borderColor: "#4B5563",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 16,
     color: "#111827",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFFFF",
   },
 
   multilineInput: {
-    minHeight: 56,
+    minHeight: 48,
     textAlignVertical: "top",
   },
 
+  inputReview: {
+    borderColor: "#EF4444",
+  },
+
   helperText: {
-    fontSize: 19,
-    color: "#4b5563",
-    marginTop: 7,
+    marginTop: 4,
+    fontSize: 13,
+    color: "#6B7280",
+  },
+
+  helperReview: {
+    color: "#B91C1C",
+    fontWeight: "600",
+  },
+
+  compareContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+
+  compareColumn: {
+    flex: 1,
+  },
+
+  compareLabel: {
+    marginBottom: 6,
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#4B5563",
+  },
+
+  compareBox: {
+    minHeight: 58,
+    borderWidth: 1.8,
+    borderColor: "#4B5563",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+
+  oldValueText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+  },
+
+  compareInput: {
+    minHeight: 58,
+    borderWidth: 1.8,
+    borderColor: "#4B5563",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: "#111827",
+    backgroundColor: "#FFFFFF",
+  },
+
+  compareMultilineInput: {
+    minHeight: 64,
+    textAlignVertical: "top",
+  },
+
+  divider: {
+    width: 2,
+    marginHorizontal: 14,
+    marginTop: 18,
+    marginBottom: 10,
+    backgroundColor: "#6B7280",
+  },
+
+  helperRow: {
+    marginTop: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  counterText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#4B5563",
   },
 });
-
-export default styles;
