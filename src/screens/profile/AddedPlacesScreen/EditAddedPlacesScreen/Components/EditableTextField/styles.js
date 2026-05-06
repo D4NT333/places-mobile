@@ -24,31 +24,8 @@ export default StyleSheet.create({
     color: "#4B5563",
   },
 
-  input: {
-    minHeight: 36,
-    borderWidth: 1.8,
-    borderColor: "#4B5563",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#FFFFFF",
-  },
-
-  multilineInput: {
-    minHeight: 48,
-    textAlignVertical: "top",
-  },
-
   inputReview: {
     borderColor: "#EF4444",
-  },
-
-  helperText: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#6B7280",
   },
 
   helperReview: {
@@ -72,40 +49,6 @@ export default StyleSheet.create({
     color: "#4B5563",
   },
 
-  compareBox: {
-    minHeight: 58,
-    borderWidth: 1.8,
-    borderColor: "#4B5563",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-
-  oldValueText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-
-  compareInput: {
-    minHeight: 58,
-    borderWidth: 1.8,
-    borderColor: "#4B5563",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: "#111827",
-    backgroundColor: "#FFFFFF",
-  },
-
-  compareMultilineInput: {
-    minHeight: 64,
-    textAlignVertical: "top",
-  },
-
   divider: {
     width: 2,
     marginHorizontal: 14,
@@ -114,16 +57,87 @@ export default StyleSheet.create({
     backgroundColor: "#6B7280",
   },
 
-  helperRow: {
-    marginTop: 3,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+  input: {
+  minHeight: 44,
+  borderWidth: 1.8,
+  borderColor: "#4B5563",
+  borderRadius: 8,
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  fontSize: 16,
+  color: "#111827",
+  backgroundColor: "#FFFFFF",
+},
 
-  counterText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#4B5563",
-  },
+multilineInput: {
+  minHeight: 54,
+  textAlignVertical: "top",
+},
+
+compareBox: {
+  minHeight: 74,
+  borderWidth: 1.8,
+  borderColor: "#4B5563",
+  borderRadius: 6,
+  paddingHorizontal: 10,
+  paddingVertical: 8,
+  justifyContent: "center",
+  backgroundColor: "#FFFFFF",
+},
+
+oldValueText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#374151",
+  flexWrap: "wrap",
+},
+
+compareInput: {
+  minHeight: 74,
+  borderWidth: 1.8,
+  borderColor: "#4B5563",
+  borderRadius: 6,
+  paddingHorizontal: 10,
+  paddingVertical: 8,
+  fontSize: 14,
+  color: "#111827",
+  backgroundColor: "#FFFFFF",
+},
+
+compareMultilineInput: {
+  minHeight: 74,
+  textAlignVertical: "top",
+},
+
+helperRow: {
+  marginTop: 3,
+  flexDirection: "row",
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+  gap: 8,
+},
+
+helperText: {
+  flex: 1,
+  fontSize: 13,
+  color: "#6B7280",
+},
+
+counterText: {
+  fontSize: 12,
+  fontWeight: "800",
+  color: "#4B5563",
+},
+
+inputSuccess: {
+  borderColor: "#22C55E",
+},
+
+counterSuccess: {
+  color: "#15803D",
+},
+
+emptyHelperSpace: {
+  flex: 1,
+},
 });

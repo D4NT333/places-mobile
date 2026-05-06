@@ -16,6 +16,10 @@ import {
 
 import getReturnedPlaceSubmissionEditDataService from "../../../../services/api/getReturnedPlaceSubmissionEditData.service";
 
+import { getTagsService } from "../../../../services/firebase/firestore/tags/getTags.service";
+import { getSubtagsByTagId } from "../../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";
+import { getApproachesByTagId } from "../../../../services/firebase/firestore/approaches/getApproachesByTagId.service";
+
 import styles from "./styles";
 
 const EMPTY_RETURN_FIELDS = {
@@ -44,29 +48,6 @@ const FALLBACK_PLACE = {
   returnFields: EMPTY_RETURN_FIELDS,
 };
 
-const MOCK_TAG_OPTIONS = [
-  { id: "tag_gastronomy", label: "Gastronomía" },
-  { id: "tag_art", label: "Arte" },
-  { id: "tag_nature", label: "Naturaleza" },
-  { id: "tag_entertainment", label: "Entretenimiento" },
-];
-
-const MOCK_SUBTAG_OPTIONS = [
-  { id: "subtag_mexican", label: "Mexicana" },
-  { id: "subtag_vegan", label: "Vegana" },
-  { id: "subtag_cafe", label: "Café" },
-  { id: "subtag_birria", label: "Birriería" },
-  { id: "subtag_fast_food", label: "Comida rápida" },
-  { id: "subtag_desserts", label: "Postres" },
-];
-
-const MOCK_APPROACH_OPTIONS = [
-  { id: "approach_local", label: "Local" },
-  { id: "approach_popular", label: "Popular" },
-  { id: "approach_accessible", label: "Accesibilidad" },
-  { id: "approach_quiet", label: "Tranquilo" },
-];
-
 function toArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -75,6 +56,24 @@ function buildSinglePill(value) {
   if (!value) return [];
 
   return [value];
+}
+
+function mapCatalogToOptions(items = []) {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .filter((item) => item?.isActive !== false)
+    .sort((a, b) => {
+      const orderA = Number.isFinite(a?.sortOrder) ? a.sortOrder : 999;
+      const orderB = Number.isFinite(b?.sortOrder) ? b.sortOrder : 999;
+
+      return orderA - orderB;
+    })
+    .map((item) => ({
+      id: item.id,
+      label: item.label || item.name || "Sin nombre",
+      raw: item,
+    }));
 }
 
 function getPhotoUrl(photo = {}) {
@@ -150,31 +149,33 @@ function buildEditSources({ editData, initialPlace }) {
   });
 
   return {
-    oldPlace: {
-      name: oldSource.name || initialPlace?.name || "",
-      description: oldSource.description || "",
-      tag: oldTag,
-      subtags: toArray(oldSource.subtags),
-      approaches: toArray(oldSource.approaches),
-      priceRange: oldSource.price || oldSource.priceLabel || "",
-      schedule: oldSource.schedule || "?",
-      photos: oldPhotos.length > 0 ? oldPhotos : newPhotos,
-      mapLabel: getMapLabel(oldSource.location),
-      location: oldSource.location || null,
-    },
+        oldPlace: {
+        name: oldSource.name || initialPlace?.name || "",
+        description: oldSource.description || "",
+        tagId: oldSource.tagId || null,
+        tag: oldTag,
+        subtags: toArray(oldSource.subtags),
+        approaches: toArray(oldSource.approaches),
+        priceRange: oldSource.price || oldSource.priceLabel || "",
+        schedule: oldSource.schedule || "?",
+        photos: oldPhotos.length > 0 ? oldPhotos : newPhotos,
+        mapLabel: getMapLabel(oldSource.location),
+        location: oldSource.location || null,
+      },
 
-    newPlace: {
-      name: newSource.name || initialPlace?.name || "",
-      description: newSource.description || "",
-      tag: newTag,
-      subtags: toArray(newSource.subtags),
-      approaches: toArray(newSource.approaches),
-      priceRange: newSource.price || newSource.priceLabel || "",
-      schedule: newSource.schedule || "?",
-      photos: newPhotos.length > 0 ? newPhotos : oldPhotos,
-      mapLabel: getMapLabel(newSource.location),
-      location: newSource.location || null,
-    },
+      newPlace: {
+        name: newSource.name || initialPlace?.name || "",
+        description: newSource.description || "",
+        tagId: newSource.tagId || oldSource.tagId || null,
+        tag: newTag,
+        subtags: toArray(newSource.subtags),
+        approaches: toArray(newSource.approaches),
+        priceRange: newSource.price || newSource.priceLabel || "",
+        schedule: newSource.schedule || "?",
+        photos: newPhotos.length > 0 ? newPhotos : oldPhotos,
+        mapLabel: getMapLabel(newSource.location),
+        location: newSource.location || null,
+      },
 
     returnFields,
 
@@ -206,6 +207,14 @@ export default function EditAddedPlacesScreen() {
   const [subtags, setSubtags] = useState(FALLBACK_PLACE.subtags);
   const [approaches, setApproaches] = useState(FALLBACK_PLACE.approaches);
 
+  const [selectedTagId, setSelectedTagId] = useState(null);
+
+  const [tagOptions, setTagOptions] = useState([]);
+  const [subtagOptions, setSubtagOptions] = useState([]);
+  const [approachOptions, setApproachOptions] = useState([]);
+
+  const [loadingCatalogs, setLoadingCatalogs] = useState(false);
+
   const [activeOptionModal, setActiveOptionModal] = useState(null);
   const [editingFields, setEditingFields] = useState({});
 
@@ -221,61 +230,132 @@ export default function EditAddedPlacesScreen() {
   const { oldPlace, newPlace, returnFields, generalMessage } = editSources;
 
   useEffect(() => {
-    if (!placeId) return;
+  if (!placeId) return;
 
-    const shouldLoad =
-      source === "added_places" && shouldFetchReturnedEditData;
+  const shouldLoad = Boolean(shouldFetchReturnedEditData);
 
-    if (!shouldLoad) return;
+  if (!shouldLoad) return;
 
-    let isMounted = true;
+  let isMounted = true;
 
-    setLoadingEditData(true);
-    setEditDataError(null);
+  setLoadingEditData(true);
+  setEditDataError(null);
 
-    getReturnedPlaceSubmissionEditDataService(placeId)
-      .then((data) => {
-        if (!isMounted) return;
+  getReturnedPlaceSubmissionEditDataService(placeId)
+    .then((data) => {
+      if (!isMounted) return;
 
-        console.log("Datos de edición devuelta:", data);
+      console.log("Datos de edición devuelta:", data);
 
-        setEditData(data);
-      })
-      .catch((error) => {
-        if (!isMounted) return;
+      setEditData(data);
+    })
+    .catch((error) => {
+      if (!isMounted) return;
 
-        console.log("Error al cargar datos de edición devuelta:", error);
-
-        setEditDataError(error);
-      })
-      .finally(() => {
-        if (!isMounted) return;
-
-        setLoadingEditData(false);
+      console.log("Error al cargar datos de edición devuelta:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        message: error.message,
       });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [placeId, source, shouldFetchReturnedEditData]);
+      setEditDataError(error);
+    })
+    .finally(() => {
+      if (!isMounted) return;
+
+      setLoadingEditData(false);
+    });
+
+  return () => {
+    isMounted = false;
+  };
+}, [placeId, shouldFetchReturnedEditData]);
+
+useEffect(() => {
+  let isMounted = true;
+
+  setLoadingCatalogs(true);
+
+  getTagsService()
+    .then((tags) => {
+      if (!isMounted) return;
+
+      setTagOptions(mapCatalogToOptions(tags));
+    })
+    .catch((error) => {
+      console.log("Error al cargar etiquetas:", error);
+    })
+    .finally(() => {
+      if (!isMounted) return;
+
+      setLoadingCatalogs(false);
+    });
+
+  return () => {
+    isMounted = false;
+  };
+}, []);
+
 
   useEffect(() => {
-    setName(newPlace.name);
-    setDescription(newPlace.description);
-    setPriceRange(newPlace.priceRange);
-    setSchedule(newPlace.schedule);
-    setTag(newPlace.tag);
-    setSubtags(newPlace.subtags);
-    setApproaches(newPlace.approaches);
-  }, [
-    newPlace.name,
-    newPlace.description,
-    newPlace.priceRange,
-    newPlace.schedule,
-    newPlace.tag,
-    newPlace.subtags,
-    newPlace.approaches,
-  ]);
+  setName(newPlace.name);
+  setDescription(newPlace.description);
+  setPriceRange(newPlace.priceRange);
+  setSchedule(newPlace.schedule);
+
+  setTag(newPlace.tag);
+  setSubtags(newPlace.subtags);
+  setApproaches(newPlace.approaches);
+
+  setSelectedTagId(newPlace.tagId || oldPlace.tagId || null);
+}, [
+  newPlace.name,
+  newPlace.description,
+  newPlace.priceRange,
+  newPlace.schedule,
+  newPlace.tag,
+  newPlace.subtags,
+  newPlace.approaches,
+  newPlace.tagId,
+  oldPlace.tagId,
+]);
+
+  useEffect(() => {
+  if (!selectedTagId) {
+    setSubtagOptions([]);
+    setApproachOptions([]);
+    return;
+  }
+
+  let isMounted = true;
+
+  setLoadingCatalogs(true);
+
+  Promise.all([
+    getSubtagsByTagId(selectedTagId),
+    getApproachesByTagId(selectedTagId),
+  ])
+    .then(([subtagsResult, approachesResult]) => {
+      if (!isMounted) return;
+
+      setSubtagOptions(mapCatalogToOptions(subtagsResult));
+      setApproachOptions(mapCatalogToOptions(approachesResult));
+    })
+    .catch((error) => {
+      console.log("Error al cargar subetiquetas/enfoques:", error);
+    })
+    .finally(() => {
+      if (!isMounted) return;
+
+      setLoadingCatalogs(false);
+    });
+
+  return () => {
+    isMounted = false;
+  };
+}, [selectedTagId]);
 
   const handleClose = () => {
     navigation.goBack();
@@ -307,47 +387,62 @@ export default function EditAddedPlacesScreen() {
   };
 
   const handleSelectTag = (option) => {
-    setTag([option.label]);
+  setTag([option.label]);
+  setSelectedTagId(option.id);
+  setSubtags([]);
+  setApproaches([]);
 
-    setEditingFields((prev) => ({
-      ...prev,
-      tag: true,
-    }));
+  setEditingFields((prev) => ({
+    ...prev,
+    tag: true,
+    subtags: false,
+    approaches: false,
+  }));
 
-    setActiveOptionModal(null);
-  };
+  setActiveOptionModal(null);
+};
 
   const handleSelectSubtag = (option) => {
-    setEditingFields((prev) => ({
-      ...prev,
-      subtags: true,
-    }));
+  if (!selectedTagId) {
+    console.log("Selecciona primero una etiqueta.");
+    return;
+  }
 
-    setSubtags((prev) => {
-      const exists = prev.includes(option.label);
+  setEditingFields((prev) => ({
+    ...prev,
+    subtags: true,
+  }));
 
-      if (exists) {
-        return prev.filter((item) => item !== option.label);
-      }
+  setSubtags((prev) => {
+    const exists = prev.includes(option.label);
 
-      if (prev.length >= 2) {
-        return [prev[1], option.label];
-      }
+    if (exists) {
+      return prev.filter((item) => item !== option.label);
+    }
 
-      return [...prev, option.label];
-    });
-  };
+    if (prev.length >= 2) {
+      return [prev[1], option.label];
+    }
 
-  const handleSelectApproach = (option) => {
-    setApproaches([option.label]);
+    return [...prev, option.label];
+  });
+};
 
-    setEditingFields((prev) => ({
-      ...prev,
-      approaches: true,
-    }));
+ const handleSelectApproach = (option) => {
+  if (!selectedTagId) {
+    console.log("Selecciona primero una etiqueta.");
+    return;
+  }
 
-    setActiveOptionModal(null);
-  };
+  setApproaches([option.label]);
+
+  setEditingFields((prev) => ({
+    ...prev,
+    approaches: true,
+  }));
+
+  setActiveOptionModal(null);
+};
 
   return (
     <LayoutScreen
@@ -378,32 +473,36 @@ export default function EditAddedPlacesScreen() {
             </View>
           )}
 
-          <EditableTextField
-            label="Nombre"
-            newLabel="Nuevo nombre"
-            oldValue={oldPlace.name}
-            value={name}
-            onChangeText={setName}
-            placeholder="Nombre del lugar"
-            helperText={returnFields.name.message || "Texto"}
-            reviewField={returnFields.name}
-            isEditing={Boolean(editingFields.name)}
-            onPressEdit={() => handleEditField("name")}
-          />
+        <EditableTextField
+          label="Nombre"
+          newLabel="Nuevo nombre"
+          oldValue={oldPlace.name}
+          value={name}
+          onChangeText={setName}
+          placeholder="Nombre del lugar"
+          helperText={returnFields.name.message || "Texto"}
+          reviewField={returnFields.name}
+          isEditing={Boolean(editingFields.name)}
+          onPressEdit={() => handleEditField("name")}
+          maxLength={60}
+          minLength={3}
+        />
 
-          <EditableTextField
-            label="Descripción"
-            newLabel="Nueva descripción"
-            oldValue={oldPlace.description}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Descripción"
-            helperText={returnFields.description.message || "Texto"}
-            reviewField={returnFields.description}
-            isEditing={Boolean(editingFields.description)}
-            onPressEdit={() => handleEditField("description")}
-            multiline
-          />
+       <EditableTextField
+        label="Descripción"
+        newLabel="Nueva descripción"
+        oldValue={oldPlace.description}
+        value={description}
+        onChangeText={setDescription}
+        placeholder="Descripción"
+        helperText={returnFields.description.message || "Texto"}
+        reviewField={returnFields.description}
+        isEditing={Boolean(editingFields.description)}
+        onPressEdit={() => handleEditField("description")}
+        multiline
+        maxLength={200}
+        minLength={80}
+      />
 
           <EditablePillsField
             label="Etiqueta"
@@ -449,20 +548,21 @@ export default function EditAddedPlacesScreen() {
             reviewField={returnFields.price}
             isEditing={Boolean(editingFields.price)}
             onPressEdit={() => handleEditField("price")}
+            maxLength={40}
           />
-
-          <EditableTextField
-            label="Horario"
-            newLabel="Nuevo horario"
-            oldValue={oldPlace.schedule}
-            value={schedule}
-            onChangeText={setSchedule}
-            placeholder="Horario"
-            helperText={returnFields.schedule.message || "Texto"}
-            reviewField={returnFields.schedule}
-            isEditing={Boolean(editingFields.schedule)}
-            onPressEdit={() => handleEditField("schedule")}
-          />
+            <EditableTextField
+              label="Horario"
+              newLabel="Nuevo horario"
+              oldValue={oldPlace.schedule}
+              value={schedule}
+              onChangeText={setSchedule}
+              placeholder="Horario"
+              helperText={returnFields.schedule.message || "Texto"}
+              reviewField={returnFields.schedule}
+              isEditing={Boolean(editingFields.schedule)}
+              onPressEdit={() => handleEditField("schedule")}
+              maxLength={80}
+            />
 
           <EditablePhotosBox
             label="Fotos"
@@ -491,7 +591,7 @@ export default function EditAddedPlacesScreen() {
         <EditableOptionModal
           visible={activeOptionModal === "tag"}
           title="Selecciona una etiqueta"
-          options={MOCK_TAG_OPTIONS}
+          options={tagOptions}
           selectedValues={tag}
           multiple={false}
           onSelect={handleSelectTag}
@@ -501,7 +601,7 @@ export default function EditAddedPlacesScreen() {
         <EditableOptionModal
           visible={activeOptionModal === "subtags"}
           title="Selecciona subetiquetas"
-          options={MOCK_SUBTAG_OPTIONS}
+          options={subtagOptions}
           selectedValues={subtags}
           multiple
           onSelect={handleSelectSubtag}
@@ -511,7 +611,7 @@ export default function EditAddedPlacesScreen() {
         <EditableOptionModal
           visible={activeOptionModal === "approaches"}
           title="Selecciona un enfoque"
-          options={MOCK_APPROACH_OPTIONS}
+          options={approachOptions}
           selectedValues={approaches}
           multiple={false}
           onSelect={handleSelectApproach}

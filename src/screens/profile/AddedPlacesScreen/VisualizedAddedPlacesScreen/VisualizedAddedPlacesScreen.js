@@ -167,12 +167,14 @@ export default function VisualizedAddedPlaceScreen({ navigation }) {
 
   const canEdit = place.status === "returned";
 
-  const handleEdit = () => {
-    navigation.navigate("EditAddedPlacesScreen", {
-      placeId: place.id,
-      initialPlace: place,
-    });
-  };
+ const handleEdit = () => {
+  navigation.navigate("EditAddedPlacesScreen", {
+    placeId: place.id,
+    initialPlace: place,
+    source: "added_places",
+    shouldFetchReturnedEditData: true,
+  });
+};
 
   return (
     <LayoutScreen>

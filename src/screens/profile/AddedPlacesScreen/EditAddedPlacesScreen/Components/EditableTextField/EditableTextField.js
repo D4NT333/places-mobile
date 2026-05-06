@@ -3,6 +3,16 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import styles from "./styles";
 
+function getTextLength(value = "") {
+  return String(value || "").trim().length;
+}
+
+function getCounterLabel(value = "", maxLength) {
+  if (!maxLength) return "";
+
+  return `${String(value || "").length}/${maxLength}`;
+}
+
 export default function EditableTextField({
   label,
   newLabel,
@@ -15,8 +25,28 @@ export default function EditableTextField({
   onPressEdit,
   isEditing = false,
   multiline = false,
+  maxLength,
+  minLength = 0,
 }) {
   const needsReview = Boolean(reviewField?.selected);
+
+  const oldCounter = getCounterLabel(oldValue, maxLength);
+  const newCounter = getCounterLabel(value, maxLength);
+
+  const newValueLength = getTextLength(value);
+  const hasMinValidation = minLength > 0;
+  const isNewValueValid = hasMinValidation
+    ? newValueLength >= minLength
+    : true;
+
+  const shouldWrapText = multiline || Boolean(maxLength);
+
+  const newInputStatusStyle =
+    hasMinValidation && isNewValueValid
+      ? styles.inputSuccess
+      : needsReview
+      ? styles.inputReview
+      : null;
 
   if (isEditing) {
     return (
@@ -33,7 +63,7 @@ export default function EditableTextField({
               {helperText}
             </Text>
 
-            <Text style={styles.counterText}>3/3</Text>
+            {!!oldCounter && <Text style={styles.counterText}>{oldCounter}</Text>}
           </View>
         </View>
 
@@ -47,20 +77,30 @@ export default function EditableTextField({
             onChangeText={onChangeText}
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
-            multiline={multiline}
+            multiline={shouldWrapText}
+            maxLength={maxLength}
             style={[
               styles.compareInput,
-              multiline && styles.compareMultilineInput,
-              needsReview && styles.inputReview,
+              shouldWrapText && styles.compareMultilineInput,
+              newInputStatusStyle,
             ]}
           />
 
           <View style={styles.helperRow}>
-            <Text style={[styles.helperText, needsReview && styles.helperReview]}>
-              Texto
-            </Text>
+            <View style={styles.emptyHelperSpace} />
 
-            <Text style={styles.counterText}>3/3</Text>
+            {!!newCounter && (
+              <Text
+                style={[
+                  styles.counterText,
+                  hasMinValidation &&
+                    isNewValueValid &&
+                    styles.counterSuccess,
+                ]}
+              >
+                {newCounter}
+              </Text>
+            )}
           </View>
         </View>
       </View>
@@ -84,18 +124,23 @@ export default function EditableTextField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#9CA3AF"
-        multiline={multiline}
+        multiline={shouldWrapText}
+        maxLength={maxLength}
         style={[
           styles.input,
-          multiline && styles.multilineInput,
+          shouldWrapText && styles.multilineInput,
           needsReview && styles.inputReview,
         ]}
       />
 
       {!!helperText && (
-        <Text style={[styles.helperText, needsReview && styles.helperReview]}>
-          {helperText}
-        </Text>
+        <View style={styles.helperRow}>
+          <Text style={[styles.helperText, needsReview && styles.helperReview]}>
+            {helperText}
+          </Text>
+
+          {!!newCounter && <Text style={styles.counterText}>{newCounter}</Text>}
+        </View>
       )}
     </View>
   );
