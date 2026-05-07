@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../../layouts";
@@ -12,6 +12,7 @@ import {
   EditableMapBox,
   SubmitAgainBox,
   EditableOptionModal,
+  EditablePriceModal,
 } from "./Components";
 
 import getReturnedPlaceSubmissionEditDataService from "../../../../services/api/getReturnedPlaceSubmissionEditData.service";
@@ -56,6 +57,58 @@ const TAG_IDS_WITHOUT_APPROACHES = [
 
 function tagDoesNotUseApproaches(tagId) {
   return TAG_IDS_WITHOUT_APPROACHES.includes(tagId);
+}
+
+function normalizePriceLabel(value = "") {
+  return String(value)
+    .replace(/\s+/g, " ")
+    .replace("–", "-")
+    .trim();
+}
+
+function findRangeIdByPriceLabel(config, priceLabel) {
+  const ranges = Array.isArray(config?.ranges) ? config.ranges : [];
+
+  const normalizedPrice = normalizePriceLabel(priceLabel);
+
+  const foundRange = ranges.find((range) => {
+    return normalizePriceLabel(range.label) === normalizedPrice;
+  });
+
+  return foundRange?.id || ranges[0]?.id || null;
+}
+
+function getRangeLabelById(config, rangeId) {
+  const ranges = Array.isArray(config?.ranges) ? config.ranges : [];
+
+  const foundRange = ranges.find((range) => range.id === rangeId);
+
+  return foundRange?.label || "";
+}
+
+function normalizeText(value = "") {
+  return String(value || "").trim();
+}
+
+function arraysAreDifferent(a = [], b = []) {
+  const cleanA = Array.isArray(a) ? a.filter(Boolean) : [];
+  const cleanB = Array.isArray(b) ? b.filter(Boolean) : [];
+
+  if (cleanA.length !== cleanB.length) return true;
+
+  return cleanA.some((item, index) => item !== cleanB[index]);
+}
+
+function hasTextChanged(oldValue, newValue) {
+  return normalizeText(oldValue) !== normalizeText(newValue);
+}
+
+function isValidName(value) {
+  return normalizeText(value).length >= 3;
+}
+
+function isValidDescription(value) {
+  return normalizeText(value).length >= 80;
 }
 
 function toArray(value) {
@@ -228,6 +281,13 @@ export default function EditAddedPlacesScreen() {
   const [activeOptionModal, setActiveOptionModal] = useState(null);
   const [editingFields, setEditingFields] = useState({});
 
+  const [priceModalVisible, setPriceModalVisible] = useState(false);
+  const [selectedPriceRangeId, setSelectedPriceRangeId] = useState(null);
+  const [isFreePrice, setIsFreePrice] = useState(false);
+
+  const [replacementPhotos, setReplacementPhotos] = useState({});
+  const [editedLocation, setEditedLocation] = useState(null);
+
   const editSources = useMemo(
     () =>
       buildEditSources({
@@ -239,12 +299,155 @@ export default function EditAddedPlacesScreen() {
 
   const { oldPlace, newPlace, returnFields, generalMessage } = editSources;
 
-  const selectedTagHasNoApproaches = tagDoesNotUseApproaches(selectedTagId);
+  const selectedTagLabel = tag?.[0] || "";
+
+const selectedTagOption = tagOptions.find((option) => {
+  const matchesById = option.id === selectedTagId;
+  const matchesByLabel = option.label === selectedTagLabel;
+
+  return matchesById || matchesByLabel;
+});
+
+const resolvedSelectedTagId = selectedTagOption?.id || selectedTagId;
+
+const selectedTagHasNoApproaches =
+  tagDoesNotUseApproaches(resolvedSelectedTagId);
+
+const selectedTagPriceConfig =
+  selectedTagOption?.raw?.priceConfig ||
+  selectedTagOption?.raw?.price ||
+  null;
 
   const approachPillsToShow = selectedTagHasNoApproaches
 
   ? ["Sin enfoque"]
   : approaches;
+
+ const requiredReviewChecks = useMemo(() => {
+  const checks = [];
+
+  if (returnFields.name?.selected) {
+    checks.push({
+      field: "name",
+      valid:
+        Boolean(editingFields.name) &&
+        isValidName(name) &&
+        hasTextChanged(oldPlace.name, name),
+      message: "Corrige el nombre.",
+    });
+  }
+
+  if (returnFields.description?.selected) {
+    checks.push({
+      field: "description",
+      valid:
+        Boolean(editingFields.description) &&
+        isValidDescription(description) &&
+        hasTextChanged(oldPlace.description, description),
+      message: "Corrige la descripción.",
+    });
+  }
+
+  if (returnFields.tag?.selected) {
+    checks.push({
+      field: "tag",
+      valid:
+        Boolean(editingFields.tag) &&
+        tag.length > 0 &&
+        arraysAreDifferent(oldPlace.tag, tag),
+      message: "Selecciona una nueva etiqueta.",
+    });
+  }
+
+  if (returnFields.subtags?.selected) {
+    checks.push({
+      field: "subtags",
+      valid:
+        Boolean(editingFields.subtags) &&
+        subtags.length > 0 &&
+        arraysAreDifferent(oldPlace.subtags, subtags),
+      message: "Selecciona nuevas subetiquetas.",
+    });
+  }
+
+  if (returnFields.approaches?.selected) {
+  if (!selectedTagHasNoApproaches) {
+    checks.push({
+      field: "approaches",
+      valid:
+        Boolean(editingFields.approaches) &&
+        approaches.length > 0 &&
+        arraysAreDifferent(oldPlace.approaches, approaches),
+      message: "Selecciona un nuevo enfoque.",
+    });
+  }
+  }
+
+  if (returnFields.price?.selected) {
+    checks.push({
+      field: "price",
+      valid:
+        Boolean(editingFields.price) &&
+        normalizeText(priceRange).length > 0 &&
+        hasTextChanged(oldPlace.priceRange, priceRange),
+      message: "Selecciona un nuevo rango de precio.",
+    });
+  }
+
+  if (returnFields.schedule?.selected) {
+    checks.push({
+      field: "schedule",
+      valid:
+        Boolean(editingFields.schedule) &&
+        normalizeText(schedule).length > 0 &&
+        hasTextChanged(oldPlace.schedule, schedule),
+      message: "Corrige el horario.",
+    });
+  }
+
+  if (returnFields.photos?.selected) {
+    const reviewedPhotos = oldPlace.photos.filter((photo) => photo.selected);
+
+    const allReviewedPhotosChanged =
+      reviewedPhotos.length > 0 &&
+      reviewedPhotos.every((photo) => Boolean(replacementPhotos[photo.id]));
+
+    checks.push({
+      field: "photos",
+      valid: allReviewedPhotosChanged,
+      message: "Cambia las fotos marcadas para revisión.",
+    });
+  }
+
+  if (returnFields.location?.selected) {
+    checks.push({
+      field: "location",
+      valid: Boolean(editedLocation),
+      message: "Ajusta la ubicación en el mapa.",
+    });
+  }
+
+  return checks;
+}, [
+  returnFields,
+  editingFields,
+  name,
+  description,
+  tag,
+  subtags,
+  approaches,
+  priceRange,
+  schedule,
+  oldPlace,
+  replacementPhotos,
+  editedLocation,
+  selectedTagHasNoApproaches,
+]);
+
+const pendingReviewChecks = requiredReviewChecks.filter((check) => !check.valid);
+
+const canSubmitAgain =
+  requiredReviewChecks.length > 0 && pendingReviewChecks.length === 0;
 
   useEffect(() => {
   if (!placeId) return;
@@ -374,6 +577,18 @@ useEffect(() => {
   };
 }, [selectedTagId]);
 
+  useEffect(() => {
+  if (!selectedTagPriceConfig) return;
+
+  const nextRangeId = findRangeIdByPriceLabel(
+    selectedTagPriceConfig,
+    priceRange || newPlace.priceRange
+  );
+
+  setSelectedPriceRangeId(nextRangeId);
+  setIsFreePrice(priceRange === "Gratis");
+}, [selectedTagPriceConfig, priceRange, newPlace.priceRange]);
+
   const handleClose = () => {
     navigation.goBack();
   };
@@ -417,19 +632,56 @@ const handleEditField = (fieldKey) => {
   });
 };
 
-  const handleSubmitAgain = () => {
-    console.log("Enviar de nuevo lugar:", {
-      placeId,
-      returnId: editData?.activeReturn?.returnId,
-      name,
-      description,
-      tag,
-      subtags,
-      approaches,
-      priceRange,
-      schedule,
-    });
+ const handleSubmitAgain = () => {
+  if (!canSubmitAgain) {
+    console.log("Aún faltan correcciones:", pendingReviewChecks);
+    return;
+  }
+
+  const payload = {
+    placeId,
+    returnId: editData?.activeReturn?.returnId || null,
+
+    correctedFields: {
+      name: returnFields.name?.selected ? name : undefined,
+
+      description: returnFields.description?.selected
+        ? description
+        : undefined,
+
+      tag: returnFields.tag?.selected
+      ? {
+          tagId: resolvedSelectedTagId,
+          label: tag[0] || null,
+        }
+      : undefined,
+
+      subtags: returnFields.subtags?.selected ? subtags : undefined,
+
+      approaches:
+     selectedTagHasNoApproaches
+    ? null
+    : returnFields.approaches?.selected
+    ? approaches
+    : undefined,
+
+      price: returnFields.price?.selected ? priceRange : undefined,
+
+      schedule: returnFields.schedule?.selected ? schedule : undefined,
+
+      location: returnFields.location?.selected ? editedLocation : undefined,
+
+      photos: returnFields.photos?.selected
+        ? Object.entries(replacementPhotos).map(([oldPhotoId, newPhoto]) => ({
+            oldPhotoId,
+            newPhoto,
+          }))
+        : undefined,
+    },
   };
+
+  console.log("PAYLOAD LISTO PARA REENVIAR:", payload);
+};
 
   const handleCloseOptionModal = () => {
     setActiveOptionModal(null);
@@ -452,8 +704,9 @@ const handleEditField = (fieldKey) => {
   }));
 
   if (nextTagHasNoApproaches) {
-    setApproachOptions([]);
-  }
+  setApproaches([]);
+  setApproachOptions([]);
+}
 
   setActiveOptionModal(null);
 };
@@ -505,6 +758,66 @@ const handleEditField = (fieldKey) => {
   }));
 
   setActiveOptionModal(null);
+};
+
+const handleOpenPriceModal = () => {
+  console.log("DEBUG PRICE MODAL:", {
+    selectedTagId,
+    tag,
+    tagOptions,
+    selectedTagOption,
+    selectedTagPriceConfig,
+  });
+
+  if (!selectedTagPriceConfig) {
+    console.log("No hay configuración de precio para esta etiqueta.");
+    return;
+  }
+
+  const currentRangeId = findRangeIdByPriceLabel(
+    selectedTagPriceConfig,
+    priceRange || oldPlace.priceRange
+  );
+
+  setSelectedPriceRangeId(currentRangeId);
+  setPriceModalVisible(true);
+};
+
+const handleClosePriceModal = () => {
+  setPriceModalVisible(false);
+};
+
+const handleChangePriceRangeId = (rangeId) => {
+  setSelectedPriceRangeId(rangeId);
+  setIsFreePrice(false);
+
+  const nextPriceLabel = getRangeLabelById(selectedTagPriceConfig, rangeId);
+
+  setPriceRange(nextPriceLabel);
+
+  setEditingFields((prev) => ({
+    ...prev,
+    price: true,
+  }));
+};
+
+const handleToggleFreePrice = () => {
+  setIsFreePrice((prev) => {
+    const nextIsFree = !prev;
+
+    const nextPriceLabel = nextIsFree
+      ? "Gratis"
+      : getRangeLabelById(selectedTagPriceConfig, selectedPriceRangeId);
+
+    setPriceRange(nextPriceLabel);
+
+    setEditingFields((current) => ({
+      ...current,
+      price: true,
+    }));
+
+    return nextIsFree;
+  });
 };
 
   return (
@@ -601,17 +914,17 @@ const handleEditField = (fieldKey) => {
                 onPressEdit={() => setActiveOptionModal("approaches")}
               />
             )}
-          <EditableTextField
+         <EditableTextField
             label="Rango de precio"
             newLabel="Nuevo rango"
             oldValue={oldPlace.priceRange}
             value={priceRange}
             onChangeText={setPriceRange}
             placeholder="Rango de precio"
-            helperText={returnFields.price.message || "Texto"}
+            helperText={returnFields.price.message || "Texto"}  
             reviewField={returnFields.price}
             isEditing={Boolean(editingFields.price)}
-            onPressEdit={() => handleEditField("price")}
+            onPressEdit={handleOpenPriceModal}
             maxLength={40}
           />
             <EditableTextField
@@ -628,28 +941,33 @@ const handleEditField = (fieldKey) => {
               maxLength={80}
             />
 
-          <EditablePhotosBox
-            label="Fotos"
-            photos={oldPlace.photos}
-            reviewField={returnFields.photos}
-            helperText={returnFields.photos.message || "Texto"}
-          />
+         <EditablePhotosBox
+          label="Fotos"
+          photos={oldPlace.photos}
+          reviewField={returnFields.photos}
+          helperText={returnFields.photos.message || "Texto"}
+          onChangeReplacementPhotos={setReplacementPhotos}
+        />
 
-          <EditableMapBox
-            label="Mapa"
-            newLabel="Mapa nuevo"
-            mapLabel={oldPlace.mapLabel}
-            newMapLabel={newPlace.mapLabel}
-            reviewField={returnFields.location}
-            helperText={
-              returnFields.location.message ||
-              "Ajusta el pin al acceso principal del lugar."
-            }
-            isEditing={Boolean(editingFields.location)}
-            onPressEdit={() => handleEditField("location")}
-          />
+       <EditableMapBox
+        label="Mapa"
+        newLabel="Mapa nuevo"
+        oldLocation={oldPlace.location}
+        newLocation={newPlace.location}
+        reviewField={returnFields.location}
+        helperText={
+          returnFields.location.message ||
+          "Ajusta el pin al acceso principal del lugar."
+        }
+        isEditing={Boolean(editingFields.location)}
+        onPressEdit={() => handleEditField("location")}
+        onChangeLocation={setEditedLocation}
+      />
 
-          <SubmitAgainBox onSubmit={handleSubmitAgain} />
+          <SubmitAgainBox
+            onSubmit={handleSubmitAgain}
+            disabled={!canSubmitAgain}
+          />
         </ScrollView>
 
         <EditableOptionModal
@@ -680,6 +998,15 @@ const handleEditField = (fieldKey) => {
           multiple={false}
           onSelect={handleSelectApproach}
           onClose={handleCloseOptionModal}
+        />
+        <EditablePriceModal
+          visible={priceModalVisible}
+          config={selectedTagPriceConfig}
+          selectedRangeId={selectedPriceRangeId}
+          isFree={isFreePrice}
+          onChangeRangeId={handleChangePriceRangeId}
+          onToggleFree={handleToggleFreePrice}
+          onClose={handleClosePriceModal}
         />
       </View>
     </LayoutScreen>

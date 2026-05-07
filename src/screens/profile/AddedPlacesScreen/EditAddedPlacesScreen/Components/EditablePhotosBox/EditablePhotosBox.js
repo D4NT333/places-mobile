@@ -10,7 +10,9 @@ export default function EditablePhotosBox({
   photos = [],
   reviewField,
   helperText,
+  onChangeReplacementPhotos,
 }) {
+  
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [replacementPhotos, setReplacementPhotos] = useState({});
 
@@ -32,10 +34,16 @@ export default function EditablePhotosBox({
 
       if (!pickedPhoto) return;
 
-      setReplacementPhotos((prev) => ({
+     setReplacementPhotos((prev) => {
+      const next = {
         ...prev,
         [selectedPhoto.id]: pickedPhoto,
-      }));
+      };
+
+      onChangeReplacementPhotos?.(next);
+
+      return next;
+    });
 
       setSelectedPhoto(null);
     } catch (error) {

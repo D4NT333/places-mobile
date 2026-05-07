@@ -5,3 +5,4 @@ export { default as EditableMapBox } from "./EditableMapBox";
 export { default as SubmitAgainBox } from "./SubmitAgainBox";
 export { default as EditablePillsField } from "./EditablePillsField";
 export { default as EditableOptionModal } from "./EditableOptionModal";
+export { default as EditablePriceModal } from "./EditablePriceModal";
