@@ -7,3 +7,7 @@ export { default as googleSignInService } from "./firebase/auth/googleSignIn.ser
 export { default as logoutService } from "./firebase/auth/logout.service.js";
 
 export { default as pickSingleImage } from "./image.service.js";
+
+export { default as uploadCorrectedSubmissionPhotoService } from "./firebase/storage/uploadCorrectedSubmissionPhoto.service";
+
+export { default as resubmitReturnedPlaceSubmissionService } from "./api/resubmitReturnedPlaceSubmission.service.js";

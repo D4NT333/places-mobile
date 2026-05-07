@@ -22,6 +22,11 @@ import { getTagsService } from "../../../../services/firebase/firestore/tags/get
 import { getSubtagsByTagId } from "../../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";
 import { getApproachesByTagId } from "../../../../services/firebase/firestore/approaches/getApproachesByTagId.service";
 
+import {
+  uploadCorrectedSubmissionPhotoService,
+  resubmitReturnedPlaceSubmissionService,
+} from "../../../../services";
+
 import styles from "./styles";
 
 const EMPTY_RETURN_FIELDS = {
@@ -56,6 +61,8 @@ const TAG_IDS_WITHOUT_APPROACHES = [
   "tag_service",
 ];
 
+
+
 function tagDoesNotUseApproaches(tagId) {
   return TAG_IDS_WITHOUT_APPROACHES.includes(tagId);
 }
@@ -89,6 +96,12 @@ function getRangeLabelById(config, rangeId) {
 
 function normalizeText(value = "") {
   return String(value || "").trim();
+}
+
+function removeUndefinedFields(object = {}) {
+  return Object.fromEntries(
+    Object.entries(object).filter(([, value]) => value !== undefined)
+  );
 }
 
 function arraysAreDifferent(a = [], b = []) {
@@ -276,7 +289,6 @@ export default function EditAddedPlacesScreen() {
   const [tagOptions, setTagOptions] = useState([]);
   const [subtagOptions, setSubtagOptions] = useState([]);
   const [approachOptions, setApproachOptions] = useState([]);
-
   const [loadingCatalogs, setLoadingCatalogs] = useState(false);
 
   const [activeOptionModal, setActiveOptionModal] = useState(null);
@@ -290,6 +302,8 @@ export default function EditAddedPlacesScreen() {
   const [editedLocation, setEditedLocation] = useState(null);
 
   const [successModalVisible, setSuccessModalVisible] = useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
 
   const editSources = useMemo(
     () =>
@@ -635,21 +649,68 @@ const handleEditField = (fieldKey) => {
   });
 };
 
- const handleSubmitAgain = () => {
+  const uploadCorrectedPhotos = async () => {
+  const entries = Object.entries(replacementPhotos);
+
+  if (entries.length === 0) return [];
+
+  const returnId = editData?.activeReturn?.returnId;
+
+  if (!returnId) {
+    throw new Error("Falta returnId para subir fotos corregidas.");
+  }
+
+  const uploadedPhotos = await Promise.all(
+    entries.map(async ([oldPhotoId, newPhoto]) => {
+      const photoIndex = oldPlace.photos.findIndex(
+        (photo) => photo.id === oldPhotoId
+      );
+
+      if (photoIndex < 0) {
+        throw new Error(`No se encontró la foto original: ${oldPhotoId}`);
+      }
+
+      const oldPhoto = oldPlace.photos[photoIndex];
+
+      const uploadedPhoto = await uploadCorrectedSubmissionPhotoService({
+        submissionId: placeId,
+        returnId,
+        oldPhoto,
+        newPhoto,
+        photoIndex,
+      });
+
+      return {
+        oldPhotoId,
+        photoIndex,
+        photo: uploadedPhoto,
+      };
+    })
+  );
+
+  return uploadedPhotos;
+};
+
+const handleSubmitAgain = async () => {
   if (!canSubmitAgain) {
     console.log("Aún faltan correcciones:", pendingReviewChecks);
     return;
   }
 
-  const payload = {
-    placeId,
-    returnId: editData?.activeReturn?.returnId || null,
+  if (submitting) return;
 
-    correctedFields: {
-      name: returnFields.name?.selected ? name : undefined,
+  try {
+    setSubmitting(true);
+
+    const uploadedReplacementPhotos = returnFields.photos?.selected
+      ? await uploadCorrectedPhotos()
+      : [];
+
+    const correctedFields = removeUndefinedFields({
+      name: returnFields.name?.selected ? normalizeText(name) : undefined,
 
       description: returnFields.description?.selected
-        ? description
+        ? normalizeText(description)
         : undefined,
 
       tag: returnFields.tag?.selected
@@ -667,24 +728,46 @@ const handleEditField = (fieldKey) => {
         ? approaches
         : undefined,
 
-      price: returnFields.price?.selected ? priceRange : undefined,
+      price: returnFields.price?.selected
+        ? normalizeText(priceRange)
+        : undefined,
 
-      schedule: returnFields.schedule?.selected ? schedule : undefined,
+      schedule: returnFields.schedule?.selected
+        ? normalizeText(schedule)
+        : undefined,
 
       location: returnFields.location?.selected ? editedLocation : undefined,
 
       photos: returnFields.photos?.selected
-        ? Object.entries(replacementPhotos).map(([oldPhotoId, newPhoto]) => ({
-            oldPhotoId,
-            newPhoto,
-          }))
+        ? uploadedReplacementPhotos
         : undefined,
-    },
-  };
+    });
 
-  console.log("PAYLOAD LISTO PARA REENVIAR:", payload);
+    const payload = {
+      placeId,
+      returnId: editData?.activeReturn?.returnId || null,
+      correctedFields,
+    };
 
-  setSuccessModalVisible(true);
+    console.log("PAYLOAD FINAL PARA BACKEND:", payload);
+
+    const result = await resubmitReturnedPlaceSubmissionService({
+      submissionId: placeId,
+      payload,
+    });
+
+    console.log("REENVÍO COMPLETADO:", result);
+
+    setSuccessModalVisible(true);
+  } catch (error) {
+    console.log("Error al reenviar propuesta:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+  } finally {
+    setSubmitting(false);
+  }
 };
 
   const handleCloseOptionModal = () => {
@@ -975,7 +1058,7 @@ const handleCloseSuccessModal = () => {
 
           <SubmitAgainBox
             onSubmit={handleSubmitAgain}
-            disabled={!canSubmitAgain}
+            disabled={!canSubmitAgain || submitting}
           />
         </ScrollView>
 
