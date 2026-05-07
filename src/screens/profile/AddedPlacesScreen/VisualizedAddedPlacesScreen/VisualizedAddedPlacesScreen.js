@@ -17,12 +17,19 @@ function getStatusLabel(status) {
   switch (status) {
     case "approved":
       return "Aprobado";
+
     case "in_review":
-      return "En revisión";
+      return "En revision";
+
+    case "resubmitted":
+      return "Corregido";
+
     case "returned":
       return "Devuelto";
+
     case "rejected":
       return "Rechazado";
+
     default:
       return "Sin estado";
   }

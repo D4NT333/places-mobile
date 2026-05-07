@@ -53,10 +53,14 @@ function mapSubmissionToPlace(submission) {
     imageUrl:
       submission.imageUrl ||
       "https://via.placeholder.com/200x200.png?text=Lugar",
-    tag: submission.tag || "Sin categoría",
+    tag: submission.tag || submission.tagLabel || "Sin categoría",
     subtags: Array.isArray(submission.subtags) ? submission.subtags : [],
     submittedAtLabel: formatDateLabel(submission.createdAt, "Enviado"),
     returnedAtLabel: formatDateLabel(submission.returnedAt, "Devuelto"),
+    resubmittedAtLabel: formatDateLabel(
+      submission.resubmittedAt || submission.updatedAt,
+      "Corregido"
+    ),
     status: submission.status || "in_review",
   };
 }

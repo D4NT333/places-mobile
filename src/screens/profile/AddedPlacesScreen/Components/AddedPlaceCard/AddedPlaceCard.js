@@ -13,17 +13,24 @@ function getStatusLabel(status) {
       return "Devuelto";
     case "rejected":
       return "Rechazado";
+    case "resubmitted":
+      return "Corregido";
     default:
       return "Pendiente";
   }
 }
 
 function getDateLabel(place) {
-  if (place.status === "returned" && place.returnedAtLabel) {
-    return place.returnedAtLabel;
-  }
+  switch (place.status) {
+    case "returned":
+      return place.returnedAtLabel || place.submittedAtLabel;
 
-  return place.submittedAtLabel;
+    case "resubmitted":
+      return place.resubmittedAtLabel || place.submittedAtLabel;
+
+    default:
+      return place.submittedAtLabel;
+  }
 }
 
 function getActions(status) {
@@ -32,7 +39,10 @@ function getActions(status) {
       return ["delete"];
 
     case "in_review":
-      return [];
+      return ["delete"];
+
+    case "resubmitted":
+      return ["delete"];
 
     case "returned":
       return ["edit", "delete"];
