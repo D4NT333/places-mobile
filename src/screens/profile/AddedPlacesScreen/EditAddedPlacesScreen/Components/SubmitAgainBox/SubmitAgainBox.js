@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import styles from "./styles";
 
-export default function SubmitAgainBox({ onSubmit }) {
+export default function SubmitAgainBox({ onSubmit, disabled = false }) {
   return (
     <View style={styles.container}>
       <Text style={styles.warningText}>
@@ -14,8 +14,23 @@ export default function SubmitAgainBox({ onSubmit }) {
         Si vuelve a ser devuelta, el lugar deberá registrarse nuevamente desde cero.
       </Text>
 
-      <Pressable onPress={onSubmit} style={styles.button}>
-        <Text style={styles.buttonText}>Enviar de nuevo</Text>
+      <Pressable
+        onPress={onSubmit}
+        disabled={disabled}
+        style={({ pressed }) => [
+          styles.button,
+          disabled && styles.buttonDisabled,
+          pressed && !disabled && styles.buttonPressed,
+        ]}
+      >
+        <Text
+          style={[
+            styles.buttonText,
+            disabled && styles.buttonTextDisabled,
+          ]}
+        >
+          Enviar de nuevo
+        </Text>
       </Pressable>
     </View>
   );

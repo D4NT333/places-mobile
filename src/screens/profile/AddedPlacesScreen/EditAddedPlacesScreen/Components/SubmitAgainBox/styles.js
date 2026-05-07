@@ -34,4 +34,15 @@ export default StyleSheet.create({
     fontWeight: "900",
     color: "#4B5563",
   },
+  buttonDisabled: {
+  opacity: 0.45,
+},
+
+buttonPressed: {
+  opacity: 0.75,
+},
+
+buttonTextDisabled: {
+  color: "#E5E7EB",
+},
 });

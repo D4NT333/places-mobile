@@ -13,6 +13,7 @@ import {
   SubmitAgainBox,
   EditableOptionModal,
   EditablePriceModal,
+  ResubmitSuccessModal,
 } from "./Components";
 
 import getReturnedPlaceSubmissionEditDataService from "../../../../services/api/getReturnedPlaceSubmissionEditData.service";
@@ -287,6 +288,8 @@ export default function EditAddedPlacesScreen() {
 
   const [replacementPhotos, setReplacementPhotos] = useState({});
   const [editedLocation, setEditedLocation] = useState(null);
+
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   const editSources = useMemo(
     () =>
@@ -650,20 +653,19 @@ const handleEditField = (fieldKey) => {
         : undefined,
 
       tag: returnFields.tag?.selected
-      ? {
-          tagId: resolvedSelectedTagId,
-          label: tag[0] || null,
-        }
-      : undefined,
+        ? {
+            tagId: resolvedSelectedTagId,
+            label: tag[0] || null,
+          }
+        : undefined,
 
       subtags: returnFields.subtags?.selected ? subtags : undefined,
 
-      approaches:
-     selectedTagHasNoApproaches
-    ? null
-    : returnFields.approaches?.selected
-    ? approaches
-    : undefined,
+      approaches: selectedTagHasNoApproaches
+        ? null
+        : returnFields.approaches?.selected
+        ? approaches
+        : undefined,
 
       price: returnFields.price?.selected ? priceRange : undefined,
 
@@ -681,6 +683,8 @@ const handleEditField = (fieldKey) => {
   };
 
   console.log("PAYLOAD LISTO PARA REENVIAR:", payload);
+
+  setSuccessModalVisible(true);
 };
 
   const handleCloseOptionModal = () => {
@@ -818,6 +822,11 @@ const handleToggleFreePrice = () => {
 
     return nextIsFree;
   });
+};
+
+const handleCloseSuccessModal = () => {
+  setSuccessModalVisible(false);
+  navigation.goBack();
 };
 
   return (
@@ -1007,6 +1016,11 @@ const handleToggleFreePrice = () => {
           onChangeRangeId={handleChangePriceRangeId}
           onToggleFree={handleToggleFreePrice}
           onClose={handleClosePriceModal}
+        />
+
+        <ResubmitSuccessModal
+          visible={successModalVisible}
+          onClose={handleCloseSuccessModal}
         />
       </View>
     </LayoutScreen>
