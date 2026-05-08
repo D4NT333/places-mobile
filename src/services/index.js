@@ -11,3 +11,5 @@ export { default as pickSingleImage } from "./image.service.js";
 export { default as uploadCorrectedSubmissionPhotoService } from "./firebase/storage/uploadCorrectedSubmissionPhoto.service";
 
 export { default as resubmitReturnedPlaceSubmissionService } from "./api/resubmitReturnedPlaceSubmission.service.js";
+
+export { default as getRejectedPlaceReasonService } from "./api/getRejectedPlaceReason.service.js";

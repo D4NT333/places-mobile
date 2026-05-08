@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../layouts";
 import AddedPlaceCard from "./Components/AddedPlaceCard";
 import DeletePlaceModal from "./Components/DeletePlaceModal";
+import RejectionReasonModal from "./Components/RejectionReasonModal";
 
 import {
   getAddedPlacesCacheSnapshot,
@@ -13,6 +14,8 @@ import {
   removeAddedPlaceFromCache,
   subscribeAddedPlacesCache,
 } from "../../../services/api/addedPlacesSubmissionsCache.service";
+
+import {getRejectedPlaceReasonService } from "../../../services";
 
 import styles from "./styles";
 
@@ -46,6 +49,8 @@ function formatDateLabel(dateValue, prefix = "Enviado") {
   return `${prefix} el ${day} de ${month}`;
 }
 
+
+
 function mapSubmissionToPlace(submission) {
   return {
     id: submission.id,
@@ -74,6 +79,11 @@ export default function AddedPlacesScreen() {
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedPlaceToDelete, setSelectedPlaceToDelete] = useState(null);
+
+  const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
+  const [loadingRejectionReason, setLoadingRejectionReason] = useState(false);
+  const [rejectionReasonError, setRejectionReasonError] = useState("");
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState(null);
 
   useEffect(() => {
     const unsubscribe = subscribeAddedPlacesCache((nextSnapshot) => {
@@ -118,23 +128,42 @@ export default function AddedPlacesScreen() {
     setSelectedPlaceToDelete(place);
     setDeleteModalVisible(true);
   };
-
+  
   const handleConfirmDelete = () => {
-    if (!selectedPlaceToDelete) return;
+  if (!selectedPlaceToDelete) return;
 
-    console.log("Lugar eliminado:", selectedPlaceToDelete.id);
+  console.log("Lugar eliminado:", selectedPlaceToDelete.id);
 
-    removeAddedPlaceFromCache(selectedPlaceToDelete.id);
+  removeAddedPlaceFromCache(selectedPlaceToDelete.id);
 
-    setDeleteModalVisible(false);
-    setSelectedPlaceToDelete(null);
-  };
+  setDeleteModalVisible(false);
+  setSelectedPlaceToDelete(null);
+};
 
-  const handleViewReason = (place) => {
-    navigation.navigate("RejectedPlaceReasonScreen", {
-      placeId: place.id,
-    });
-  };
+  const handleViewReason = async (place) => {
+  setRejectionModalVisible(true);
+  setLoadingRejectionReason(true);
+  setRejectionReasonError("");
+  setSelectedRejectionReason(null);
+
+  try {
+    const data = await getRejectedPlaceReasonService(place.id);
+
+    console.log("Motivo de rechazo:", data);
+
+    setSelectedRejectionReason(data);
+  } catch (error) {
+    console.log("Error cargando motivo de rechazo:", error);
+
+    setRejectionReasonError(
+      error.response?.data?.message ||
+        error.message ||
+        "No se pudo cargar el motivo de rechazo."
+    );
+  } finally {
+    setLoadingRejectionReason(false);
+  }
+};
 
   const handleScroll = (event) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
@@ -205,6 +234,18 @@ export default function AddedPlacesScreen() {
         placeName={selectedPlaceToDelete?.name || "este lugar"}
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
+      />
+
+      <RejectionReasonModal
+        visible={rejectionModalVisible}
+        loading={loadingRejectionReason}
+        errorMessage={rejectionReasonError}
+        rejectionReason={selectedRejectionReason}
+        onClose={() => {
+          setRejectionModalVisible(false);
+          setSelectedRejectionReason(null);
+          setRejectionReasonError("");
+        }}
       />
     </LayoutScreen>
   );
