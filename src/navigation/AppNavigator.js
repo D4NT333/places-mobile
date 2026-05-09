@@ -33,7 +33,6 @@ import {SearchRadiusScreen} from "../screens";
 import {ReportProblemScreen} from "../screens";
 import {SuggestImprovementScreen} from "../screens";
 import {ChangePasswordScreen} from "../screens";
-import {ChangeEmailScreen} from "../screens";
 import {EliminateAccountScreen} from "../screens";
 import {TermsConditionsScreen} from "../screens";
 import {PrivacyNoticeScreen} from "../screens";
@@ -161,11 +160,6 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ChangePasswordScreen"
           component={ChangePasswordScreen}
-        />
-
-        <Stack.Screen
-          name="ChangeEmailScreen"
-          component={ChangeEmailScreen}
         />
 
         <Stack.Screen
