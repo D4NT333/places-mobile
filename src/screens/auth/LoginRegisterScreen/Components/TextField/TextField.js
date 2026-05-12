@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 
 export default function TextField({
@@ -13,8 +13,14 @@ export default function TextField({
   errorText = "",
   rightHint = "",
   onPressField,
-  onBlur, // 👈 agrégalo
+  onBlur,
+
+  // 👁️ NUEVO
+  rightIconSource,
+  onPressRightIcon,
 }) {
+
+    console.log("TextField:", placeholder, "rightIconSource:", rightIconSource);
   const isTouchable = !!onPressField;
 
   return (
@@ -44,7 +50,7 @@ export default function TextField({
           <TextInput
             value={value}
             onChangeText={onChangeText}
-            onBlur={onBlur} // 👈 pásalo aquí
+            onBlur={onBlur}
             placeholder={placeholder}
             placeholderTextColor="#666"
             secureTextEntry={secureTextEntry}
@@ -55,6 +61,20 @@ export default function TextField({
           />
 
           {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
+
+          {!!rightIconSource && (
+            <Pressable
+              onPress={onPressRightIcon}
+              hitSlop={10}
+              style={styles.rightIconButton}
+            >
+              <Image
+                source={rightIconSource}
+                style={styles.rightIcon}
+                resizeMode="contain"
+              />
+            </Pressable>
+          )}
         </View>
       )}
 

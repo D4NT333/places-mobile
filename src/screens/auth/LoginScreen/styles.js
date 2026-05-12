@@ -20,4 +20,12 @@ export default StyleSheet.create({
     color: "#666",
     textAlign: "center",
   },
+  errorText: {
+  color: "#D93025",
+  fontSize: 13,
+  fontWeight: "500",
+  marginTop: -8,
+  marginBottom: 4,
+  paddingHorizontal: 12,
+},
 });
