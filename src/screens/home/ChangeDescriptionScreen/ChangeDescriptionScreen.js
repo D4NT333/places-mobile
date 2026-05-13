@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LayoutScreen } from "../../../layouts";
 import styles from "./styles";
 
-const MIN_CHARS = 100;
+const MIN_CHARS = 80;
 const MAX_CHARS = 200;
 
 export default function ChangeDescriptionScreen({ route }) {
