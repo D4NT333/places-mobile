@@ -12,6 +12,8 @@ import TextLink from "../LoginPasswordScreen/Components/TextLink";
 import BirthDateModal from "./Components/BirthDateModal";
 import { icons } from "../../../../assets/icons";
 
+import registerWithEmailService  from "../../../services/firebase/auth/registerWithEmail.service.js";
+
 export default function LoginRegisterScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -37,6 +39,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 const [touchedName, setTouchedName] = useState(false);
 const [touchedEmail, setTouchedEmail] = useState(false);
 const [birthDateError, setBirthDateError] = useState("");
+
+const [isRegistering, setIsRegistering] = useState(false);
 
 const cleanName = useMemo(() => name.trim(), [name]);
 const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
@@ -116,7 +120,8 @@ const confirmPasswordError = useMemo(() => {
   return "";
 }, [password, confirmPassword, touchedConfirm]);
 
-  const canRegister = useMemo(() => {
+ const canRegister = useMemo(() => {
+  if (isRegistering) return false;
   if (!isNameValid) return false;
   if (!isEmailValid) return false;
   if (!isPasswordValid) return false;
@@ -126,6 +131,7 @@ const confirmPasswordError = useMemo(() => {
 
   return true;
 }, [
+  isRegistering,
   isNameValid,
   isEmailValid,
   isPasswordValid,
@@ -166,16 +172,68 @@ const confirmPasswordError = useMemo(() => {
   setBirthDateError("");
 };
 
-  const onRegister = () => {
-    if (!canRegister) return;
+  const onRegister = async () => {
+  if (!canRegister) return;
+
+  try {
+    setIsRegistering(true);
+
+    await registerWithEmailService({
+      name: cleanName,
+      email: cleanEmail,
+      password,
+      birthDate: birthDateIso,
+    });
 
     Alert.alert(
-      "Registro",
-      `Nombre: ${name}\nFecha: ${birthDateText}\nEmail: ${email}\nTerms: ${acceptedTerms ? "Sí" : "No"}`
-    );
+  "Verifica tu correo",
+  "Te enviamos un correo de verificación. Revisa tu bandeja antes de iniciar sesión.",
+  [
+    {
+      text: "OK",
+      onPress: () => {
+        navigation.navigate("LoginPasswordScreen", {
+          email: cleanEmail,
+        });
+      },
+    },
+  ]
+);
+  } catch (error) {
+    console.log("Error al registrar usuario:", error);
 
-    // Luego aquí: crear usuario en Firebase Auth + guardar perfil en Firestore
-  };
+    if (error?.code === "auth/email-already-in-use") {
+      Alert.alert(
+        "Correo en uso",
+        "Este correo ya está registrado. Intenta iniciar sesión."
+      );
+      return;
+    }
+
+    if (error?.code === "auth/invalid-email") {
+      Alert.alert(
+        "Correo inválido",
+        "Revisa tu correo e inténtalo de nuevo."
+      );
+      return;
+    }
+
+    if (error?.code === "auth/weak-password") {
+      Alert.alert(
+        "Contraseña débil",
+        "Usa una contraseña más segura."
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Error",
+      "No se pudo crear la cuenta. Inténtalo de nuevo."
+    );
+  } finally {
+    setIsRegistering(false);
+  }
+};
 
   const goToLogin = () => {
     navigation.navigate("LoginPasswordScreen");
@@ -258,7 +316,11 @@ const confirmPasswordError = useMemo(() => {
 
           <TermsRow checked={acceptedTerms} onToggle={() => setAcceptedTerms((v) => !v)} />
 
-          <PrimaryButton label="Registrarse" onPress={onRegister} disabled={!canRegister} />
+          <PrimaryButton
+  label={isRegistering ? "Creando cuenta..." : "Registrarse"}
+  onPress={onRegister}
+  disabled={!canRegister}
+/>
 
           <TextLink text="¿Ya tienes cuenta? Inicia sesión" onPress={goToLogin} align="center" />
         </View>

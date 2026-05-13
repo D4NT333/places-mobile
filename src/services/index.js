@@ -6,6 +6,9 @@ export { default as syncSessionWithBackendService } from "./firebase/auth/syncSe
 export { default as googleSignInService } from "./firebase/auth/googleSignIn.service.js";
 export { default as logoutService } from "./firebase/auth/logout.service.js";
 
+export { default as registerWithEmailService } from "./firebase/auth/registerWithEmail.service.js";
+export { default as loginWithEmailService } from "./firebase/auth/loginWithEmail.service.js";
+
 export { default as pickSingleImage } from "./image.service.js";
 
 export { default as uploadCorrectedSubmissionPhotoService } from "./firebase/storage/uploadCorrectedSubmissionPhoto.service";
