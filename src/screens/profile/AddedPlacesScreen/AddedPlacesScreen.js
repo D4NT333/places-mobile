@@ -1,3 +1,4 @@
+import { auth } from "../../../services/firebase/config";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -13,7 +14,10 @@ import {
   preloadAddedPlacesSubmissions,
   removeAddedPlaceFromCache,
   subscribeAddedPlacesCache,
+  clearAddedPlacesSubmissionsCache,
 } from "../../../services/api/addedPlacesSubmissionsCache.service";
+
+
 
 import {getRejectedPlaceReasonService } from "../../../services";
 
@@ -85,17 +89,27 @@ export default function AddedPlacesScreen() {
   const [rejectionReasonError, setRejectionReasonError] = useState("");
   const [selectedRejectionReason, setSelectedRejectionReason] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = subscribeAddedPlacesCache((nextSnapshot) => {
-      setCacheSnapshot(nextSnapshot);
-    });
+ useEffect(() => {
+  const uid = auth.currentUser?.uid || null;
 
-    preloadAddedPlacesSubmissions().catch((error) => {
-      console.log("Error al cargar lugares añadidos:", error);
-    });
+  const unsubscribe = subscribeAddedPlacesCache((nextSnapshot) => {
+    setCacheSnapshot(nextSnapshot);
+  });
 
+  if (!uid) {
+    clearAddedPlacesSubmissionsCache();
+    setCacheSnapshot(getAddedPlacesCacheSnapshot());
     return unsubscribe;
-  }, []);
+  }
+
+  setCacheSnapshot(getAddedPlacesCacheSnapshot());
+
+  preloadAddedPlacesSubmissions().catch((error) => {
+    console.log("Error al cargar lugares añadidos:", error);
+  });
+
+  return unsubscribe;
+}, [auth.currentUser?.uid]);
 
   const places = cacheSnapshot.items.map(mapSubmissionToPlace);
 

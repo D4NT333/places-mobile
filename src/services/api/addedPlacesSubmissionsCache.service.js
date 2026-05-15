@@ -1,8 +1,9 @@
+import { auth } from "../firebase/config";
 import getMyPlaceSubmissionsService from "./getMyPlaceSubmissions.service";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-let cache = {
+const EMPTY_CACHE = {
   items: [],
   nextCursor: null,
   hasMore: true,
@@ -12,7 +13,48 @@ let cache = {
   hydratedAt: null,
 };
 
+const cachesByUser = new Map();
 const listeners = new Set();
+
+function getCurrentUserId() {
+  return auth.currentUser?.uid || null;
+}
+
+function createEmptyCache() {
+  return {
+    ...EMPTY_CACHE,
+    items: [],
+  };
+}
+
+function getCacheKey() {
+  const uid = getCurrentUserId();
+
+  if (!uid) {
+    return "anonymous";
+  }
+
+  return `user:${uid}`;
+}
+
+function getCurrentCache() {
+  const cacheKey = getCacheKey();
+
+  if (!cachesByUser.has(cacheKey)) {
+    cachesByUser.set(cacheKey, createEmptyCache());
+  }
+
+  return cachesByUser.get(cacheKey);
+}
+
+function setCurrentCache(nextCache) {
+  const cacheKey = getCacheKey();
+
+  cachesByUser.set(cacheKey, {
+    ...nextCache,
+    items: [...(nextCache.items || [])],
+  });
+}
 
 function notify() {
   listeners.forEach((listener) => {
@@ -29,6 +71,8 @@ export function subscribeAddedPlacesCache(listener) {
 }
 
 export function getAddedPlacesCacheSnapshot() {
+  const cache = getCurrentCache();
+
   return {
     ...cache,
     items: [...cache.items],
@@ -36,6 +80,8 @@ export function getAddedPlacesCacheSnapshot() {
 }
 
 function isCacheFresh() {
+  const cache = getCurrentCache();
+
   if (!cache.hydratedAt) return false;
 
   const age = Date.now() - cache.hydratedAt;
@@ -44,6 +90,16 @@ function isCacheFresh() {
 }
 
 export async function preloadAddedPlacesSubmissions() {
+  const uid = getCurrentUserId();
+
+  if (!uid) {
+    setCurrentCache(createEmptyCache());
+    notify();
+    return getAddedPlacesCacheSnapshot();
+  }
+
+  const cache = getCurrentCache();
+
   if (cache.loadingInitial) {
     return getAddedPlacesCacheSnapshot();
   }
@@ -52,11 +108,11 @@ export async function preloadAddedPlacesSubmissions() {
     return getAddedPlacesCacheSnapshot();
   }
 
-  cache = {
+  setCurrentCache({
     ...cache,
     loadingInitial: true,
     error: null,
-  };
+  });
 
   notify();
 
@@ -65,7 +121,7 @@ export async function preloadAddedPlacesSubmissions() {
       limit: 10,
     });
 
-    cache = {
+    setCurrentCache({
       items: result.items || [],
       nextCursor: result.nextCursor || null,
       hasMore: Boolean(result.hasMore),
@@ -73,17 +129,19 @@ export async function preloadAddedPlacesSubmissions() {
       loadingMore: false,
       error: null,
       hydratedAt: Date.now(),
-    };
+    });
 
     notify();
 
     return getAddedPlacesCacheSnapshot();
   } catch (error) {
-    cache = {
-      ...cache,
+    const currentCache = getCurrentCache();
+
+    setCurrentCache({
+      ...currentCache,
       loadingInitial: false,
       error,
-    };
+    });
 
     notify();
 
@@ -92,6 +150,14 @@ export async function preloadAddedPlacesSubmissions() {
 }
 
 export async function loadMoreAddedPlacesSubmissions() {
+  const uid = getCurrentUserId();
+
+  if (!uid) {
+    return getAddedPlacesCacheSnapshot();
+  }
+
+  const cache = getCurrentCache();
+
   if (cache.loadingMore) {
     return getAddedPlacesCacheSnapshot();
   }
@@ -104,11 +170,11 @@ export async function loadMoreAddedPlacesSubmissions() {
     return getAddedPlacesCacheSnapshot();
   }
 
-  cache = {
+  setCurrentCache({
     ...cache,
     loadingMore: true,
     error: null,
-  };
+  });
 
   notify();
 
@@ -118,25 +184,29 @@ export async function loadMoreAddedPlacesSubmissions() {
       cursor: cache.nextCursor,
     });
 
-    cache = {
-      ...cache,
-      items: [...cache.items, ...(result.items || [])],
+    const currentCache = getCurrentCache();
+
+    setCurrentCache({
+      ...currentCache,
+      items: [...currentCache.items, ...(result.items || [])],
       nextCursor: result.nextCursor || null,
       hasMore: Boolean(result.hasMore),
       loadingMore: false,
       error: null,
       hydratedAt: Date.now(),
-    };
+    });
 
     notify();
 
     return getAddedPlacesCacheSnapshot();
   } catch (error) {
-    cache = {
-      ...cache,
+    const currentCache = getCurrentCache();
+
+    setCurrentCache({
+      ...currentCache,
       loadingMore: false,
       error,
-    };
+    });
 
     notify();
 
@@ -145,15 +215,25 @@ export async function loadMoreAddedPlacesSubmissions() {
 }
 
 export async function refreshAddedPlacesSubmissions() {
+  const uid = getCurrentUserId();
+
+  if (!uid) {
+    setCurrentCache(createEmptyCache());
+    notify();
+    return getAddedPlacesCacheSnapshot();
+  }
+
+  const cache = getCurrentCache();
+
   if (cache.loadingInitial) {
     return getAddedPlacesCacheSnapshot();
   }
 
-  cache = {
+  setCurrentCache({
     ...cache,
     loadingInitial: true,
     error: null,
-  };
+  });
 
   notify();
 
@@ -162,7 +242,7 @@ export async function refreshAddedPlacesSubmissions() {
       limit: 10,
     });
 
-    cache = {
+    setCurrentCache({
       items: result.items || [],
       nextCursor: result.nextCursor || null,
       hasMore: Boolean(result.hasMore),
@@ -170,17 +250,19 @@ export async function refreshAddedPlacesSubmissions() {
       loadingMore: false,
       error: null,
       hydratedAt: Date.now(),
-    };
+    });
 
     notify();
 
     return getAddedPlacesCacheSnapshot();
   } catch (error) {
-    cache = {
-      ...cache,
+    const currentCache = getCurrentCache();
+
+    setCurrentCache({
+      ...currentCache,
       loadingInitial: false,
       error,
-    };
+    });
 
     notify();
 
@@ -189,24 +271,26 @@ export async function refreshAddedPlacesSubmissions() {
 }
 
 export function removeAddedPlaceFromCache(placeId) {
-  cache = {
+  const cache = getCurrentCache();
+
+  setCurrentCache({
     ...cache,
     items: cache.items.filter((item) => item.id !== placeId),
-  };
+  });
 
   notify();
 }
 
 export function clearAddedPlacesSubmissionsCache() {
-  cache = {
-    items: [],
-    nextCursor: null,
-    hasMore: true,
-    loadingInitial: false,
-    loadingMore: false,
-    error: null,
-    hydratedAt: null,
-  };
+  const cacheKey = getCacheKey();
+
+  cachesByUser.set(cacheKey, createEmptyCache());
+
+  notify();
+}
+
+export function clearAllAddedPlacesSubmissionsCaches() {
+  cachesByUser.clear();
 
   notify();
 }

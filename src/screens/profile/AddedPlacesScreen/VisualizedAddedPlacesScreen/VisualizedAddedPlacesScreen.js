@@ -95,6 +95,20 @@ function getLocationRegion(detail) {
   };
 }
 
+function normalizeArray(value) {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return [value];
+  }
+
+  return [];
+}
+
 function buildPlaceViewModel({ initialPlace, detail }) {
   const source = detail || {};
 
@@ -107,11 +121,21 @@ function buildPlaceViewModel({ initialPlace, detail }) {
 
   const tag = source.tag || source.tagLabel || initialPlace?.tag || null;
 
-  const subtags = Array.isArray(source.subtags)
-    ? source.subtags
-    : initialPlace?.subtags || [];
+  const subtags = normalizeArray(source.subtags).length
+    ? normalizeArray(source.subtags)
+    : normalizeArray(initialPlace?.subtags);
 
-  const tags = [tag, ...subtags].filter(Boolean).slice(0, 4);
+  const approaches = normalizeArray(source.approaches).length
+  ? normalizeArray(source.approaches)
+  : normalizeArray(source.approaches).length
+  ? normalizeArray(source.approaches)
+  : normalizeArray(initialPlace?.approaches).length
+  ? normalizeArray(initialPlace?.approaches)
+  : normalizeArray(initialPlace?.approaches);
+
+  const tags = [tag, ...subtags, ...approaches]
+    .filter(Boolean)
+    .slice(0, 5);
 
   const images = getImageUrls(source);
 
@@ -119,19 +143,21 @@ function buildPlaceViewModel({ initialPlace, detail }) {
     images.push(initialPlace.imageUrl);
   }
 
-  return {
-    id: source.id || initialPlace?.id,
-    name,
-    submittedAtLabel,
-    status,
-    description:
-      source.description ||
-      "Descripción no disponible para esta propuesta.",
-    tags,
-    priceLabel: source.price || "Sin rango de precio",
-    images,
-    location: getLocationRegion(source),
-  };
+return {
+  id: source.id || initialPlace?.id,
+  name,
+  submittedAtLabel,
+  status,
+  description:
+    source.description ||
+    "Descripción no disponible para esta propuesta.",
+  tags,
+  subtags,
+  approaches,
+  priceLabel: source.price || "Sin rango de precio",
+  images,
+  location: getLocationRegion(source),
+};
 }
 
 export default function VisualizedAddedPlaceScreen({ navigation }) {
@@ -151,6 +177,9 @@ export default function VisualizedAddedPlaceScreen({ navigation }) {
     getOrFetchPlaceSubmissionDetail(placeId)
       .then((data) => {
         if (isMounted) {
+          console.log("DETALLE PROPUESTA:", data);
+console.log("APPROACH DETAIL:", data?.approaches);
+console.log("APPROACHES DETAIL:", data?.approaches);
           setDetail(data);
         }
       })

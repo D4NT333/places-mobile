@@ -56,16 +56,18 @@ export default function LocationMap({
         </View>
       ) : (
         <MapView
-          provider={PROVIDER_GOOGLE}
-          style={styles.map}
-          initialRegion={initialRegion}
-          showsUserLocation
-          onPress={handleMapPress}
-        >
-          {hasUserSelectedLocation && selectedLocation && (
-            <Marker coordinate={selectedLocation} />
-          )}
-        </MapView>
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={initialRegion}
+        showsUserLocation
+        showsMyLocationButton={false}
+        toolbarEnabled={false}
+        onPress={handleMapPress}
+      >
+        {hasUserSelectedLocation && selectedLocation && (
+          <Marker coordinate={selectedLocation} />
+        )}
+      </MapView>
       )}
     </View>
   );

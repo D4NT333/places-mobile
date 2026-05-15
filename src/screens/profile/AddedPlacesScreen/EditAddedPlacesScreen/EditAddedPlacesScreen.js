@@ -952,7 +952,7 @@ const handleCloseSuccessModal = () => {
           reviewField={returnFields.name}
           isEditing={Boolean(editingFields.name)}
           onPressEdit={() => handleEditField("name")}
-          maxLength={60}
+          maxLength={30}
           minLength={3}
         />
 
