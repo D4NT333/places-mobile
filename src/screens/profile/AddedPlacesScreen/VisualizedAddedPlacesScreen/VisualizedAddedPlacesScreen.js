@@ -65,15 +65,36 @@ function formatDateLabel(dateValue, prefix = "Enviado") {
   return `${prefix} el ${day} de ${month}`;
 }
 
+function getImageUrl(photo) {
+  if (!photo) return null;
+
+  if (typeof photo === "string") return photo;
+
+  return (
+    photo.displayUrl ||
+    photo.mediumUrl ||
+    photo.medium?.url ||
+    photo.originalUrl ||
+    photo.original?.url ||
+    photo.thumbnailUrl ||
+    photo.thumbnail?.url ||
+    photo.url ||
+    photo.imageUrl ||
+    photo.fullUrl ||
+    photo.downloadURL ||
+    photo.mediumURL ||
+    photo.thumbnailURL ||
+    photo.uri ||
+    photo.src ||
+    null
+  );
+}
+
 function getImageUrls(detail) {
   if (!Array.isArray(detail?.photos)) return [];
 
   return detail.photos
-    .map((photo) => {
-      if (typeof photo === "string") return photo;
-
-      return photo.url || photo.imageUrl || photo.downloadURL || photo.uri;
-    })
+    .map(getImageUrl)
     .filter(Boolean);
 }
 

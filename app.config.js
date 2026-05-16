@@ -2,16 +2,16 @@ import "dotenv/config";
 
 export default {
   expo: {
-    name: "places-mobile",
+    name: "Lsearch",
     slug: "places-mobile",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/pool.jpg",
+    icon: "./assets/logoLsearch.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
 
     splash: {
-      image: "./assets/pool.jpg",
+      image: "./assets/logoLsearch.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },

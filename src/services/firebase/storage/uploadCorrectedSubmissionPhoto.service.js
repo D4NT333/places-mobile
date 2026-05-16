@@ -32,12 +32,28 @@ function getPhotoNumber({ photoIndex, oldPhoto }) {
   const labelMatch = String(oldPhoto?.label || "").match(/\d+/);
   if (labelMatch) return Number(labelMatch[0]);
 
+  const idMatch = String(oldPhoto?.id || oldPhoto?.photoId || "").match(/\d+/);
+  if (idMatch) return Number(idMatch[0]);
+
   return 1;
+}
+
+function getOldPhotoPath(rawPhoto = {}) {
+  return (
+    rawPhoto.original?.path ||
+    rawPhoto.medium?.path ||
+    rawPhoto.thumbnail?.path ||
+    rawPhoto.storagePath ||
+    rawPhoto.mediumPath ||
+    rawPhoto.thumbnailPath ||
+    rawPhoto.path ||
+    ""
+  );
 }
 
 function extractUserIdFromOldPhoto(oldPhoto = {}) {
   const rawPhoto = oldPhoto?.raw || oldPhoto || {};
-  const storagePath = rawPhoto.storagePath || "";
+  const storagePath = getOldPhotoPath(rawPhoto);
 
   const parts = String(storagePath).split("/");
 
@@ -47,6 +63,69 @@ function extractUserIdFromOldPhoto(oldPhoto = {}) {
   }
 
   return null;
+}
+
+function getOldPhotoUrl(rawPhoto = {}, preferredSize = "medium") {
+  if (!rawPhoto) return null;
+
+  if (typeof rawPhoto === "string") return rawPhoto;
+
+  if (preferredSize === "thumbnail") {
+    return (
+      rawPhoto.thumbnailUrl ||
+      rawPhoto.thumbnail?.url ||
+      rawPhoto.previewURL ||
+      rawPhoto.displayUrl ||
+      rawPhoto.mediumUrl ||
+      rawPhoto.medium?.url ||
+      rawPhoto.originalUrl ||
+      rawPhoto.original?.url ||
+      rawPhoto.thumbnailURL ||
+      rawPhoto.mediumURL ||
+      rawPhoto.downloadURL ||
+      rawPhoto.url ||
+      rawPhoto.imageUrl ||
+      rawPhoto.uri ||
+      null
+    );
+  }
+
+  if (preferredSize === "original") {
+    return (
+      rawPhoto.originalUrl ||
+      rawPhoto.original?.url ||
+      rawPhoto.fullUrl ||
+      rawPhoto.downloadURL ||
+      rawPhoto.displayUrl ||
+      rawPhoto.mediumUrl ||
+      rawPhoto.medium?.url ||
+      rawPhoto.thumbnailUrl ||
+      rawPhoto.thumbnail?.url ||
+      rawPhoto.mediumURL ||
+      rawPhoto.thumbnailURL ||
+      rawPhoto.url ||
+      rawPhoto.imageUrl ||
+      rawPhoto.uri ||
+      null
+    );
+  }
+
+  return (
+    rawPhoto.displayUrl ||
+    rawPhoto.mediumUrl ||
+    rawPhoto.medium?.url ||
+    rawPhoto.originalUrl ||
+    rawPhoto.original?.url ||
+    rawPhoto.thumbnailUrl ||
+    rawPhoto.thumbnail?.url ||
+    rawPhoto.mediumURL ||
+    rawPhoto.downloadURL ||
+    rawPhoto.thumbnailURL ||
+    rawPhoto.url ||
+    rawPhoto.imageUrl ||
+    rawPhoto.uri ||
+    null
+  );
 }
 
 function buildCorrectionPaths({
@@ -59,7 +138,7 @@ function buildCorrectionPaths({
   const basePath = `submissions/${userId}/placeSubmissions/${submissionId}/corrections/${returnId}`;
 
   return {
-    storagePath: `${basePath}/original/photo-${photoNumber}.${extension}`,
+    originalPath: `${basePath}/original/photo-${photoNumber}.${extension}`,
     mediumPath: `${basePath}/medium/photo-${photoNumber}-medium.jpg`,
     thumbnailPath: `${basePath}/thumbnail/photo-${photoNumber}-thumbnail.jpg`,
   };
@@ -121,6 +200,12 @@ export default async function uploadCorrectedSubmissionPhotoService({
   const userId = extractUserIdFromOldPhoto(rawOldPhoto);
 
   if (!userId) {
+    console.log("OLD PHOTO SIN USER ID:", {
+      oldPhoto,
+      rawOldPhoto,
+      detectedPath: getOldPhotoPath(rawOldPhoto),
+    });
+
     throw new Error("No se pudo obtener userId desde la foto anterior.");
   }
 
@@ -132,7 +217,7 @@ export default async function uploadCorrectedSubmissionPhotoService({
   const extension = getFileExtension(newPhoto.uri);
   const mimeType = getMimeType(extension);
 
-  const { storagePath, mediumPath, thumbnailPath } = buildCorrectionPaths({
+  const { originalPath, mediumPath, thumbnailPath } = buildCorrectionPaths({
     userId,
     submissionId,
     returnId,
@@ -143,10 +228,10 @@ export default async function uploadCorrectedSubmissionPhotoService({
   const mediumImage = await createMediumImage(newPhoto.uri);
   const thumbnailImage = await createThumbnailImage(newPhoto.uri);
 
-  const [downloadURL, mediumURL, thumbnailURL] = await Promise.all([
+  const [originalUrl, mediumUrl, thumbnailUrl] = await Promise.all([
     uploadImageVariant({
       uri: newPhoto.uri,
-      storagePath,
+      storagePath: originalPath,
       mimeType,
     }),
     uploadImageVariant({
@@ -161,20 +246,82 @@ export default async function uploadCorrectedSubmissionPhotoService({
     }),
   ]);
 
-  return {
-    downloadURL,
-    mediumURL,
-    thumbnailURL,
+  const originalFileName = `photo-${photoNumber}.${extension}`;
+  const mediumFileName = `photo-${photoNumber}-medium.jpg`;
+  const thumbnailFileName = `photo-${photoNumber}-thumbnail.jpg`;
 
-    storagePath,
+  return {
+    photoId: rawOldPhoto.photoId || oldPhoto?.id || `photo_${photoNumber}`,
+
+    original: {
+      url: originalUrl,
+      path: originalPath,
+      fileName: originalFileName,
+      width: newPhoto.width || null,
+      height: newPhoto.height || null,
+      size: newPhoto.fileSize || null,
+      mimeType,
+    },
+
+    medium: {
+      url: mediumUrl,
+      path: mediumPath,
+      fileName: mediumFileName,
+      width: mediumImage.width || null,
+      height: mediumImage.height || null,
+      mimeType: "image/jpeg",
+    },
+
+    thumbnail: {
+      url: thumbnailUrl,
+      path: thumbnailPath,
+      fileName: thumbnailFileName,
+      width: thumbnailImage.width || null,
+      height: thumbnailImage.height || null,
+      mimeType: "image/jpeg",
+    },
+
+    source: "user",
+    uploadedAt: new Date().toISOString(),
+
+    correctionReturnId: returnId,
+
+    correctedFrom: {
+      photoId: rawOldPhoto.photoId || oldPhoto?.id || null,
+
+      original: {
+        url: getOldPhotoUrl(rawOldPhoto, "original"),
+        path: rawOldPhoto.original?.path || rawOldPhoto.storagePath || null,
+      },
+
+      medium: {
+        url: getOldPhotoUrl(rawOldPhoto, "medium"),
+        path: rawOldPhoto.medium?.path || rawOldPhoto.mediumPath || null,
+      },
+
+      thumbnail: {
+        url: getOldPhotoUrl(rawOldPhoto, "thumbnail"),
+        path: rawOldPhoto.thumbnail?.path || rawOldPhoto.thumbnailPath || null,
+      },
+    },
+
+    // Aliases temporales para no romper código viejo mientras migras
+    displayUrl: mediumUrl || originalUrl || thumbnailUrl,
+    mediumUrl,
+    thumbnailUrl,
+    originalUrl,
+
+    downloadURL: originalUrl,
+    mediumURL: mediumUrl,
+    thumbnailURL: thumbnailUrl,
+
+    storagePath: originalPath,
     mediumPath,
     thumbnailPath,
 
-    fileName: `photo-${photoNumber}.${extension}`,
-    mediumFileName: `photo-${photoNumber}-medium.jpg`,
-    thumbnailFileName: `photo-${photoNumber}-thumbnail.jpg`,
-
-    mimeType,
+    fileName: originalFileName,
+    mediumFileName,
+    thumbnailFileName,
 
     width: newPhoto.width || null,
     height: newPhoto.height || null,
@@ -185,15 +332,6 @@ export default async function uploadCorrectedSubmissionPhotoService({
     thumbnailWidth: thumbnailImage.width || null,
     thumbnailHeight: thumbnailImage.height || null,
 
-    correctionReturnId: returnId,
-    correctedFrom: {
-      storagePath: rawOldPhoto.storagePath || null,
-      mediumPath: rawOldPhoto.mediumPath || null,
-      thumbnailPath: rawOldPhoto.thumbnailPath || null,
-      downloadURL: rawOldPhoto.downloadURL || null,
-      mediumURL: rawOldPhoto.mediumURL || null,
-      thumbnailURL: rawOldPhoto.thumbnailURL || null,
-    },
     correctedAt: new Date().toISOString(),
   };
 }

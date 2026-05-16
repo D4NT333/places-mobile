@@ -154,17 +154,41 @@ function mapCatalogToOptions(items = []) {
 }
 
 function getPhotoUrl(photo = {}) {
+  if (!photo) return null;
+
   if (typeof photo === "string") return photo;
 
   return (
     photo.previewURL ||
+    photo.thumbnailUrl ||
+    photo.thumbnail?.url ||
+    photo.displayUrl ||
+    photo.mediumUrl ||
+    photo.medium?.url ||
+    photo.originalUrl ||
+    photo.original?.url ||
     photo.thumbnailURL ||
     photo.mediumURL ||
     photo.downloadURL ||
     photo.url ||
     photo.imageUrl ||
+    photo.fullUrl ||
     photo.uri ||
+    photo.src ||
     null
+  );
+}
+
+function getPhotoId(photo = {}, index = 0) {
+  if (!photo || typeof photo === "string") {
+    return `photo_${index + 1}`;
+  }
+
+  return (
+    photo.photoId ||
+    photo.raw?.photoId ||
+    photo.id ||
+    `photo_${index + 1}`
   );
 }
 
@@ -175,16 +199,41 @@ function normalizePhotosForEdit({ photos = [], photosField }) {
     return [];
   }
 
-  return photos.map((photo, index) => ({
-    id: photo.id || photo.fileName || `photo-${index + 1}`,
-    label: `Foto${index + 1}`,
-    url: getPhotoUrl(photo),
-    selected: needsPhotosReview,
-    message: needsPhotosReview
-      ? photosField?.message || "Esta foto requiere revisión."
-      : "",
-    raw: photo,
-  }));
+  const photoItems = Array.isArray(photosField?.items)
+    ? photosField.items
+    : [];
+
+  return photos.map((photo, index) => {
+    const photoId = getPhotoId(photo, index);
+
+    const returnItem = photoItems.find((item) => {
+      const itemIndexMatches = Number(item.index) === index;
+      const itemUrl = item.url || "";
+      const photoUrl = getPhotoUrl(photo) || "";
+
+      return itemIndexMatches || itemUrl === photoUrl;
+    });
+
+    const isPhotoSelected = needsPhotosReview
+      ? returnItem
+        ? Boolean(returnItem.selected)
+        : true
+      : false;
+
+    return {
+      id: photoId,
+      index,
+      label: `Foto ${index + 1}`,
+      url: getPhotoUrl(photo),
+      selected: isPhotoSelected,
+      message: isPhotoSelected
+        ? returnItem?.message ||
+          photosField?.message ||
+          "Esta foto requiere revisión."
+        : "",
+      raw: photo,
+    };
+  });
 }
 
 function getMapLabel(location) {
@@ -649,7 +698,55 @@ const handleEditField = (fieldKey) => {
   });
 };
 
-  const uploadCorrectedPhotos = async () => {
+function normalizePhotoKey(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, "-");
+}
+
+function getPhotoIndexFromKey(value = "") {
+  const match = String(value).match(/\d+/);
+
+  if (!match) return -1;
+
+  return Number(match[0]) - 1;
+}
+
+function findOldPhotoIndexByReplacementKey({ photos = [], oldPhotoId }) {
+  const normalizedOldPhotoId = normalizePhotoKey(oldPhotoId);
+
+  const directIndex = photos.findIndex((photo) => {
+    const candidates = [
+      photo.id,
+      photo.photoId,
+      photo.raw?.photoId,
+      photo.raw?.id,
+      photo.raw?.original?.fileName,
+      photo.raw?.medium?.fileName,
+      photo.raw?.thumbnail?.fileName,
+      photo.raw?.fileName,
+    ].filter(Boolean);
+
+    return candidates.some(
+      (candidate) => normalizePhotoKey(candidate) === normalizedOldPhotoId
+    );
+  });
+
+  if (directIndex >= 0) {
+    return directIndex;
+  }
+
+  const indexFromKey = getPhotoIndexFromKey(oldPhotoId);
+
+  if (indexFromKey >= 0 && indexFromKey < photos.length) {
+    return indexFromKey;
+  }
+
+  return -1;
+}
+
+ const uploadCorrectedPhotos = async () => {
   const entries = Object.entries(replacementPhotos);
 
   if (entries.length === 0) return [];
@@ -662,11 +759,27 @@ const handleEditField = (fieldKey) => {
 
   const uploadedPhotos = await Promise.all(
     entries.map(async ([oldPhotoId, newPhoto]) => {
-      const photoIndex = oldPlace.photos.findIndex(
-        (photo) => photo.id === oldPhotoId
-      );
+      const photoIndex = findOldPhotoIndexByReplacementKey({
+        photos: oldPlace.photos,
+        oldPhotoId,
+      });
 
       if (photoIndex < 0) {
+        console.log("NO SE ENCONTRÓ FOTO ORIGINAL:", {
+          oldPhotoId,
+          normalizedOldPhotoId: normalizePhotoKey(oldPhotoId),
+          oldPlacePhotos: oldPlace.photos.map((photo, index) => ({
+            index,
+            id: photo.id,
+            photoId: photo.photoId,
+            label: photo.label,
+            rawPhotoId: photo.raw?.photoId,
+            rawOriginalFileName: photo.raw?.original?.fileName,
+            rawMediumFileName: photo.raw?.medium?.fileName,
+            rawThumbnailFileName: photo.raw?.thumbnail?.fileName,
+          })),
+        });
+
         throw new Error(`No se encontró la foto original: ${oldPhotoId}`);
       }
 

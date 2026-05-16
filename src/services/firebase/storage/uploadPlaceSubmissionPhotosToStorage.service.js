@@ -76,7 +76,7 @@ async function createImageVersions(photo) {
 
   const thumbnailResult = await ImageManipulator.manipulateAsync(
     originalUri,
-    [{ resize: { width: thumbnailResizeWidth } }],
+    [{ resize: { width: thumbnailResizeWidth } }],  
     {
       compress: 0.65,
       format: ImageManipulator.SaveFormat.JPEG,
@@ -186,28 +186,38 @@ export default async function uploadPlaceSubmissionPhotosToStorageService({
     });
 
     uploadedPhotos.push({
-      fileName: photo?.fileName || originalFileName,
-      mediumFileName,
-      thumbnailFileName,
+      photoId: `photo_${index + 1}`,
 
-      mimeType: originalContentType,
+      original: {
+        url: originalUpload.downloadURL,
+        path: originalUpload.storagePath,
+        fileName: photo?.fileName || originalFileName,
+        width: photo?.width ?? null,
+        height: photo?.height ?? null,
+        size: photo?.fileSize ?? null,
+        mimeType: originalContentType,
+      },
 
-      storagePath: originalUpload.storagePath,
-      mediumPath: mediumUpload.storagePath,
-      thumbnailPath: thumbnailUpload.storagePath,
+      medium: {
+        url: mediumUpload.downloadURL,
+        path: mediumUpload.storagePath,
+        fileName: mediumFileName,
+        width: mediumWidth,
+        height: mediumHeight,
+        mimeType: "image/jpeg",
+      },
 
-      downloadURL: originalUpload.downloadURL,
-      mediumURL: mediumUpload.downloadURL,
-      thumbnailURL: thumbnailUpload.downloadURL,
+      thumbnail: {
+        url: thumbnailUpload.downloadURL,
+        path: thumbnailUpload.storagePath,
+        fileName: thumbnailFileName,
+        width: thumbnailWidth,
+        height: thumbnailHeight,
+        mimeType: "image/jpeg",
+      },
 
-      width: photo?.width ?? null,
-      height: photo?.height ?? null,
-      fileSize: photo?.fileSize ?? null,
-
-      mediumWidth,
-      mediumHeight,
-      thumbnailWidth,
-      thumbnailHeight,
+      source: "user",
+      uploadedAt: new Date().toISOString(),
     });
   }
 
