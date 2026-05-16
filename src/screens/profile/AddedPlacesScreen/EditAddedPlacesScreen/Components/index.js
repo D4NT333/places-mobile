@@ -7,3 +7,4 @@ export { default as EditablePillsField } from "./EditablePillsField";
 export { default as EditableOptionModal } from "./EditableOptionModal";
 export { default as EditablePriceModal } from "./EditablePriceModal";
 export { default as ResubmitSuccessModal } from "./ResubmitSuccessModal";
+export { default as EditableScheduleModal } from "./EditableScheduleModal";

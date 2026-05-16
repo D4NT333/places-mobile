@@ -103,10 +103,12 @@ function getLocationRegion(detail) {
 
   if (!coordinates) return null;
 
-  const latitude = coordinates.latitude || coordinates.lat;
-  const longitude = coordinates.longitude || coordinates.lng;
+  const latitude = Number(coordinates.latitude ?? coordinates.lat);
+  const longitude = Number(coordinates.longitude ?? coordinates.lng);
 
-  if (!latitude || !longitude) return null;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
 
   return {
     latitude,
@@ -176,8 +178,24 @@ return {
   subtags,
   approaches,
   priceLabel: source.price || "Sin rango de precio",
+
+  scheduleLabel:
+    source.openingHours?.label ||
+    source.schedule ||
+    initialPlace?.openingHours?.label ||
+    initialPlace?.schedule ||
+    "Horario no especificado",
+
+  openingHours:
+    source.openingHours ||
+    initialPlace?.openingHours ||
+    null,
+
   images,
-  location: getLocationRegion(source),
+
+  location:
+    getLocationRegion(source) ||
+    getLocationRegion(initialPlace),
 };
 }
 
@@ -291,9 +309,26 @@ console.log("APPROACHES DETAIL:", data?.approaches);
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mapa</Text>
-            <SubmissionLocationMap region={place.location} />
+            <Text style={styles.sectionTitle}>Horario</Text>
+            <View style={styles.smallBox}>
+              <Text style={styles.bodyText}>{place.scheduleLabel}</Text>
+            </View>
           </View>
+
+          <View style={styles.section}>
+  <Text style={styles.sectionTitle}>Mapa</Text>
+
+  {place.location ? (
+    <SubmissionLocationMap
+      key={`${place.location.latitude}-${place.location.longitude}`}
+      region={place.location}
+    />
+  ) : (
+    <View style={styles.smallBox}>
+      <Text style={styles.bodyText}>Cargando ubicación...</Text>
+    </View>
+  )}
+</View>
         </ScrollView>
       </View>
     </LayoutScreen>

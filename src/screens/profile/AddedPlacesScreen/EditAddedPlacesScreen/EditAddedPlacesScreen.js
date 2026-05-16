@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View, } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../../layouts";
@@ -13,6 +13,7 @@ import {
   SubmitAgainBox,
   EditableOptionModal,
   EditablePriceModal,
+  EditableScheduleModal,
   ResubmitSuccessModal,
 } from "./Components";
 
@@ -41,6 +42,14 @@ const EMPTY_RETURN_FIELDS = {
   location: { selected: false, message: "" },
 };
 
+const DEFAULT_OPENING_HOURS = {
+  type: "not_specified",
+  days: [],
+  openTime: null,
+  closeTime: null,
+  label: "Horario no especificado",
+};
+
 const FALLBACK_PLACE = {
   id: "fallback",
   name: "",
@@ -49,7 +58,8 @@ const FALLBACK_PLACE = {
   subtags: [],
   approaches: [],
   priceRange: "",
-  schedule: "?",
+  openingHours: DEFAULT_OPENING_HOURS,
+  schedule: DEFAULT_OPENING_HOURS.label,
   photos: [],
   mapLabel: "ubicación",
   returnFields: EMPTY_RETURN_FIELDS,
@@ -61,10 +71,54 @@ const TAG_IDS_WITHOUT_APPROACHES = [
   "tag_service",
 ];
 
-
-
 function tagDoesNotUseApproaches(tagId) {
   return TAG_IDS_WITHOUT_APPROACHES.includes(tagId);
+}
+
+function normalizeOpeningHours(openingHours, fallbackSchedule = "") {
+  if (!openingHours || typeof openingHours !== "object") {
+    return {
+      ...DEFAULT_OPENING_HOURS,
+      label: fallbackSchedule || DEFAULT_OPENING_HOURS.label,
+    };
+  }
+
+  const validTypes = ["defined", "always_open", "not_specified"];
+
+  const type = validTypes.includes(openingHours.type)
+    ? openingHours.type
+    : "not_specified";
+
+  if (type === "always_open") {
+    return {
+      type: "always_open",
+      days: [],
+      openTime: null,
+      closeTime: null,
+      label: openingHours.label || "Abierto 24 horas",
+    };
+  }
+
+  if (type === "defined") {
+    return {
+      type: "defined",
+      days: Array.isArray(openingHours.days) ? openingHours.days : [],
+      openTime: openingHours.openTime || "09:00",
+      closeTime: openingHours.closeTime || "18:00",
+      label: openingHours.label || fallbackSchedule || "Horario definido",
+    };
+  }
+
+  return {
+    type: "not_specified",
+    days: [],
+    openTime: null,
+    closeTime: null,
+    label:
+      openingHours.label ||
+      fallbackSchedule ||
+      "Horario no especificado",
+  };
 }
 
 function normalizePriceLabel(value = "") {
@@ -115,6 +169,48 @@ function arraysAreDifferent(a = [], b = []) {
 
 function hasTextChanged(oldValue, newValue) {
   return normalizeText(oldValue) !== normalizeText(newValue);
+}
+
+function normalizeDaysForCompare(days = []) {
+  if (!Array.isArray(days)) return [];
+
+  return [...days].filter(Boolean).sort();
+}
+
+function openingHoursAreDifferent(oldOpeningHours, newOpeningHours) {
+  const oldValue = normalizeOpeningHours(oldOpeningHours);
+  const newValue = normalizeOpeningHours(newOpeningHours);
+
+  if (oldValue.type !== newValue.type) return true;
+
+  if (oldValue.openTime !== newValue.openTime) return true;
+  if (oldValue.closeTime !== newValue.closeTime) return true;
+
+  const oldDays = normalizeDaysForCompare(oldValue.days);
+  const newDays = normalizeDaysForCompare(newValue.days);
+
+  if (oldDays.length !== newDays.length) return true;
+
+  return oldDays.some((day, index) => day !== newDays[index]);
+}
+
+function isValidOpeningHoursForCorrection(openingHours) {
+  if (!openingHours || typeof openingHours !== "object") return false;
+
+  if (openingHours.type === "always_open") return true;
+
+  if (openingHours.type === "defined") {
+    const hasDays =
+      Array.isArray(openingHours.days) && openingHours.days.length > 0;
+
+    const hasTimes = Boolean(openingHours.openTime && openingHours.closeTime);
+
+    const timesAreDifferent = openingHours.openTime !== openingHours.closeTime;
+
+    return hasDays && hasTimes && timesAreDifferent;
+  }
+
+  return false;
 }
 
 function isValidName(value) {
@@ -274,34 +370,46 @@ function buildEditSources({ editData, initialPlace }) {
     photosField: returnFields.photos,
   });
 
-  return {
-        oldPlace: {
-        name: oldSource.name || initialPlace?.name || "",
-        description: oldSource.description || "",
-        tagId: oldSource.tagId || null,
-        tag: oldTag,
-        subtags: toArray(oldSource.subtags),
-        approaches: toArray(oldSource.approaches),
-        priceRange: oldSource.price || oldSource.priceLabel || "",
-        schedule: oldSource.schedule || "?",
-        photos: oldPhotos.length > 0 ? oldPhotos : newPhotos,
-        mapLabel: getMapLabel(oldSource.location),
-        location: oldSource.location || null,
-      },
+  const oldOpeningHours = normalizeOpeningHours(
+    oldSource.openingHours,
+    oldSource.schedule
+  );
 
-      newPlace: {
-        name: newSource.name || initialPlace?.name || "",
-        description: newSource.description || "",
-        tagId: newSource.tagId || oldSource.tagId || null,
-        tag: newTag,
-        subtags: toArray(newSource.subtags),
-        approaches: toArray(newSource.approaches),
-        priceRange: newSource.price || newSource.priceLabel || "",
-        schedule: newSource.schedule || "?",
-        photos: newPhotos.length > 0 ? newPhotos : oldPhotos,
-        mapLabel: getMapLabel(newSource.location),
-        location: newSource.location || null,
-      },
+  const newOpeningHours = normalizeOpeningHours(
+    newSource.openingHours,
+    newSource.schedule
+  );
+
+  return {
+    oldPlace: {
+      name: oldSource.name || initialPlace?.name || "",
+      description: oldSource.description || "",
+      tagId: oldSource.tagId || null,
+      tag: oldTag,
+      subtags: toArray(oldSource.subtags),
+      approaches: toArray(oldSource.approaches),
+      priceRange: oldSource.price || oldSource.priceLabel || "",
+      openingHours: oldOpeningHours,
+      schedule: oldOpeningHours.label,
+      photos: oldPhotos.length > 0 ? oldPhotos : newPhotos,
+      mapLabel: getMapLabel(oldSource.location),
+      location: oldSource.location || null,
+    },
+
+    newPlace: {
+      name: newSource.name || initialPlace?.name || "",
+      description: newSource.description || "",
+      tagId: newSource.tagId || oldSource.tagId || null,
+      tag: newTag,
+      subtags: toArray(newSource.subtags),
+      approaches: toArray(newSource.approaches),
+      priceRange: newSource.price || newSource.priceLabel || "",
+      openingHours: newOpeningHours,
+      schedule: newOpeningHours.label,
+      photos: newPhotos.length > 0 ? newPhotos : oldPhotos,
+      mapLabel: getMapLabel(newSource.location),
+      location: newSource.location || null,
+    },
 
     returnFields,
 
@@ -316,7 +424,6 @@ export default function EditAddedPlacesScreen() {
   const {
     placeId,
     initialPlace,
-    source,
     shouldFetchReturnedEditData = false,
   } = route.params || {};
 
@@ -327,7 +434,7 @@ export default function EditAddedPlacesScreen() {
   const [name, setName] = useState(FALLBACK_PLACE.name);
   const [description, setDescription] = useState(FALLBACK_PLACE.description);
   const [priceRange, setPriceRange] = useState(FALLBACK_PLACE.priceRange);
-  const [schedule, setSchedule] = useState(FALLBACK_PLACE.schedule);
+  const [openingHours, setOpeningHours] = useState(DEFAULT_OPENING_HOURS);
 
   const [tag, setTag] = useState(FALLBACK_PLACE.tag);
   const [subtags, setSubtags] = useState(FALLBACK_PLACE.subtags);
@@ -347,11 +454,12 @@ export default function EditAddedPlacesScreen() {
   const [selectedPriceRangeId, setSelectedPriceRangeId] = useState(null);
   const [isFreePrice, setIsFreePrice] = useState(false);
 
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
+
   const [replacementPhotos, setReplacementPhotos] = useState({});
   const [editedLocation, setEditedLocation] = useState(null);
 
   const [successModalVisible, setSuccessModalVisible] = useState(false);
-
   const [submitting, setSubmitting] = useState(false);
 
   const editSources = useMemo(
@@ -367,663 +475,672 @@ export default function EditAddedPlacesScreen() {
 
   const selectedTagLabel = tag?.[0] || "";
 
-const selectedTagOption = tagOptions.find((option) => {
-  const matchesById = option.id === selectedTagId;
-  const matchesByLabel = option.label === selectedTagLabel;
+  const selectedTagOption = tagOptions.find((option) => {
+    const matchesById = option.id === selectedTagId;
+    const matchesByLabel = option.label === selectedTagLabel;
 
-  return matchesById || matchesByLabel;
-});
+    return matchesById || matchesByLabel;
+  });
 
-const resolvedSelectedTagId = selectedTagOption?.id || selectedTagId;
+  const resolvedSelectedTagId = selectedTagOption?.id || selectedTagId;
 
-const selectedTagHasNoApproaches =
-  tagDoesNotUseApproaches(resolvedSelectedTagId);
+  const selectedTagHasNoApproaches =
+    tagDoesNotUseApproaches(resolvedSelectedTagId);
 
-const selectedTagPriceConfig =
-  selectedTagOption?.raw?.priceConfig ||
-  selectedTagOption?.raw?.price ||
-  null;
+  const selectedTagPriceConfig =
+    selectedTagOption?.raw?.priceConfig ||
+    selectedTagOption?.raw?.price ||
+    null;
 
-  const approachPillsToShow = selectedTagHasNoApproaches
+  const requiredReviewChecks = useMemo(() => {
+    const checks = [];
 
-  ? ["Sin enfoque"]
-  : approaches;
-
- const requiredReviewChecks = useMemo(() => {
-  const checks = [];
-
-  if (returnFields.name?.selected) {
-    checks.push({
-      field: "name",
-      valid:
-        Boolean(editingFields.name) &&
-        isValidName(name) &&
-        hasTextChanged(oldPlace.name, name),
-      message: "Corrige el nombre.",
-    });
-  }
-
-  if (returnFields.description?.selected) {
-    checks.push({
-      field: "description",
-      valid:
-        Boolean(editingFields.description) &&
-        isValidDescription(description) &&
-        hasTextChanged(oldPlace.description, description),
-      message: "Corrige la descripción.",
-    });
-  }
-
-  if (returnFields.tag?.selected) {
-    checks.push({
-      field: "tag",
-      valid:
-        Boolean(editingFields.tag) &&
-        tag.length > 0 &&
-        arraysAreDifferent(oldPlace.tag, tag),
-      message: "Selecciona una nueva etiqueta.",
-    });
-  }
-
-  if (returnFields.subtags?.selected) {
-    checks.push({
-      field: "subtags",
-      valid:
-        Boolean(editingFields.subtags) &&
-        subtags.length > 0 &&
-        arraysAreDifferent(oldPlace.subtags, subtags),
-      message: "Selecciona nuevas subetiquetas.",
-    });
-  }
-
-  if (returnFields.approaches?.selected) {
-  if (!selectedTagHasNoApproaches) {
-    checks.push({
-      field: "approaches",
-      valid:
-        Boolean(editingFields.approaches) &&
-        approaches.length > 0 &&
-        arraysAreDifferent(oldPlace.approaches, approaches),
-      message: "Selecciona un nuevo enfoque.",
-    });
-  }
-  }
-
-  if (returnFields.price?.selected) {
-    checks.push({
-      field: "price",
-      valid:
-        Boolean(editingFields.price) &&
-        normalizeText(priceRange).length > 0 &&
-        hasTextChanged(oldPlace.priceRange, priceRange),
-      message: "Selecciona un nuevo rango de precio.",
-    });
-  }
-
-  if (returnFields.schedule?.selected) {
-    checks.push({
-      field: "schedule",
-      valid:
-        Boolean(editingFields.schedule) &&
-        normalizeText(schedule).length > 0 &&
-        hasTextChanged(oldPlace.schedule, schedule),
-      message: "Corrige el horario.",
-    });
-  }
-
-  if (returnFields.photos?.selected) {
-    const reviewedPhotos = oldPlace.photos.filter((photo) => photo.selected);
-
-    const allReviewedPhotosChanged =
-      reviewedPhotos.length > 0 &&
-      reviewedPhotos.every((photo) => Boolean(replacementPhotos[photo.id]));
-
-    checks.push({
-      field: "photos",
-      valid: allReviewedPhotosChanged,
-      message: "Cambia las fotos marcadas para revisión.",
-    });
-  }
-
-  if (returnFields.location?.selected) {
-    checks.push({
-      field: "location",
-      valid: Boolean(editedLocation),
-      message: "Ajusta la ubicación en el mapa.",
-    });
-  }
-
-  return checks;
-}, [
-  returnFields,
-  editingFields,
-  name,
-  description,
-  tag,
-  subtags,
-  approaches,
-  priceRange,
-  schedule,
-  oldPlace,
-  replacementPhotos,
-  editedLocation,
-  selectedTagHasNoApproaches,
-]);
-
-const pendingReviewChecks = requiredReviewChecks.filter((check) => !check.valid);
-
-const canSubmitAgain =
-  requiredReviewChecks.length > 0 && pendingReviewChecks.length === 0;
-
-  useEffect(() => {
-  if (!placeId) return;
-
-  const shouldLoad = Boolean(shouldFetchReturnedEditData);
-
-  if (!shouldLoad) return;
-
-  let isMounted = true;
-
-  setLoadingEditData(true);
-  setEditDataError(null);
-
-  getReturnedPlaceSubmissionEditDataService(placeId)
-    .then((data) => {
-      if (!isMounted) return;
-
-      console.log("Datos de edición devuelta:", data);
-
-      setEditData(data);
-    })
-    .catch((error) => {
-      if (!isMounted) return;
-
-      console.log("Error al cargar datos de edición devuelta:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        message: error.message,
+    if (returnFields.name?.selected) {
+      checks.push({
+        field: "name",
+        valid:
+          Boolean(editingFields.name) &&
+          isValidName(name) &&
+          hasTextChanged(oldPlace.name, name),
+        message: "Corrige el nombre.",
       });
+    }
 
-      setEditDataError(error);
-    })
-    .finally(() => {
-      if (!isMounted) return;
+    if (returnFields.description?.selected) {
+      checks.push({
+        field: "description",
+        valid:
+          Boolean(editingFields.description) &&
+          isValidDescription(description) &&
+          hasTextChanged(oldPlace.description, description),
+        message: "Corrige la descripción.",
+      });
+    }
 
-      setLoadingEditData(false);
-    });
+    if (returnFields.tag?.selected) {
+      checks.push({
+        field: "tag",
+        valid:
+          Boolean(editingFields.tag) &&
+          tag.length > 0 &&
+          arraysAreDifferent(oldPlace.tag, tag),
+        message: "Selecciona una nueva etiqueta.",
+      });
+    }
 
-  return () => {
-    isMounted = false;
-  };
-}, [placeId, shouldFetchReturnedEditData]);
+    if (returnFields.subtags?.selected) {
+      checks.push({
+        field: "subtags",
+        valid:
+          Boolean(editingFields.subtags) &&
+          subtags.length > 0 &&
+          arraysAreDifferent(oldPlace.subtags, subtags),
+        message: "Selecciona nuevas subetiquetas.",
+      });
+    }
 
-useEffect(() => {
-  let isMounted = true;
+    if (returnFields.approaches?.selected) {
+      if (!selectedTagHasNoApproaches) {
+        checks.push({
+          field: "approaches",
+          valid:
+            Boolean(editingFields.approaches) &&
+            approaches.length > 0 &&
+            arraysAreDifferent(oldPlace.approaches, approaches),
+          message: "Selecciona un nuevo enfoque.",
+        });
+      }
+    }
 
-  setLoadingCatalogs(true);
+    if (returnFields.price?.selected) {
+      checks.push({
+        field: "price",
+        valid:
+          Boolean(editingFields.price) &&
+          normalizeText(priceRange).length > 0 &&
+          hasTextChanged(oldPlace.priceRange, priceRange),
+        message: "Selecciona un nuevo rango de precio.",
+      });
+    }
 
-  getTagsService()
-    .then((tags) => {
-      if (!isMounted) return;
+   if (returnFields.schedule?.selected) {
+  checks.push({
+    field: "schedule",
+    valid:
+      Boolean(editingFields.schedule) &&
+      isValidOpeningHoursForCorrection(openingHours) &&
+      openingHoursAreDifferent(oldPlace.openingHours, openingHours),
+    message: "Corrige el horario.",
+  });
+}
 
-      setTagOptions(mapCatalogToOptions(tags));
-    })
-    .catch((error) => {
-      console.log("Error al cargar etiquetas:", error);
-    })
-    .finally(() => {
-      if (!isMounted) return;
+    if (returnFields.photos?.selected) {
+      const reviewedPhotos = oldPlace.photos.filter((photo) => photo.selected);
 
-      setLoadingCatalogs(false);
-    });
+      const allReviewedPhotosChanged =
+        reviewedPhotos.length > 0 &&
+        reviewedPhotos.every((photo) => Boolean(replacementPhotos[photo.id]));
 
-  return () => {
-    isMounted = false;
-  };
-}, []);
+      checks.push({
+        field: "photos",
+        valid: allReviewedPhotosChanged,
+        message: "Cambia las fotos marcadas para revisión.",
+      });
+    }
 
+    if (returnFields.location?.selected) {
+      checks.push({
+        field: "location",
+        valid: Boolean(editedLocation),
+        message: "Ajusta la ubicación en el mapa.",
+      });
+    }
 
-  useEffect(() => {
-  setName(newPlace.name);
-  setDescription(newPlace.description);
-  setPriceRange(newPlace.priceRange);
-  setSchedule(newPlace.schedule);
+    return checks;
+  }, [
+    returnFields,
+    editingFields,
+    name,
+    description,
+    tag,
+    subtags,
+    approaches,
+    priceRange,
+    openingHours,
+    oldPlace,
+    replacementPhotos,
+    editedLocation,
+    selectedTagHasNoApproaches,
+  ]);
 
-  setTag(newPlace.tag);
-  setSubtags(newPlace.subtags);
-  setApproaches(newPlace.approaches);
-
-  setSelectedTagId(newPlace.tagId || oldPlace.tagId || null);
-}, [
-  newPlace.name,
-  newPlace.description,
-  newPlace.priceRange,
-  newPlace.schedule,
-  newPlace.tag,
-  newPlace.subtags,
-  newPlace.approaches,
-  newPlace.tagId,
-  oldPlace.tagId,
-]);
-
-  useEffect(() => {
-  if (!selectedTagId) {
-    setSubtagOptions([]);
-    setApproachOptions([]);
-    return;
-  }
-
-  let isMounted = true;
-
-  setLoadingCatalogs(true);
-
-  Promise.all([
-    getSubtagsByTagId(selectedTagId),
-    getApproachesByTagId(selectedTagId),
-  ])
-    .then(([subtagsResult, approachesResult]) => {
-      if (!isMounted) return;
-
-      setSubtagOptions(mapCatalogToOptions(subtagsResult));
-      setApproachOptions(mapCatalogToOptions(approachesResult));
-    })
-    .catch((error) => {
-      console.log("Error al cargar subetiquetas/enfoques:", error);
-    })
-    .finally(() => {
-      if (!isMounted) return;
-
-      setLoadingCatalogs(false);
-    });
-
-  return () => {
-    isMounted = false;
-  };
-}, [selectedTagId]);
-
-  useEffect(() => {
-  if (!selectedTagPriceConfig) return;
-
-  const nextRangeId = findRangeIdByPriceLabel(
-    selectedTagPriceConfig,
-    priceRange || newPlace.priceRange
+  const pendingReviewChecks = requiredReviewChecks.filter(
+    (check) => !check.valid
   );
 
-  setSelectedPriceRangeId(nextRangeId);
-  setIsFreePrice(priceRange === "Gratis");
-}, [selectedTagPriceConfig, priceRange, newPlace.priceRange]);
+  const canSubmitAgain =
+    requiredReviewChecks.length > 0 && pendingReviewChecks.length === 0;
+
+  useEffect(() => {
+    if (!placeId) return;
+
+    const shouldLoad = Boolean(shouldFetchReturnedEditData);
+
+    if (!shouldLoad) return;
+
+    let isMounted = true;
+
+    setLoadingEditData(true);
+    setEditDataError(null);
+
+    getReturnedPlaceSubmissionEditDataService(placeId)
+      .then((data) => {
+        if (!isMounted) return;
+
+        console.log("Datos de edición devuelta:", data);
+
+        setEditData(data);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+
+        console.log("Error al cargar datos de edición devuelta:", {
+          status: error.response?.status,
+          data: error.response?.data,
+          url: error.config?.url,
+          baseURL: error.config?.baseURL,
+          message: error.message,
+        });
+
+        setEditDataError(error);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+
+        setLoadingEditData(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [placeId, shouldFetchReturnedEditData]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    setLoadingCatalogs(true);
+
+    getTagsService()
+      .then((tags) => {
+        if (!isMounted) return;
+
+        setTagOptions(mapCatalogToOptions(tags));
+      })
+      .catch((error) => {
+        console.log("Error al cargar etiquetas:", error);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+
+        setLoadingCatalogs(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setName(newPlace.name);
+    setDescription(newPlace.description);
+    setPriceRange(newPlace.priceRange);
+    setOpeningHours(newPlace.openingHours || DEFAULT_OPENING_HOURS);
+
+    setTag(newPlace.tag);
+    setSubtags(newPlace.subtags);
+    setApproaches(newPlace.approaches);
+
+    setSelectedTagId(newPlace.tagId || oldPlace.tagId || null);
+  }, [
+    newPlace.name,
+    newPlace.description,
+    newPlace.priceRange,
+    newPlace.openingHours,
+    newPlace.tag,
+    newPlace.subtags,
+    newPlace.approaches,
+    newPlace.tagId,
+    oldPlace.tagId,
+  ]);
+
+  useEffect(() => {
+    if (!selectedTagId) {
+      setSubtagOptions([]);
+      setApproachOptions([]);
+      return;
+    }
+
+    let isMounted = true;
+
+    setLoadingCatalogs(true);
+
+    Promise.all([
+      getSubtagsByTagId(selectedTagId),
+      getApproachesByTagId(selectedTagId),
+    ])
+      .then(([subtagsResult, approachesResult]) => {
+        if (!isMounted) return;
+
+        setSubtagOptions(mapCatalogToOptions(subtagsResult));
+        setApproachOptions(mapCatalogToOptions(approachesResult));
+      })
+      .catch((error) => {
+        console.log("Error al cargar subetiquetas/enfoques:", error);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+
+        setLoadingCatalogs(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedTagId]);
+
+  useEffect(() => {
+    if (!selectedTagPriceConfig) return;
+
+    const nextRangeId = findRangeIdByPriceLabel(
+      selectedTagPriceConfig,
+      priceRange || newPlace.priceRange
+    );
+
+    setSelectedPriceRangeId(nextRangeId);
+    setIsFreePrice(priceRange === "Gratis");
+  }, [selectedTagPriceConfig, priceRange, newPlace.priceRange]);
 
   const handleClose = () => {
     navigation.goBack();
   };
 
   const clearFieldValue = (fieldKey) => {
-  switch (fieldKey) {
-    case "name":
-      setName("");
-      break;
+    switch (fieldKey) {
+      case "name":
+        setName("");
+        break;
 
-    case "description":
-      setDescription("");
-      break;
+      case "description":
+        setDescription("");
+        break;
 
-    case "price":
-      setPriceRange("");
-      break;
+      case "price":
+        setPriceRange("");
+        break;
 
-    case "schedule":
-      setSchedule("");
-      break;
-
-    default:
-      break;
-  }
-};
-
-const handleEditField = (fieldKey) => {
-  setEditingFields((prev) => {
-    const isCurrentlyEditing = Boolean(prev[fieldKey]);
-    const nextIsEditing = !isCurrentlyEditing;
-
-    if (nextIsEditing) {
-      clearFieldValue(fieldKey);
+      default:
+        break;
     }
+  };
 
-    return {
-      ...prev,
-      [fieldKey]: nextIsEditing,
-    };
-  });
-};
+  const handleEditField = (fieldKey) => {
+    setEditingFields((prev) => {
+      const isCurrentlyEditing = Boolean(prev[fieldKey]);
+      const nextIsEditing = !isCurrentlyEditing;
 
-function normalizePhotoKey(value = "") {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/_/g, "-");
-}
-
-function getPhotoIndexFromKey(value = "") {
-  const match = String(value).match(/\d+/);
-
-  if (!match) return -1;
-
-  return Number(match[0]) - 1;
-}
-
-function findOldPhotoIndexByReplacementKey({ photos = [], oldPhotoId }) {
-  const normalizedOldPhotoId = normalizePhotoKey(oldPhotoId);
-
-  const directIndex = photos.findIndex((photo) => {
-    const candidates = [
-      photo.id,
-      photo.photoId,
-      photo.raw?.photoId,
-      photo.raw?.id,
-      photo.raw?.original?.fileName,
-      photo.raw?.medium?.fileName,
-      photo.raw?.thumbnail?.fileName,
-      photo.raw?.fileName,
-    ].filter(Boolean);
-
-    return candidates.some(
-      (candidate) => normalizePhotoKey(candidate) === normalizedOldPhotoId
-    );
-  });
-
-  if (directIndex >= 0) {
-    return directIndex;
-  }
-
-  const indexFromKey = getPhotoIndexFromKey(oldPhotoId);
-
-  if (indexFromKey >= 0 && indexFromKey < photos.length) {
-    return indexFromKey;
-  }
-
-  return -1;
-}
-
- const uploadCorrectedPhotos = async () => {
-  const entries = Object.entries(replacementPhotos);
-
-  if (entries.length === 0) return [];
-
-  const returnId = editData?.activeReturn?.returnId;
-
-  if (!returnId) {
-    throw new Error("Falta returnId para subir fotos corregidas.");
-  }
-
-  const uploadedPhotos = await Promise.all(
-    entries.map(async ([oldPhotoId, newPhoto]) => {
-      const photoIndex = findOldPhotoIndexByReplacementKey({
-        photos: oldPlace.photos,
-        oldPhotoId,
-      });
-
-      if (photoIndex < 0) {
-        console.log("NO SE ENCONTRÓ FOTO ORIGINAL:", {
-          oldPhotoId,
-          normalizedOldPhotoId: normalizePhotoKey(oldPhotoId),
-          oldPlacePhotos: oldPlace.photos.map((photo, index) => ({
-            index,
-            id: photo.id,
-            photoId: photo.photoId,
-            label: photo.label,
-            rawPhotoId: photo.raw?.photoId,
-            rawOriginalFileName: photo.raw?.original?.fileName,
-            rawMediumFileName: photo.raw?.medium?.fileName,
-            rawThumbnailFileName: photo.raw?.thumbnail?.fileName,
-          })),
-        });
-
-        throw new Error(`No se encontró la foto original: ${oldPhotoId}`);
+      if (nextIsEditing) {
+        clearFieldValue(fieldKey);
       }
 
-      const oldPhoto = oldPlace.photos[photoIndex];
+      return {
+        ...prev,
+        [fieldKey]: nextIsEditing,
+      };
+    });
+  };
 
-      const uploadedPhoto = await uploadCorrectedSubmissionPhotoService({
-        submissionId: placeId,
-        returnId,
-        oldPhoto,
-        newPhoto,
-        photoIndex,
+  function normalizePhotoKey(value = "") {
+    return String(value)
+      .trim()
+      .toLowerCase()
+      .replace(/_/g, "-");
+  }
+
+  function getPhotoIndexFromKey(value = "") {
+    const match = String(value).match(/\d+/);
+
+    if (!match) return -1;
+
+    return Number(match[0]) - 1;
+  }
+
+  function findOldPhotoIndexByReplacementKey({ photos = [], oldPhotoId }) {
+    const normalizedOldPhotoId = normalizePhotoKey(oldPhotoId);
+
+    const directIndex = photos.findIndex((photo) => {
+      const candidates = [
+        photo.id,
+        photo.photoId,
+        photo.raw?.photoId,
+        photo.raw?.id,
+        photo.raw?.original?.fileName,
+        photo.raw?.medium?.fileName,
+        photo.raw?.thumbnail?.fileName,
+        photo.raw?.fileName,
+      ].filter(Boolean);
+
+      return candidates.some(
+        (candidate) => normalizePhotoKey(candidate) === normalizedOldPhotoId
+      );
+    });
+
+    if (directIndex >= 0) {
+      return directIndex;
+    }
+
+    const indexFromKey = getPhotoIndexFromKey(oldPhotoId);
+
+    if (indexFromKey >= 0 && indexFromKey < photos.length) {
+      return indexFromKey;
+    }
+
+    return -1;
+  }
+
+  const uploadCorrectedPhotos = async () => {
+    const entries = Object.entries(replacementPhotos);
+
+    if (entries.length === 0) return [];
+
+    const returnId = editData?.activeReturn?.returnId;
+
+    if (!returnId) {
+      throw new Error("Falta returnId para subir fotos corregidas.");
+    }
+
+    const uploadedPhotos = await Promise.all(
+      entries.map(async ([oldPhotoId, newPhoto]) => {
+        const photoIndex = findOldPhotoIndexByReplacementKey({
+          photos: oldPlace.photos,
+          oldPhotoId,
+        });
+
+        if (photoIndex < 0) {
+          console.log("NO SE ENCONTRÓ FOTO ORIGINAL:", {
+            oldPhotoId,
+            normalizedOldPhotoId: normalizePhotoKey(oldPhotoId),
+            oldPlacePhotos: oldPlace.photos.map((photo, index) => ({
+              index,
+              id: photo.id,
+              photoId: photo.photoId,
+              label: photo.label,
+              rawPhotoId: photo.raw?.photoId,
+              rawOriginalFileName: photo.raw?.original?.fileName,
+              rawMediumFileName: photo.raw?.medium?.fileName,
+              rawThumbnailFileName: photo.raw?.thumbnail?.fileName,
+            })),
+          });
+
+          throw new Error(`No se encontró la foto original: ${oldPhotoId}`);
+        }
+
+        const oldPhoto = oldPlace.photos[photoIndex];
+
+        const uploadedPhoto = await uploadCorrectedSubmissionPhotoService({
+          submissionId: placeId,
+          returnId,
+          oldPhoto,
+          newPhoto,
+          photoIndex,
+        });
+
+        return {
+          oldPhotoId,
+          photoIndex,
+          photo: uploadedPhoto,
+        };
+      })
+    );
+
+    return uploadedPhotos;
+  };
+
+  const handleOpenScheduleModal = () => {
+    setScheduleModalVisible(true);
+  };
+
+  const handleCloseScheduleModal = () => {
+    setScheduleModalVisible(false);
+  };
+
+  const handleApplyOpeningHours = (nextOpeningHours) => {
+    setOpeningHours(nextOpeningHours);
+
+    setEditingFields((prev) => ({
+      ...prev,
+      schedule: true,
+    }));
+  };
+
+  const handleSubmitAgain = async () => {
+    if (!canSubmitAgain) {
+      console.log("Aún faltan correcciones:", pendingReviewChecks);
+      return;
+    }
+
+    if (submitting) return;
+
+    try {
+      setSubmitting(true);
+
+      const uploadedReplacementPhotos = returnFields.photos?.selected
+        ? await uploadCorrectedPhotos()
+        : [];
+
+      const correctedFields = removeUndefinedFields({
+        name: returnFields.name?.selected ? normalizeText(name) : undefined,
+
+        description: returnFields.description?.selected
+          ? normalizeText(description)
+          : undefined,
+
+        tag: returnFields.tag?.selected
+          ? {
+              tagId: resolvedSelectedTagId,
+              label: tag[0] || null,
+            }
+          : undefined,
+
+        subtags: returnFields.subtags?.selected ? subtags : undefined,
+
+        approaches: selectedTagHasNoApproaches
+          ? null
+          : returnFields.approaches?.selected
+            ? approaches
+            : undefined,
+
+        price: returnFields.price?.selected
+          ? normalizeText(priceRange)
+          : undefined,
+
+        openingHours: returnFields.schedule?.selected
+          ? openingHours
+          : undefined,
+
+        location: returnFields.location?.selected ? editedLocation : undefined,
+
+        photos: returnFields.photos?.selected
+          ? uploadedReplacementPhotos
+          : undefined,
       });
 
-      return {
-        oldPhotoId,
-        photoIndex,
-        photo: uploadedPhoto,
+      const payload = {
+        placeId,
+        returnId: editData?.activeReturn?.returnId || null,
+        correctedFields,
       };
-    })
-  );
 
-  return uploadedPhotos;
-};
+      console.log("PAYLOAD FINAL PARA BACKEND:", payload);
 
-const handleSubmitAgain = async () => {
-  if (!canSubmitAgain) {
-    console.log("Aún faltan correcciones:", pendingReviewChecks);
-    return;
-  }
+      const result = await resubmitReturnedPlaceSubmissionService({
+        submissionId: placeId,
+        payload,
+      });
 
-  if (submitting) return;
+      console.log("REENVÍO COMPLETADO:", result);
 
-  try {
-    setSubmitting(true);
-
-    const uploadedReplacementPhotos = returnFields.photos?.selected
-      ? await uploadCorrectedPhotos()
-      : [];
-
-    const correctedFields = removeUndefinedFields({
-      name: returnFields.name?.selected ? normalizeText(name) : undefined,
-
-      description: returnFields.description?.selected
-        ? normalizeText(description)
-        : undefined,
-
-      tag: returnFields.tag?.selected
-        ? {
-            tagId: resolvedSelectedTagId,
-            label: tag[0] || null,
-          }
-        : undefined,
-
-      subtags: returnFields.subtags?.selected ? subtags : undefined,
-
-      approaches: selectedTagHasNoApproaches
-        ? null
-        : returnFields.approaches?.selected
-        ? approaches
-        : undefined,
-
-      price: returnFields.price?.selected
-        ? normalizeText(priceRange)
-        : undefined,
-
-      schedule: returnFields.schedule?.selected
-        ? normalizeText(schedule)
-        : undefined,
-
-      location: returnFields.location?.selected ? editedLocation : undefined,
-
-      photos: returnFields.photos?.selected
-        ? uploadedReplacementPhotos
-        : undefined,
-    });
-
-    const payload = {
-      placeId,
-      returnId: editData?.activeReturn?.returnId || null,
-      correctedFields,
-    };
-
-    console.log("PAYLOAD FINAL PARA BACKEND:", payload);
-
-    const result = await resubmitReturnedPlaceSubmissionService({
-      submissionId: placeId,
-      payload,
-    });
-
-    console.log("REENVÍO COMPLETADO:", result);
-
-    setSuccessModalVisible(true);
-  } catch (error) {
-    console.log("Error al reenviar propuesta:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-  } finally {
-    setSubmitting(false);
-  }
-};
+      setSuccessModalVisible(true);
+    } catch (error) {
+      console.log("Error al reenviar propuesta:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleCloseOptionModal = () => {
     setActiveOptionModal(null);
   };
 
   const handleSelectTag = (option) => {
-  const nextTagHasNoApproaches = tagDoesNotUseApproaches(option.id);
+    const nextTagHasNoApproaches = tagDoesNotUseApproaches(option.id);
 
-  setTag([option.label]);
-  setSelectedTagId(option.id);
+    setTag([option.label]);
+    setSelectedTagId(option.id);
 
-  setSubtags([]);
-  setApproaches([]);
+    setSubtags([]);
+    setApproaches([]);
 
-  setEditingFields((prev) => ({
-    ...prev,
-    tag: true,
-    subtags: false,
-    approaches: false,
-  }));
+    setEditingFields((prev) => ({
+      ...prev,
+      tag: true,
+      subtags: false,
+      approaches: false,
+    }));
 
-  if (nextTagHasNoApproaches) {
-  setApproaches([]);
-  setApproachOptions([]);
-}
+    if (nextTagHasNoApproaches) {
+      setApproaches([]);
+      setApproachOptions([]);
+    }
 
-  setActiveOptionModal(null);
-};
+    setActiveOptionModal(null);
+  };
 
   const handleSelectSubtag = (option) => {
-  if (!selectedTagId) {
-    console.log("Selecciona primero una etiqueta.");
-    return;
-  }
-
-  setEditingFields((prev) => ({
-    ...prev,
-    subtags: true,
-  }));
-
-  setSubtags((prev) => {
-    const exists = prev.includes(option.label);
-
-    if (exists) {
-      return prev.filter((item) => item !== option.label);
+    if (!selectedTagId) {
+      console.log("Selecciona primero una etiqueta.");
+      return;
     }
 
-    if (prev.length >= 2) {
-      return [prev[1], option.label];
+    setEditingFields((prev) => ({
+      ...prev,
+      subtags: true,
+    }));
+
+    setSubtags((prev) => {
+      const exists = prev.includes(option.label);
+
+      if (exists) {
+        return prev.filter((item) => item !== option.label);
+      }
+
+      if (prev.length >= 2) {
+        return [prev[1], option.label];
+      }
+
+      return [...prev, option.label];
+    });
+  };
+
+  const handleSelectApproach = (option) => {
+    if (!selectedTagId) {
+      console.log("Selecciona primero una etiqueta.");
+      return;
     }
 
-    return [...prev, option.label];
-  });
-};
+    if (selectedTagHasNoApproaches) {
+      console.log("Esta etiqueta no usa enfoques.");
+      setApproaches([]);
+      setActiveOptionModal(null);
+      return;
+    }
 
- const handleSelectApproach = (option) => {
-  if (!selectedTagId) {
-    console.log("Selecciona primero una etiqueta.");
-    return;
-  }
+    setApproaches([option.label]);
 
-  if (selectedTagHasNoApproaches) {
-    console.log("Esta etiqueta no usa enfoques.");
-    setApproaches([]);
+    setEditingFields((prev) => ({
+      ...prev,
+      approaches: true,
+    }));
+
     setActiveOptionModal(null);
-    return;
-  }
+  };
 
-  setApproaches([option.label]);
+  const handleOpenPriceModal = () => {
+    console.log("DEBUG PRICE MODAL:", {
+      selectedTagId,
+      tag,
+      tagOptions,
+      selectedTagOption,
+      selectedTagPriceConfig,
+    });
 
-  setEditingFields((prev) => ({
-    ...prev,
-    approaches: true,
-  }));
+    if (!selectedTagPriceConfig) {
+      console.log("No hay configuración de precio para esta etiqueta.");
+      return;
+    }
 
-  setActiveOptionModal(null);
-};
+    const currentRangeId = findRangeIdByPriceLabel(
+      selectedTagPriceConfig,
+      priceRange || oldPlace.priceRange
+    );
 
-const handleOpenPriceModal = () => {
-  console.log("DEBUG PRICE MODAL:", {
-    selectedTagId,
-    tag,
-    tagOptions,
-    selectedTagOption,
-    selectedTagPriceConfig,
-  });
+    setSelectedPriceRangeId(currentRangeId);
+    setPriceModalVisible(true);
+  };
 
-  if (!selectedTagPriceConfig) {
-    console.log("No hay configuración de precio para esta etiqueta.");
-    return;
-  }
+  const handleClosePriceModal = () => {
+    setPriceModalVisible(false);
+  };
 
-  const currentRangeId = findRangeIdByPriceLabel(
-    selectedTagPriceConfig,
-    priceRange || oldPlace.priceRange
-  );
+  const handleChangePriceRangeId = (rangeId) => {
+    setSelectedPriceRangeId(rangeId);
+    setIsFreePrice(false);
 
-  setSelectedPriceRangeId(currentRangeId);
-  setPriceModalVisible(true);
-};
-
-const handleClosePriceModal = () => {
-  setPriceModalVisible(false);
-};
-
-const handleChangePriceRangeId = (rangeId) => {
-  setSelectedPriceRangeId(rangeId);
-  setIsFreePrice(false);
-
-  const nextPriceLabel = getRangeLabelById(selectedTagPriceConfig, rangeId);
-
-  setPriceRange(nextPriceLabel);
-
-  setEditingFields((prev) => ({
-    ...prev,
-    price: true,
-  }));
-};
-
-const handleToggleFreePrice = () => {
-  setIsFreePrice((prev) => {
-    const nextIsFree = !prev;
-
-    const nextPriceLabel = nextIsFree
-      ? "Gratis"
-      : getRangeLabelById(selectedTagPriceConfig, selectedPriceRangeId);
+    const nextPriceLabel = getRangeLabelById(selectedTagPriceConfig, rangeId);
 
     setPriceRange(nextPriceLabel);
 
-    setEditingFields((current) => ({
-      ...current,
+    setEditingFields((prev) => ({
+      ...prev,
       price: true,
     }));
+  };
 
-    return nextIsFree;
-  });
-};
+  const handleToggleFreePrice = () => {
+    setIsFreePrice((prev) => {
+      const nextIsFree = !prev;
 
-const handleCloseSuccessModal = () => {
-  setSuccessModalVisible(false);
-  navigation.goBack();
-};
+      const nextPriceLabel = nextIsFree
+        ? "Gratis"
+        : getRangeLabelById(selectedTagPriceConfig, selectedPriceRangeId);
+
+      setPriceRange(nextPriceLabel);
+
+      setEditingFields((current) => ({
+        ...current,
+        price: true,
+      }));
+
+      return nextIsFree;
+    });
+  };
+
+  const handleCloseSuccessModal = () => {
+    setSuccessModalVisible(false);
+    navigation.goBack();
+  };
 
   return (
     <LayoutScreen
@@ -1054,36 +1171,36 @@ const handleCloseSuccessModal = () => {
             </View>
           )}
 
-        <EditableTextField
-          label="Nombre"
-          newLabel="Nuevo nombre"
-          oldValue={oldPlace.name}
-          value={name}
-          onChangeText={setName}
-          placeholder="Nombre del lugar"
-          helperText={returnFields.name.message || "Texto"}
-          reviewField={returnFields.name}
-          isEditing={Boolean(editingFields.name)}
-          onPressEdit={() => handleEditField("name")}
-          maxLength={30}
-          minLength={3}
-        />
+          <EditableTextField
+            label="Nombre"
+            newLabel="Nuevo nombre"
+            oldValue={oldPlace.name}
+            value={name}
+            onChangeText={setName}
+            placeholder="Nombre del lugar"
+            helperText={returnFields.name.message || "Texto"}
+            reviewField={returnFields.name}
+            isEditing={Boolean(editingFields.name)}
+            onPressEdit={() => handleEditField("name")}
+            maxLength={30}
+            minLength={3}
+          />
 
-       <EditableTextField
-        label="Descripción"
-        newLabel="Nueva descripción"
-        oldValue={oldPlace.description}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Descripción"
-        helperText={returnFields.description.message || "Texto"}
-        reviewField={returnFields.description}
-        isEditing={Boolean(editingFields.description)}
-        onPressEdit={() => handleEditField("description")}
-        multiline
-        maxLength={200}
-        minLength={80}
-      />
+          <EditableTextField
+            label="Descripción"
+            newLabel="Nueva descripción"
+            oldValue={oldPlace.description}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Descripción"
+            helperText={returnFields.description.message || "Texto"}
+            reviewField={returnFields.description}
+            isEditing={Boolean(editingFields.description)}
+            onPressEdit={() => handleEditField("description")}
+            multiline
+            maxLength={200}
+            minLength={80}
+          />
 
           <EditablePillsField
             label="Etiqueta"
@@ -1107,67 +1224,69 @@ const handleCloseSuccessModal = () => {
             onPressEdit={() => setActiveOptionModal("subtags")}
           />
 
-            {!selectedTagHasNoApproaches && (
-              <EditablePillsField
-                label="Enfoque"
-                newLabel="Nuevo enfoque"
-                pills={oldPlace.approaches}
-                newPills={approaches}
-                helperText={returnFields.approaches.message || "Texto"}
-                reviewField={returnFields.approaches}
-                isEditing={Boolean(editingFields.approaches)}
-                onPressEdit={() => setActiveOptionModal("approaches")}
-              />
-            )}
-         <EditableTextField
+          {!selectedTagHasNoApproaches && (
+            <EditablePillsField
+              label="Enfoque"
+              newLabel="Nuevo enfoque"
+              pills={oldPlace.approaches}
+              newPills={approaches}
+              helperText={returnFields.approaches.message || "Texto"}
+              reviewField={returnFields.approaches}
+              isEditing={Boolean(editingFields.approaches)}
+              onPressEdit={() => setActiveOptionModal("approaches")}
+            />
+          )}
+
+          <EditableTextField
             label="Rango de precio"
             newLabel="Nuevo rango"
             oldValue={oldPlace.priceRange}
             value={priceRange}
             onChangeText={setPriceRange}
             placeholder="Rango de precio"
-            helperText={returnFields.price.message || "Texto"}  
+            helperText={returnFields.price.message || "Texto"}
             reviewField={returnFields.price}
             isEditing={Boolean(editingFields.price)}
             onPressEdit={handleOpenPriceModal}
             maxLength={40}
           />
-            <EditableTextField
-              label="Horario"
-              newLabel="Nuevo horario"
-              oldValue={oldPlace.schedule}
-              value={schedule}
-              onChangeText={setSchedule}
-              placeholder="Horario"
-              helperText={returnFields.schedule.message || "Texto"}
-              reviewField={returnFields.schedule}
-              isEditing={Boolean(editingFields.schedule)}
-              onPressEdit={() => handleEditField("schedule")}
-              maxLength={80}
-            />
 
-         <EditablePhotosBox
-          label="Fotos"
-          photos={oldPlace.photos}
-          reviewField={returnFields.photos}
-          helperText={returnFields.photos.message || "Texto"}
-          onChangeReplacementPhotos={setReplacementPhotos}
-        />
+          <EditableTextField
+            label="Horario"
+            newLabel="Nuevo horario"
+            oldValue={oldPlace.schedule}
+            value={openingHours?.label || "Horario no especificado"}
+            onChangeText={() => {}}
+            placeholder="Horario"
+            helperText={returnFields.schedule.message || "Texto"}
+            reviewField={returnFields.schedule}
+            isEditing={Boolean(editingFields.schedule)}
+            onPressEdit={handleOpenScheduleModal}
+            maxLength={80}
+          />
 
-       <EditableMapBox
-        label="Mapa"
-        newLabel="Mapa nuevo"
-        oldLocation={oldPlace.location}
-        newLocation={newPlace.location}
-        reviewField={returnFields.location}
-        helperText={
-          returnFields.location.message ||
-          "Ajusta el pin al acceso principal del lugar."
-        }
-        isEditing={Boolean(editingFields.location)}
-        onPressEdit={() => handleEditField("location")}
-        onChangeLocation={setEditedLocation}
-      />
+          <EditablePhotosBox
+            label="Fotos"
+            photos={oldPlace.photos}
+            reviewField={returnFields.photos}
+            helperText={returnFields.photos.message || "Texto"}
+            onChangeReplacementPhotos={setReplacementPhotos}
+          />
+
+          <EditableMapBox
+            label="Mapa"
+            newLabel="Mapa nuevo"
+            oldLocation={oldPlace.location}
+            newLocation={newPlace.location}
+            reviewField={returnFields.location}
+            helperText={
+              returnFields.location.message ||
+              "Ajusta el pin al acceso principal del lugar."
+            }
+            isEditing={Boolean(editingFields.location)}
+            onPressEdit={() => handleEditField("location")}
+            onChangeLocation={setEditedLocation}
+          />
 
           <SubmitAgainBox
             onSubmit={handleSubmitAgain}
@@ -1204,6 +1323,7 @@ const handleCloseSuccessModal = () => {
           onSelect={handleSelectApproach}
           onClose={handleCloseOptionModal}
         />
+
         <EditablePriceModal
           visible={priceModalVisible}
           config={selectedTagPriceConfig}
@@ -1212,6 +1332,13 @@ const handleCloseSuccessModal = () => {
           onChangeRangeId={handleChangePriceRangeId}
           onToggleFree={handleToggleFreePrice}
           onClose={handleClosePriceModal}
+        />
+
+        <EditableScheduleModal
+          visible={scheduleModalVisible}
+          value={openingHours}
+          onApply={handleApplyOpeningHours}
+          onClose={handleCloseScheduleModal}
         />
 
         <ResubmitSuccessModal

@@ -10,17 +10,19 @@ export default function FiltersSummary({ filters, onPress }) {
   const [subtags, setSubtags] = useState([]);
   const [focuses, setFocuses] = useState([]);
 
+  const categoryId = filters?.tagId ?? filters?.categoryId ?? null;
+
   useEffect(() => {
     let isMounted = true;
 
     async function loadSummaryData() {
-      if (!filters?.categoryId) return;
+      if (!categoryId) return;
 
       try {
         const [tagsData, subtagsData, approachesData] = await Promise.all([
           getTagsService(),
-          getSubtagsByTagId(filters.categoryId),
-          getApproachesByTagId(filters.categoryId),
+          getSubtagsByTagId(categoryId),
+          getApproachesByTagId(categoryId),
         ]);
 
         if (isMounted) {
@@ -38,23 +40,43 @@ export default function FiltersSummary({ filters, onPress }) {
     return () => {
       isMounted = false;
     };
-  }, [filters?.categoryId]);
+  }, [categoryId]);
 
   const category = useMemo(() => {
-    return categories.find((item) => item.id === filters?.categoryId) ?? null;
-  }, [categories, filters?.categoryId]);
+    return categories.find((item) => item.id === categoryId) ?? null;
+  }, [categories, categoryId]);
 
   const selectedSubtags = useMemo(() => {
+    if (Array.isArray(filters?.subtagLabels) && filters.subtagLabels.length > 0) {
+      return filters.subtagLabels.map((label, index) => ({
+        id: `${label}-${index}`,
+        label,
+      }));
+    }
+
     if (!filters?.subtags?.length) return [];
+
     return subtags.filter((item) => filters.subtags.includes(item.id));
-  }, [subtags, filters?.subtags]);
+  }, [subtags, filters?.subtags, filters?.subtagLabels]);
 
   const selectedFocuses = useMemo(() => {
+    if (Array.isArray(filters?.focusLabels) && filters.focusLabels.length > 0) {
+      return filters.focusLabels.map((label, index) => ({
+        id: `${label}-${index}`,
+        label,
+      }));
+    }
+
     if (!filters?.focuses?.length) return [];
+
     return focuses.filter((item) => filters.focuses.includes(item.id));
-  }, [focuses, filters?.focuses]);
+  }, [focuses, filters?.focuses, filters?.focusLabels]);
 
   const selectedPriceLabel = useMemo(() => {
+    if (filters?.priceLabel) {
+      return filters.priceLabel;
+    }
+
     if (filters?.isFree) {
       return "Gratis";
     }
@@ -65,14 +87,19 @@ export default function FiltersSummary({ filters, onPress }) {
     );
 
     return selectedRange?.label ?? null;
-  }, [category, filters?.isFree, filters?.priceRangeId]);
+  }, [category, filters?.isFree, filters?.priceRangeId, filters?.priceLabel]);
+
+  const scheduleLabel = filters?.openingHours?.label ?? null;
 
   if (!filters) return null;
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{category?.label || "Filtros"}</Text>
+        <Text style={styles.title}>
+          {filters?.tagLabel || filters?.categoryLabel || category?.label || "Filtros"}
+        </Text>
+
         <Text style={styles.editText}>Editar</Text>
       </View>
 
@@ -98,6 +125,10 @@ export default function FiltersSummary({ filters, onPress }) {
 
       {selectedPriceLabel ? (
         <Text style={styles.priceText}>{selectedPriceLabel}</Text>
+      ) : null}
+
+      {scheduleLabel ? (
+        <Text style={styles.scheduleText}>{scheduleLabel}</Text>
       ) : null}
     </Pressable>
   );

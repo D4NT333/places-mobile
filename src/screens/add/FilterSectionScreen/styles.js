@@ -59,4 +59,7 @@ export default StyleSheet.create({
   disabledBtn: {
   opacity: 0.5,
 },
+scrollContent: {
+  paddingBottom: 130,
+},
 });

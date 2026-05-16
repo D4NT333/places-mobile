@@ -67,4 +67,10 @@ export default StyleSheet.create({
     fontWeight: "700",
     color: "#444",
   },
+  scheduleText: {
+  marginTop: 8,
+  fontSize: 15,
+  fontWeight: "800",
+  color: "#333",
+},
 });

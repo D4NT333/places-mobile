@@ -16,6 +16,7 @@ import {
   ChipGroup,
   PriceSection,
   SectionTitle,
+  ScheduleSection,
 } from "./Components";
 
 import { getTagsService } from "../../../services/firebase/firestore/tags/getTags.service";
@@ -38,6 +39,17 @@ export default function FilterSectionScreen({ navigation }) {
   const [selectedFocuses, setSelectedFocuses] = useState([]);
   const [selectedPriceRangeId, setSelectedPriceRangeId] = useState(null);
   const [isFree, setIsFree] = useState(false);
+
+  const [scheduleType, setScheduleType] = useState("not_specified");
+  const [selectedDays, setSelectedDays] = useState([
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+]);
+const [openTime, setOpenTime] = useState("09:00");
+const [closeTime, setCloseTime] = useState("18:00");
 
   const { updateDraft } = useAddPlaceDraft();
 
@@ -150,6 +162,37 @@ export default function FilterSectionScreen({ navigation }) {
     });
   };
 
+  const toggleDay = (dayId) => {
+  setSelectedDays((prev) => {
+    const exists = prev.includes(dayId);
+
+    if (exists) {
+      return prev.filter((id) => id !== dayId);
+    }
+
+    return [...prev, dayId];
+  });
+};
+
+const getScheduleLabel = () => {
+  if (scheduleType === "not_specified") return "Horario no especificado";
+  if (scheduleType === "always_open") return "Abierto 24 horas";
+
+  const dayLabels = {
+    monday: "Lun",
+    tuesday: "Mar",
+    wednesday: "Mié",
+    thursday: "Jue",
+    friday: "Vie",
+    saturday: "Sáb",
+    sunday: "Dom",
+  };
+
+  const daysText = selectedDays.map((day) => dayLabels[day]).join(", ");
+
+  return `${daysText} · ${openTime} - ${closeTime}`;
+};
+
   const handleFinish = () => {
     if (!selectedCategoryId) {
       Alert.alert("Selecciona una categoría");
@@ -170,6 +213,23 @@ export default function FilterSectionScreen({ navigation }) {
       Alert.alert("Selecciona un rango de precio");
       return;
     }
+
+    if (scheduleType === "defined") {
+  if (selectedDays.length < 1) {
+    Alert.alert("Selecciona al menos 1 día");
+    return;
+  }
+
+  if (!openTime || !closeTime) {
+    Alert.alert("Selecciona hora de apertura y cierre");
+    return;
+  }
+
+  if (openTime === closeTime) {
+    Alert.alert("La hora de apertura y cierre no puede ser igual");
+    return;
+  }
+} 
 
   const payload = {
   // Nuevo modelo bueno
@@ -193,6 +253,14 @@ export default function FilterSectionScreen({ navigation }) {
     ? "Gratis"
     : selectedPriceRange?.label ?? "Sin rango",
 
+  openingHours: {
+  type: scheduleType,
+  days: scheduleType === "defined" ? selectedDays : [],
+  openTime: scheduleType === "defined" ? openTime : null,
+  closeTime: scheduleType === "defined" ? closeTime : null,
+  label: getScheduleLabel(),
+},
+
   isFree,
   hasFocuses,
 };
@@ -203,7 +271,11 @@ navigation.goBack();
 
   return (
     <LayoutScreen edges={["top"]}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()}>
             <Text style={styles.back}>←</Text>
@@ -242,6 +314,10 @@ navigation.goBack();
                     <Text style={styles.summarySub}>{selectedPriceRange.label}</Text>
                   ) : null
                 ) : null}
+
+                {shouldShowPriceSummary && (
+                  <Text style={styles.summarySub}>{getScheduleLabel()}</Text>
+                )}
               </View>
             )}
 
@@ -307,6 +383,17 @@ navigation.goBack();
                   isFree={isFree}
                   onChangeRangeId={setSelectedPriceRangeId}
                   onToggleFree={() => setIsFree((prev) => !prev)}
+                />
+
+                 <ScheduleSection
+                  scheduleType={scheduleType}
+                  selectedDays={selectedDays}
+                  openTime={openTime}   
+                  closeTime={closeTime}
+                  onChangeScheduleType={setScheduleType}
+                  onToggleDay={toggleDay}
+                  onChangeOpenTime={setOpenTime}
+                  onChangeCloseTime={setCloseTime}
                 />
 
                 <Pressable style={styles.finishBtn} onPress={handleFinish}>

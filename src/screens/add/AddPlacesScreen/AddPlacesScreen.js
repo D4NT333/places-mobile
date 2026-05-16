@@ -60,6 +60,8 @@ export default function AddPlaceScreen() {
 
   const hasPrice = !!filters.isFree || !!filters.priceRangeId;
 
+  const hasOpeningHours = !!filters.openingHours?.type;
+
   const isNameValid = trimmedName.length >= 3 && trimmedName.length <= 60;
   const isDescriptionValid =
     trimmedDescription.length >= 80 && trimmedDescription.length <= 200;
@@ -69,7 +71,12 @@ export default function AddPlaceScreen() {
     typeof selectedLocation.latitude === "number" &&
     typeof selectedLocation.longitude === "number";
 
-  const areFiltersValid = hasTag && hasSubtags && hasFocuses && hasPrice;
+  const areFiltersValid =
+  hasTag &&
+  hasSubtags &&
+  hasFocuses &&
+  hasPrice &&
+  hasOpeningHours;
 
   const isFormValid =
     isNameValid &&
@@ -174,6 +181,15 @@ export default function AddPlaceScreen() {
         subtags: selectedSubtagLabels,
         approaches: selectedFocusLabels,
         price: selectedPriceLabel,
+
+        openingHours: filters.openingHours ?? {
+        type: "not_specified",
+        days: [],
+        openTime: null,
+        closeTime: null,
+        label: "Horario no especificado",
+      },
+
         photos: uploadedPhotos,
         location: selectedLocation
           ? {
