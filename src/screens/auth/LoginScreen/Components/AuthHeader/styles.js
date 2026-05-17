@@ -11,7 +11,7 @@ export default StyleSheet.create({
   height: 200,
   borderRadius: 999,
   borderWidth: 2,
-  borderColor: "#111",
+  borderColor: "#ffffff",
   alignItems: "center",
   justifyContent: "center",
   overflow: "hidden", 

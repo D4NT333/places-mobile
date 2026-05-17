@@ -7,7 +7,7 @@ export default function AuthHeader({subtitle}) {
     <View style={styles.container}>
       <View style={styles.logoWrap}>
         <Image
-        source={require("../../../../../../assets/pool.jpg")}
+        source={require("../../../../../../assets/logoLsearch.png")}
         style={styles.logo}
        />
       </View>
