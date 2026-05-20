@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { FlatList, View, Text, Pressable, ActivityIndicator } from "react-native";
-import PlaceCard from "../../../components/PlaceCard";
-import { useNavigation } from "@react-navigation/native";
+import { View } from "react-native";
+
 import { LayoutScreen } from "../../../layouts";
 
 import FiltersScreen from "../FiltersScreen/FiltersScreen";
-import { filtersData } from "../FiltersScreen/data";
+
+import HomeFiltersBar from "./Components/HomeFiltersBar";
+import PlacesFeed from "./Components/PlacesFeed";
 
 import { getCurrentLocationService } from "../../../services/";
-import  sendCurrentLocationToBackendService  from "../../../services/api/sendCurrentLocationToBackend.service";
+import sendCurrentLocationToBackendService from "../../../services/api/sendCurrentLocationToBackend.service";
 
 import { auth } from "../../../services/firebase/config";
 
@@ -17,6 +18,7 @@ import { getTagsService } from "../../../services/firebase/firestore/tags/getTag
 function makeBatch(startIndex, count = 15) {
   return Array.from({ length: count }).map((_, i) => {
     const n = startIndex + i + 1;
+
     return {
       id: String(n),
       title: `Bosque del centinela ${n}`,
@@ -26,66 +28,93 @@ function makeBatch(startIndex, count = 15) {
 }
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
-
   const [data, setData] = useState([]);
   const [page, setPage] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore] = useState(true);
 
-  // ✅ NUEVO: estado del panel
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState({
-    categoryKey: filtersData.categories[0].key,
-    subtags: [],
-    price: 0,
-    rating: 0,
-  });
 
+ const [filters, setFilters] = useState({
+  categoryKey: null,
+  categoryLabel: null,
+
+  subtags: [],
+  approaches: [],
+
+  priceIndex: 0,
+  priceLabel: null,
+  isFree: false,
+
+  openingHours: null,
+});
 
   const [tags, setTags] = useState([]);
   const [loadingTags, setLoadingTags] = useState(true);
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const loadTags = async () => {
-    try {
-      const tagsData = await getTagsService();
+    const loadTags = async () => {
+      try {
+        const tagsData = await getTagsService();
 
-      if (isMounted) {
-        setTags(tagsData);
+        if (isMounted) {
+          setTags(tagsData);
+        }
+      } catch (error) {
+        console.error("Error al cargar tags:", error);
+      } finally {
+        if (isMounted) {
+          setLoadingTags(false);
+        }
       }
-    } catch (error) {
-      console.error("Error al cargar tags:", error);
-    } finally {
-      if (isMounted) {
-        setLoadingTags(false);
-      }
-    }
-  };
+    };
 
-  loadTags();
+    loadTags();
 
-  return () => {
-    isMounted = false;
+    return () => {
+      isMounted = false;
     };
   }, []);
-  
-  const applyFilters = (f) => {
-    // ✅ aquí luego haces tu fetch real
-    console.log("Aplicar filtros:", f);
-
-    // si quieres, al aplicar puedes resetear lista y simular recarga:
-    // setData(makeBatch(0, 15));
-    // setPage(1);
-  };
 
   useEffect(() => {
     const first = makeBatch(0, 15);
     setData(first);
     setPage(1);
   }, []);
+
+  useEffect(() => {
+    const initializeLocation = async () => {
+      try {
+        const coords = await getCurrentLocationService();
+        console.log("Coords obtenidas:", coords);
+
+        const result = await sendCurrentLocationToBackendService(coords);
+        console.log("Respuesta backend:", result);
+      } catch (error) {
+        console.error("Error al obtener o mandar ubicación:", error);
+      }
+    };
+
+    initializeLocation();
+  }, []);
+
+  useEffect(() => {
+    console.log("Usuario actual de auth:", auth.currentUser);
+    console.log("UID actual:", auth.currentUser?.uid);
+  }, []);
+
+  const applyFilters = (nextFilters) => {
+    console.log("Aplicar filtros:", nextFilters);
+
+    setFilters(nextFilters);
+
+    // Luego aquí haces el fetch real.
+    // De momento reseteamos la lista fake para probar visualmente.
+    setData(makeBatch(0, 15));
+    setPage(1);
+  };
 
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) return;
@@ -96,150 +125,39 @@ export default function HomeScreen() {
       const nextBatch = makeBatch(page * 15, 15);
 
       setData((prev) => [...prev, ...nextBatch]);
-      setPage((p) => p + 1);
+      setPage((prev) => prev + 1);
 
       setLoadingMore(false);
     }, 700);
   }, [loadingMore, hasMore, page]);
 
-  // ✅ Header con botón de filtros a la derecha
-  const header = (
-    <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 8 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {/* Buscador fake (tu cajita) */}
-        <View
-          style={{
-            flex: 1,
-            height: 44,
-            borderRadius: 14,
-            backgroundColor: "rgba(212, 65, 65, 0.15)",
-            paddingHorizontal: 12,
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "rgba(233, 75, 75, 0.85)" }}>
-            Buscar lugares, tags, zonas...
-          </Text>
-        </View>
-
-        {/* ✅ Botón filtros */}
-        <Pressable
-          onPress={() => setFiltersOpen(true)}
-          style={{
-            height: 44,
-            paddingHorizontal: 14,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: "rgba(0,0,0,0.12)",
-            backgroundColor: "rgba(255,255,255,0.85)",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ fontWeight: "900" }}>Filtros</Text>
-        </Pressable>
-      </View>
-
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        <Pressable
-          style={{
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            borderRadius: 999,
-            backgroundColor: "rgba(33, 207, 56, 0.15)",
-          }}
-        >
-          <Text style={{ color: "#21cf38ff" }}>Cerca</Text>
-        </Pressable>
-
-        <Pressable
-          style={{
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            borderRadius: 999,
-            backgroundColor: "rgba(33, 248, 105, 0.61)",
-          }}
-        >
-          <Text style={{ color: "#f84121ff" }}>Popular</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-
-
-  useEffect(() => { //NEW
-  const initializeLocation = async () => {
-    try {
-      const coords = await getCurrentLocationService();
-      console.log("Coords obtenidas:", coords);
-
-      const result = await sendCurrentLocationToBackendService(coords);
-      console.log("Respuesta backend:", result);
-    } catch (error) {
-      console.error("Error al obtener o mandar ubicación:", error);
-    }
-  };
-
-  initializeLocation();
-}, []);
-
-useEffect(() => {
-  console.log("Usuario actual de auth:", auth.currentUser);
-  console.log("UID actual:", auth.currentUser?.uid);
-}, []);
-  
-
   return (
     <View style={{ flex: 1 }}>
-    <LayoutScreen
-      header={header}
-      padding={{ top: 24, left: 8, right: 8, bottom: 10 }}
-      edges={["top"]}
-    >
-      <View style={{ flex: 1, backgroundColor: "rgb(155, 30, 155)" }}>
-        <FlatList
-          style={{ flex: 1 }}
+      <LayoutScreen
+        header={
+          <HomeFiltersBar
+            filters={filters}
+            onOpenFilters={() => setFiltersOpen(true)}
+            onChangeFilters={setFilters}
+          />
+        }
+        padding={{ top: 24, left: 0, right: 0, bottom: 10 }}
+        edges={["top"]}
+        bg="#F6F7FB"
+      >
+        <PlacesFeed
           data={data}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 3,
-            paddingTop: 30,
-            paddingBottom: 60,
-          }}
-          columnWrapperStyle={{ justifyContent: "space-between" }}
-          renderItem={({ item, index }) => (
-            <Pressable
-              onPress={() =>
-                navigation.navigate("PlaceDetailScreen", { placeId: item.id })
-              }
-              style={{ width: "48%" }}
-            >
-              <PlaceCard item={item} index={index} />
-            </Pressable>
-          )}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.6}
-          ListFooterComponent={
-            loadingMore ? (
-              <View style={{ paddingVertical: 18 }}>
-                <ActivityIndicator />
-              </View>
-            ) : null
-          }
+          loadingMore={loadingMore}
+          onLoadMore={loadMore}
         />
-      </View>
-    </LayoutScreen>
+      </LayoutScreen>
 
-     {/* ✅ PANEL (va al final para que quede encima) */}
       <FiltersScreen
         open={filtersOpen}
         onClose={() => setFiltersOpen(false)}
         onApply={applyFilters}
         value={filters}
         onChange={setFilters}
-        data={filtersData}
       />
     </View>
   );

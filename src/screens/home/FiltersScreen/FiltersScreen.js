@@ -79,16 +79,24 @@ export default function FiltersScreen({
 
         const firstCategoryKey = normalizedCategories[0]?.key ?? null;
 
-        if (!value.categoryKey && firstCategoryKey) {
-          onChange({
-            ...value,
-            categoryKey: firstCategoryKey,
-            subtags: [],
-            approaches: [],
-            priceIndex: 0,
-            isFree: false,
-          });
-        }
+       if (!value.categoryKey && firstCategoryKey) {
+  const firstCategory = normalizedCategories[0];
+
+  onChange({
+    ...value,
+    categoryKey: firstCategoryKey,
+    categoryLabel: firstCategory?.label ?? null,
+
+    subtags: [],
+    approaches: [],
+
+    priceIndex: 0,
+    priceLabel: null,
+    isFree: false,
+
+    openingHours: value.openingHours ?? null,
+  });
+}
       } catch (error) {
         console.error("Error cargando categorías del panel:", error);
       } finally {
@@ -192,15 +200,21 @@ export default function FiltersScreen({
   const containerPointer = open ? "auto" : "none";
 
   const handleSelectCategory = (key) => {
-    onChange({
-      ...value,
-      categoryKey: key,
-      subtags: [],
-      approaches: [],
-      priceIndex: 0,
-      isFree: false,
-    });
-  };
+  const selectedCategory = categories.find((item) => item.key === key);
+
+  onChange({
+    ...value,
+    categoryKey: key,
+    categoryLabel: selectedCategory?.label ?? null,
+
+    subtags: [],
+    approaches: [],
+
+    priceIndex: 0,
+    priceLabel: null,
+    isFree: false,
+  });
+};
 
   const handleToggleSubtag = (tag) => {
     const prev = value.subtags ?? [];
@@ -320,24 +334,28 @@ export default function FiltersScreen({
                   <Text style={styles.sectionLabel}>Precio</Text>
 
                   <PriceSlider
-                    ranges={currentCategory.price.ranges}
-                    selectedIndex={value.priceIndex ?? 0}
-                    onChangeIndex={(index) =>
-                      onChange({
-                        ...value,
-                        priceIndex: index,
-                        isFree: false,
-                      })
-                    }
-                    hasFreeOption={currentCategory.price.hasFreeOption ?? false}
-                    isFree={value.isFree ?? false}
-                    onToggleFree={(nextIsFree) =>
-                      onChange({
-                        ...value,
-                        isFree: nextIsFree,
-                      })
-                    }
-                  />
+                  ranges={currentCategory.price.ranges}
+                  selectedIndex={value.priceIndex ?? 0}
+                  onChangeIndex={(index) => {
+                    const selectedRange = currentCategory.price.ranges[index];
+
+                    onChange({
+                      ...value,
+                      priceIndex: index,
+                      priceLabel: selectedRange?.label ?? null,
+                      isFree: false,
+                    });
+                  }}
+                  hasFreeOption={currentCategory.price.hasFreeOption ?? false}
+                  isFree={value.isFree ?? false}
+                  onToggleFree={(nextIsFree) =>
+                    onChange({
+                      ...value,
+                      isFree: nextIsFree,
+                      priceLabel: nextIsFree ? "Gratis" : value.priceLabel,
+                    })
+                  }
+                />
                 </>
               )}
             </>
