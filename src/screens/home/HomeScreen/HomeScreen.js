@@ -141,7 +141,7 @@ export default function HomeScreen() {
             onChangeFilters={setFilters}
           />
         }
-        padding={{ top: 24, left: 0, right: 0, bottom: 10 }}
+        padding={{ top: 20, left: 0, right: 0, bottom: 10 }}
         edges={["top"]}
         bg="#F6F7FB"
       >

@@ -12,7 +12,7 @@ export default StyleSheet.create({
   content: {
     paddingHorizontal: 8,
     paddingTop: 12,
-    paddingBottom: 80,
+    paddingBottom: 180,
   },
 
   columnWrapper: {

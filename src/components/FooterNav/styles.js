@@ -16,20 +16,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 4,
 
-    borderWidth: 1,
-    borderColor: "#ffffff",
+    borderColor: "transparent",
 
+    backgroundColor: "#F6F7FB",
 
-    backgroundColor: "#FFFFFF",
-
-    shadowColor: "#000",
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
       height: -4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 12,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
 
   icon: {
