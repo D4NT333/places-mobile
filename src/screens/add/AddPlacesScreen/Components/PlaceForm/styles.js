@@ -2,112 +2,142 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   card: {
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 14,
-    padding: 12,
-    gap: 12,
+    borderRadius: 26,
+    padding: 18,
+    gap: 14,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    elevation: 4,
   },
+
   field: {
-    gap: 6,
+    gap: 7,
   },
+
   label: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#111",
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#111827",
   },
+
   input: {
-    height: 40,
+    height: 48,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    color: "#111",
-    backgroundColor: "#FFF",
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    color: "#111827",
+    backgroundColor: "#F9FAFB",
+    fontSize: 15,
+    fontWeight: "500",
   },
+
   inputMultiline: {
-    height: 80,
-    paddingTop: 10,
+    height: 118,
+    paddingTop: 13,
     textAlignVertical: "top",
   },
+
+  inputWarning: {
+    borderColor: "#F59E0B",
+    backgroundColor: "#FFFBEB",
+  },
+
+  inputDanger: {
+    borderColor: "#DC2626",
+    backgroundColor: "#FEF2F2",
+  },
+
+  inputErrorText: {
+    color: "#DC2626",
+    marginTop: 2,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  charCount: {
+    marginTop: 4,
+    alignSelf: "flex-end",
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "700",
+  },
+
+  charCountWarning: {
+    marginTop: 4,
+    alignSelf: "flex-end",
+    fontSize: 12,
+    color: "#D97706",
+    fontWeight: "800",
+  },
+
+  charCountDanger: {
+    marginTop: 4,
+    alignSelf: "flex-end",
+    fontSize: 12,
+    color: "#DC2626",
+    fontWeight: "800",
+  },
+
   chipsWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
   },
+
   chip: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
   },
+
   chipActive: {
-    backgroundColor: "#111",
-    borderColor: "#111",
+    backgroundColor: "#DC2626",
+    borderColor: "#DC2626",
   },
+
   chipInactive: {
     backgroundColor: "#F3F4F6",
     borderColor: "#E5E7EB",
   },
+
   chipText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "800",
   },
+
   chipTextActive: {
-    color: "#FFF",
+    color: "#FFFFFF",
   },
+
   chipTextInactive: {
-    color: "#111",
+    color: "#374151",
   },
+
   filterButton: {
-  marginTop: 8,
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  backgroundColor: "#fff",
-  borderRadius: 20,
-  borderWidth: 1,
-  borderColor: "#9CA3AF",
-  alignSelf: "flex-start",
-},
+    marginTop: 8,
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+    backgroundColor: "#FEF2F2",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    alignSelf: "flex-start",
+  },
 
-filterButtonText: {
-  fontSize: 14,
-  fontWeight: "600",
-  color: "#111827",
-},
-charCount: {
-  marginTop: 6,
-  alignSelf: "flex-end",
-  fontSize: 12,
-  color: "#6B7280",
-},
-
-charCount: {
-  marginTop: 6,
-  alignSelf: "flex-end",
-  fontSize: 12,
-  color: "#6B7280", // gris
-},
-
-charCountWarning: {
-  marginTop: 6,
-  alignSelf: "flex-end",
-  fontSize: 12,
-  color: "#F59E0B", // amarillo
-},
-
-charCountDanger: {
-  marginTop: 6,
-  alignSelf: "flex-end",
-  fontSize: 12,
-  color: "#DC2626", // rojo
-},
-
-inputWarning: {
-  borderColor: "#F59E0B",
-},
-
-inputDanger: {
-  borderColor: "#DC2626",
-},
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#B91C1C",
+  },
 });

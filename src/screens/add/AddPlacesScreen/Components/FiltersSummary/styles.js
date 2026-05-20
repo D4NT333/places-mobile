@@ -2,13 +2,13 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   container: {
-    backgroundColor: "#F2F2F2",
-    borderRadius: 18,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 20,
     padding: 14,
-    gap: 10,
+    gap: 12,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
-    },
+    borderColor: "#E5E7EB",
+  },
 
   headerRow: {
     flexDirection: "row",
@@ -19,15 +19,15 @@ export default StyleSheet.create({
 
   title: {
     fontSize: 16,
-    fontWeight: "800",
-    color: "#111",
+    fontWeight: "900",
+    color: "#111827",
     flex: 1,
   },
 
   editText: {
     fontSize: 13,
-    fontWeight: "700",
-    color: "#555",
+    fontWeight: "900",
+    color: "#0F766E",
   },
 
   chipsRow: {
@@ -36,41 +36,44 @@ export default StyleSheet.create({
     gap: 8,
   },
 
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: "#111",
-  },
+ chip: {
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  borderRadius: 999,
+  backgroundColor: "#0F766E",
+},
 
-  chipText: {
-    color: "#FFF",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+chipText: {
+  color: "#FFFFFF",
+  fontSize: 12,
+  fontWeight: "800",
+},
 
-  chipSecondary: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: "#E3E3E3",
-  },
+chipSecondary: {
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  borderRadius: 999,
+  backgroundColor: "#F0FDFA",
+  borderWidth: 1,
+  borderColor: "#99F6E4",
+},
 
-  chipSecondaryText: {
-    color: "#333",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+chipSecondaryText: {
+  color: "#115E59",
+  fontSize: 12,
+  fontWeight: "800",
+},
 
   priceText: {
     fontSize: 13,
-    fontWeight: "700",
-    color: "#444",
+    fontWeight: "800",
+    color: "#374151",
   },
+
   scheduleText: {
-  marginTop: 8,
-  fontSize: 15,
-  fontWeight: "800",
-  color: "#333",
-},
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#111827",
+  },
 });

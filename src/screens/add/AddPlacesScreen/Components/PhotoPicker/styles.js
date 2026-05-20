@@ -4,80 +4,106 @@ export default StyleSheet.create({
   box: {
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 14,
-    padding: 16,
-    minHeight: 160,
+    borderRadius: 24,
+    padding: 18,
+    minHeight: 180,
     justifyContent: "center",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
+    backgroundColor: "#FFFFFF",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111",
-  },
-  subtitle: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  btn: {
-    marginTop: 10,
-    height: 38,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#111",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  btnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#111",
-  },
+
   card: {
     borderWidth: 1,
-    borderColor: "#f1e4e4",
-    borderRadius: 20,
-    padding: 24,
-    marginTop: 16,
-    backgroundColor: "transparent",
+    borderColor: "#E5E7EB",
+    borderRadius: 26,
+    padding: 22,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
+    gap: 10,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    elevation: 4,
   },
 
   title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111",
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111827",
+    textAlign: "center",
+  },
+
+  subtitle: {
+    fontSize: 15,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 21,
     marginBottom: 8,
   },
 
-  subtitle: {
-    fontSize: 16,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 20,
-  },
+button: {
+  marginTop: 6,
+  paddingVertical: 13,
+  paddingHorizontal: 24,
+  borderWidth: 1,
+  borderColor: "#0F766E",
+  borderRadius: 18,
+  backgroundColor: "#0F766E",
 
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderWidth: 1.5,
-    borderColor: "#222",
-    borderRadius: 16,
-    backgroundColor: "#f7d8dc",
+  shadowColor: "#0F766E",
+  shadowOffset: {
+    width: 0,
+    height: 7,
   },
+  shadowOpacity: 0.2,
+  shadowRadius: 10,
+  elevation: 3,
+},
 
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111",
-  },
+buttonText: {
+  fontSize: 15,
+  fontWeight: "900",
+  color: "#FFFFFF",
+},
+
+btn: {
+  marginTop: 10,
+  height: 42,
+  paddingHorizontal: 18,
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "#0F766E",
+  backgroundColor: "#0F766E",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+btnText: {
+  fontSize: 14,
+  fontWeight: "900",
+  color: "#FFFFFF",
+},
 
   counter: {
     fontSize: 14,
     color: "#6B7280",
-    marginBottom: 16,
+    fontWeight: "700",
+    marginBottom: 10,
   },
 
   previewGrid: {
@@ -86,40 +112,44 @@ export default StyleSheet.create({
     flexWrap: "wrap",
     gap: 12,
     justifyContent: "center",
-    marginBottom: 16,
-  },
-
-  previewImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 16,
+    marginBottom: 10,
   },
 
   imageWrapper: {
-  position: "relative",
-},
+    position: "relative",
+  },
 
-removeButton: {
-  position: "absolute",
-  top: 8,
-  right: 8,
-  width: 28,
-  height: 28,
-  borderRadius: 14,
-  backgroundColor: "rgba(0,0,0,0.7)",
-  alignItems: "center",
-  justifyContent: "center",
-},
+  previewImage: {
+    width: 105,
+    height: 105,
+    borderRadius: 18,
+    backgroundColor: "#F3F4F6",
+  },
 
-removeButtonText: {
-  color: "#fff",
-  fontSize: 18,
-  fontWeight: "700",
-  lineHeight: 20,
-},
-inputErrorText: {
-  color: "#DC2626",
-  marginTop: 8,
-  fontSize: 12,
-},
+  removeButton: {
+    position: "absolute",
+    top: 7,
+    right: 7,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(17,24,39,0.82)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  removeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    lineHeight: 20,
+  },
+
+  inputErrorText: {
+    color: "#DC2626",
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
 });

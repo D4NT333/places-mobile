@@ -232,10 +232,10 @@ export default function AddPlaceScreen() {
       scroll
       edges={["top"]}
       padding={{ top: 16, left: 16, right: 16, bottom: 24 }}
-      bg="#c51b1b41"
+      bg="#F6F7FB"
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Ubicación:</Text>
+        <Text style={styles.title}>Agregar lugar</Text>
 
         <PlaceForm
           name={draft.name}

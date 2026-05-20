@@ -4,36 +4,49 @@ export default StyleSheet.create({
   box: {
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 20,
+    borderRadius: 26,
     padding: 16,
-    marginTop: 16,
-    backgroundColor: "transparent",
+    marginTop: 0,
+    backgroundColor: "#FFFFFF",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    elevation: 4,
   },
 
   title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111",
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111827",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
 
   subtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#6B7280",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 14,
+    lineHeight: 20,
+    fontWeight: "500",
   },
 
   map: {
     width: "100%",
-    height: 300,
-    borderRadius: 16,
+    height: 310,
+    borderRadius: 20,
   },
 
   loading: {
-    height: 300,
+    height: 310,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F3F4F6",
+    borderRadius: 20,
   },
 });

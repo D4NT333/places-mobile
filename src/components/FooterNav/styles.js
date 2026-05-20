@@ -1,24 +1,40 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
-    wrapper: {
-    backgroundColor: "#157059ff", 
-  },
+ wrapper: {
+  backgroundColor: "#F6F7FB",
+  paddingHorizontal: 0,
+  paddingTop: 8,
+},
+
   container: {
+    width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+
     paddingVertical: 14,
-    //margin: 16,
-    borderWidth: 2,
-    borderColor: "#000000ff",
-    borderRadius: 16,
-    backgroundColor: "#c53d3dff",
-    //marginBottom: 50, 
+    paddingHorizontal: 4,
+
+    borderWidth: 1,
+    borderColor: "#ffffff",
+
+
+    backgroundColor: "#FFFFFF",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 12,
   },
+
   icon: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     resizeMode: "contain",
   },
 });
