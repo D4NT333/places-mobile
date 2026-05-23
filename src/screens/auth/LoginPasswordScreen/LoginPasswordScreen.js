@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { View, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
+
 import { LayoutScreen } from "../../../layouts";
 
 import {
@@ -10,6 +11,8 @@ import {
 } from "../../../services";
 
 import loginWithEmailService from "../../../services/firebase/auth/loginWithEmail.service";
+
+import checkLoginMethodService from "../../../services/api/checkLoginMethod.service";
 
 import styles from "./styles";
 import ModalHeader from "./Components/ModalHeader";
@@ -39,74 +42,87 @@ export default function LoginPasswordScreen() {
     return cleanEmail.length > 0 && password.length >= 1 && !isLoginLoading;
   }, [cleanEmail, password, isLoginLoading]);
 
-  const onGoogle = async () => {
-    if (isGoogleLoading) return;
+ const onGoogle = async () => {
+  if (isGoogleLoading) return;
 
-    try {
-      setIsGoogleLoading(true);
+  try {
+    setIsGoogleLoading(true);
 
-      const { firebaseUser } = await googleSignInService();
+    const { firebaseUser } = await googleSignInService();
 
-      const idToken = await firebaseUser.getIdToken(true);
+    const idToken = await firebaseUser.getIdToken(true);
 
-      const sessionData = await syncSessionWithBackendService({ idToken });
+    const sessionData = await syncSessionWithBackendService({ idToken });
 
-      console.log("firebaseUser Google:", firebaseUser);
-      console.log("sessionData Google:", sessionData);
+    console.log("firebaseUser Google:", firebaseUser);
+    console.log("sessionData Google:", sessionData);
+  } catch (error) {
+    console.log("Error login Google:", error);
 
-      /**
-       * No navegamos manualmente.
-       * App.js detecta auth.currentUser y RootNavigator cambia a MainPager.
-       */
-    } catch (error) {
-      console.log("Error login Google:", error);
-
+    if (error?.code === "auth/wrong-provider") {
       Alert.alert(
-        "Error",
-        error?.message || "No se pudo iniciar sesión con Google."
+        "Método de inicio incorrecto",
+        error.message ||
+          "Esta cuenta fue creada con correo y contraseña. Inicia sesión con correo y contraseña."
       );
-    } finally {
-      setIsGoogleLoading(false);
+      return;
     }
-  };
+
+    Alert.alert(
+      "Error",
+      error?.message || "No se pudo iniciar sesión con Google."
+    );
+  } finally {
+    setIsGoogleLoading(false);
+  }
+};
 
   const onLogin = async () => {
-    if (!canLogin) return;
+  if (!canLogin) return;
 
-    try {
-      setIsLoginLoading(true);
+  try {
+    setIsLoginLoading(true);
 
-      const { firebaseUser, sessionData } = await loginWithEmailService({
-        email: cleanEmail,
-        password,
-      });
+    const methodCheck = await checkLoginMethodService({
+      email: cleanEmail,
+      requestedProvider: "password",
+    });
 
-      console.log("firebaseUser Email:", firebaseUser);
-      console.log("sessionData Email:", sessionData);
-
-      /**
-       * No navigation.reset aquí.
-       * onAuthStateChanged en App.js se encarga.
-       */
-    } catch (error) {
-      console.log("Error login correo/contraseña:", error);
-
-      if (error?.code === "auth/email-not-verified") {
-        Alert.alert(
-          "Correo no verificado",
-          "Revisa tu correo y confirma tu cuenta antes de iniciar sesión."
-        );
-        return;
-      }
-
+    if (methodCheck.exists && !methodCheck.allowed) {
       Alert.alert(
-        "No se pudo iniciar sesión",
-        "El correo o la contraseña no son correctos. Si creaste tu cuenta con Google, inicia sesión con Google."
+        "Método de inicio incorrecto",
+        methodCheck.message ||
+          "Esta cuenta fue creada con otro método de inicio de sesión."
       );
-    } finally {
-      setIsLoginLoading(false);
+      return;
     }
-  };
+
+    const { firebaseUser, sessionData } = await loginWithEmailService({
+      email: cleanEmail,
+      password,
+    });
+
+    console.log("firebaseUser Email:", firebaseUser);
+    console.log("sessionData Email:", sessionData);
+  } catch (error) {
+    console.log("Error login correo/contraseña:", error);
+
+    if (error?.code === "auth/email-not-verified") {
+      Alert.alert(
+        "Correo no verificado",
+        "Revisa tu correo y confirma tu cuenta antes de iniciar sesión."
+      );
+      return;
+    }
+
+    Alert.alert(
+      "No se pudo iniciar sesión",
+      "El correo o la contraseña no son correctos."
+    );
+  } finally {
+    setIsLoginLoading(false);
+  }
+};
 
   const onForgotPassword = () => {
     navigation.navigate("LoginRecoverScreen", { email: cleanEmail });

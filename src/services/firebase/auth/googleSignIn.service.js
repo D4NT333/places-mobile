@@ -2,6 +2,8 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../../firebase/config";
 
+import checkLoginMethodService from "../../api/checkLoginMethod.service";
+
 let isConfigured = false;
 
 function configureGoogleSignin() {
@@ -29,8 +31,41 @@ export default async function googleSignInService() {
       signInResult?.idToken ||
       null;
 
+    const googleEmail =
+      signInResult?.data?.user?.email ||
+      signInResult?.user?.email ||
+      null;
+
     if (!googleIdToken) {
       throw new Error("No se pudo obtener el token de Google.");
+    }
+
+    if (!googleEmail) {
+      throw new Error("No se pudo obtener el correo de Google.");
+    }
+
+    const cleanGoogleEmail = googleEmail.trim().toLowerCase();
+
+    /**
+     * IMPORTANTE:
+     * Validamos ANTES de signInWithCredential.
+     * Así evitamos que Firebase vincule Google a una cuenta creada con password.
+     */
+    const methodCheck = await checkLoginMethodService({
+      email: cleanGoogleEmail,
+      requestedProvider: "google",
+    });
+
+    if (methodCheck.exists && !methodCheck.allowed) {
+      await GoogleSignin.signOut();
+
+      const error = new Error(
+        methodCheck.message ||
+          "Esta cuenta fue creada con correo y contraseña. Inicia sesión con correo y contraseña."
+      );
+
+      error.code = "auth/wrong-provider";
+      throw error;
     }
 
     const googleCredential = GoogleAuthProvider.credential(googleIdToken);

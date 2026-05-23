@@ -7,6 +7,47 @@ import {
 import { auth } from "../config";
 import client from "../../api/client";
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function postRegisterEmailWithRetry({ idToken, name, birthDate }) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      const backendStart = Date.now();
+
+      const response = await client.post("/api/auth/register/email", {
+        idToken,
+        name,
+        birthDate,
+      });
+
+      console.log(
+        `⏱️ backend /api/auth/register/email intento ${attempt}:`,
+        Date.now() - backendStart,
+        "ms"
+      );
+
+      return response;
+    } catch (error) {
+      lastError = error;
+
+      console.log(
+        `❌ backend /api/auth/register/email falló intento ${attempt}:`,
+        error?.message
+      );
+
+      if (attempt < 2) {
+        await wait(800);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 export default async function registerWithEmailService({
   name,
   email,
@@ -19,6 +60,9 @@ export default async function registerWithEmailService({
   const cleanEmail = email.trim().toLowerCase();
 
   console.log("🔥 registerWithEmailService iniciado");
+
+  let firebaseUser = null;
+  let response = null;
 
   try {
     const createStart = Date.now();
@@ -35,7 +79,7 @@ export default async function registerWithEmailService({
       "ms"
     );
 
-    const firebaseUser = userCredential.user;
+    firebaseUser = userCredential.user;
 
     const tokenStart = Date.now();
 
@@ -49,23 +93,47 @@ export default async function registerWithEmailService({
       throw new Error("No se pudo obtener el token de Firebase.");
     }
 
-    const backendStart = Date.now();
+    try {
+      response = await postRegisterEmailWithRetry({
+        idToken,
+        name: cleanName,
+        birthDate,
+      });
+    } catch (backendError) {
+      console.log(
+        "⚠️ Backend falló después de crear Auth. Se intentará enviar correo de todos modos:",
+        backendError?.message
+      );
+    }
 
-    const response = await client.post("/api/auth/register/email", {
-      idToken,
-      name: cleanName,
-      birthDate,
-    });
+    /**
+     * Si el backend alcanzó a poner displayName en Firebase Auth,
+     * reload lo trae al usuario actual.
+     * Si backend falló antes, reload no rompe nada.
+     */
+    try {
+      const reloadStart = Date.now();
 
-    console.log(
-      "⏱️ backend /api/auth/register/email:",
-      Date.now() - backendStart,
-      "ms"
-    );
+      await firebaseUser.reload();
+
+      console.log("⏱️ firebaseUser.reload:", Date.now() - reloadStart, "ms");
+      console.log(
+        "👤 displayName después de reload:",
+        auth.currentUser?.displayName
+      );
+    } catch (reloadError) {
+      console.log("⚠️ No se pudo refrescar usuario:", reloadError?.message);
+    }
+
+    const currentUser = auth.currentUser || firebaseUser;
+
+    if (!currentUser) {
+      throw new Error("No hay usuario actual para enviar verificación.");
+    }
 
     const emailVerificationStart = Date.now();
 
-    await sendEmailVerification(firebaseUser);
+    await sendEmailVerification(currentUser);
 
     console.log(
       "⏱️ sendEmailVerification:",
@@ -86,7 +154,7 @@ export default async function registerWithEmailService({
     );
 
     return {
-      user: response.data?.user,
+      user: response?.data?.user || null,
       email: cleanEmail,
     };
   } catch (error) {
@@ -95,6 +163,18 @@ export default async function registerWithEmailService({
       Date.now() - totalStart,
       "ms"
     );
+
+    /**
+     * Si algo falló después de crear el usuario, intentamos cerrar sesión
+     * para no dejar la app en estado raro.
+     */
+    if (firebaseUser || auth.currentUser) {
+      try {
+        await signOut(auth);
+      } catch (signOutError) {
+        console.log("⚠️ Error cerrando sesión tras fallo:", signOutError);
+      }
+    }
 
     throw error;
   }
