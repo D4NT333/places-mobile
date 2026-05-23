@@ -17,14 +17,16 @@ export default function App() {
   const [isLogged, setIsLogged] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsLogged(!!user);
-      setIsCheckingAuth(false);
-    });
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const canEnterApp = !!user && user.emailVerified === true;
 
-    return unsubscribe;
-  }, []);
+    setIsLogged(canEnterApp);
+    setIsCheckingAuth(false);
+  });
+
+  return unsubscribe;
+}, []);
 
   useEffect(() => {
   warmCatalogsCache();

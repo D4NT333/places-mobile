@@ -13,6 +13,7 @@ import BirthDateModal from "./Components/BirthDateModal";
 import { icons } from "../../../../assets/icons";
 
 import registerWithEmailService  from "../../../services/firebase/auth/registerWithEmail.service.js";
+import checkRegisterAvailabilityService from "../../../services/api/checkRegisterAvailability.service.js";
 
 export default function LoginRegisterScreen() {
   const navigation = useNavigation();
@@ -42,6 +43,10 @@ const [birthDateError, setBirthDateError] = useState("");
 
 const [isRegistering, setIsRegistering] = useState(false);
 
+const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+const [emailAvailabilityError, setEmailAvailabilityError] = useState("");
+const [nameAvailabilityError, setNameAvailabilityError] = useState("");
+
 const cleanName = useMemo(() => name.trim(), [name]);
 const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
@@ -60,12 +65,13 @@ const isPasswordValid = useMemo(() => {
   /**
    * Mínimo:
    * - 8 caracteres
-   * - 1 letra
+   * - 1 letra minúscula
+   * - 1 letra mayúscula
    * - 1 número
-   * - 1 caracter especial
+   * - 1 carácter especial
    */
   const passwordRegex =
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
   return passwordRegex.test(password);
 }, [password]);
@@ -107,9 +113,11 @@ const emailError = useMemo(() => {
 const passwordError = useMemo(() => {
   if (!touchedPassword) return "";
   if (!password) return "";
+
   if (!isPasswordValid) {
-    return "Mínimo 8 caracteres, 1 letra, 1 número y 1 símbolo";
+    return "Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo";
   }
+
   return "";
 }, [touchedPassword, password, isPasswordValid]);
 
@@ -120,8 +128,10 @@ const confirmPasswordError = useMemo(() => {
   return "";
 }, [password, confirmPassword, touchedConfirm]);
 
- const canRegister = useMemo(() => {
+const canRegister = useMemo(() => {
   if (isRegistering) return false;
+  if (isCheckingAvailability) return false;
+
   if (!isNameValid) return false;
   if (!isEmailValid) return false;
   if (!isPasswordValid) return false;
@@ -132,6 +142,7 @@ const confirmPasswordError = useMemo(() => {
   return true;
 }, [
   isRegistering,
+  isCheckingAvailability,
   isNameValid,
   isEmailValid,
   isPasswordValid,
@@ -172,10 +183,40 @@ const confirmPasswordError = useMemo(() => {
   setBirthDateError("");
 };
 
-  const onRegister = async () => {
+const onRegister = async () => {
+  setTouchedName(true);
+  setTouchedEmail(true);
+  setTouchedPassword(true);
+  setTouchedConfirm(true);
+
+  setNameAvailabilityError("");
+  setEmailAvailabilityError("");
+
   if (!canRegister) return;
 
   try {
+    setIsCheckingAvailability(true);
+
+    const availability = await checkRegisterAvailabilityService({
+      name: cleanName,
+      email: cleanEmail,
+    });
+
+    const nextNameError = availability.nameExists
+      ? "Este nombre de usuario ya está en uso"
+      : "";
+
+    const nextEmailError = availability.emailExists
+      ? "Este correo ya está en uso"
+      : "";
+
+    setNameAvailabilityError(nextNameError);
+    setEmailAvailabilityError(nextEmailError);
+
+    if (nextNameError || nextEmailError) {
+      return;
+    }
+
     setIsRegistering(true);
 
     await registerWithEmailService({
@@ -186,35 +227,34 @@ const confirmPasswordError = useMemo(() => {
     });
 
     Alert.alert(
-  "Verifica tu correo",
-  "Te enviamos un correo de verificación. Revisa tu bandeja antes de iniciar sesión.",
-  [
-    {
-      text: "OK",
-      onPress: () => {
-        navigation.navigate("LoginPasswordScreen", {
-          email: cleanEmail,
-        });
-      },
-    },
-  ]
-);
+      "Verifica tu correo",
+      "Te enviamos un correo de verificación. Revisa tu bandeja antes de iniciar sesión.",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            navigation.navigate("LoginPasswordScreen", {
+              email: cleanEmail,
+            });
+          },
+        },
+      ]
+    );
   } catch (error) {
     console.log("Error al registrar usuario:", error);
 
     if (error?.code === "auth/email-already-in-use") {
-      Alert.alert(
-        "Correo en uso",
-        "Este correo ya está registrado. Intenta iniciar sesión."
-      );
+      setEmailAvailabilityError("Este correo ya está en uso");
+      return;
+    }
+
+    if (error?.code === "name-already-in-use") {
+      setNameAvailabilityError("Este nombre de usuario ya está en uso");
       return;
     }
 
     if (error?.code === "auth/invalid-email") {
-      Alert.alert(
-        "Correo inválido",
-        "Revisa tu correo e inténtalo de nuevo."
-      );
+      setEmailAvailabilityError("Revisa tu correo e inténtalo de nuevo");
       return;
     }
 
@@ -231,6 +271,7 @@ const confirmPasswordError = useMemo(() => {
       "No se pudo crear la cuenta. Inténtalo de nuevo."
     );
   } finally {
+    setIsCheckingAvailability(false);
     setIsRegistering(false);
   }
 };
@@ -238,6 +279,7 @@ const confirmPasswordError = useMemo(() => {
   const goToLogin = () => {
     navigation.navigate("LoginPasswordScreen");
   };
+
 
   return (
     <LayoutScreen bg="#FFFFFF" edges={["top"]} padding={{ top: 14, left: 18, right: 18, bottom: 24 }}>
@@ -255,44 +297,51 @@ const confirmPasswordError = useMemo(() => {
             </Text>
           </View>
 
-          <TextField
+         <TextField
             value={name}
             onChangeText={(value) => {
               setName(value);
+              setNameAvailabilityError("");
             }}
-            onBlur={() => setTouchedName(true)}
-            placeholder="Nombre"
-            errorText={nameError}
+            onBlur={() => {
+              setTouchedName(true);
+            }}
+            placeholder="Nombre de usuario"
+            errorText={nameError || nameAvailabilityError}
           />
 
           {/* Fecha (por ahora es input tocable) */}
 
-         <TextField
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-            }}
-            onBlur={() => setTouchedEmail(true)}
-            placeholder="Correo"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            errorText={emailError}
-          />
+      <TextField
+  value={email}
+  onChangeText={(value) => {
+    setEmail(value);
+    setEmailAvailabilityError("");
+  }}
+  onBlur={() => {
+    setTouchedEmail(true);
+  }}
+  placeholder="Correo"
+  keyboardType="email-address"
+  autoCapitalize="none"
+  errorText={emailError || emailAvailabilityError}
+/>
 
           <TextField
-            value={password}
-            onChangeText={setPassword}
-            onBlur={() => setTouchedPassword(true)}
-            placeholder="Contraseña"
-            secureTextEntry={!showPassword}
-            helperText={
-              touchedPassword
-                ? "Mínimo 8 letras, 1 número y 1 caracter especial"
-                : ""
-            }
-            rightIconSource={showPassword ? icons.openeye : icons.closedeye}
-            onPressRightIcon={() => setShowPassword((value) => !value)}
-          />
+  value={password}
+  onChangeText={setPassword}
+  onBlur={() => setTouchedPassword(true)}
+  placeholder="Contraseña"
+  secureTextEntry={!showPassword}
+  errorText={passwordError}
+  helperText={
+    touchedPassword
+      ? "Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo"
+      : ""
+  }
+  rightIconSource={showPassword ? icons.openeye : icons.closedeye}
+  onPressRightIcon={() => setShowPassword((value) => !value)}
+/>
 
  <TextField
   value={confirmPassword}
