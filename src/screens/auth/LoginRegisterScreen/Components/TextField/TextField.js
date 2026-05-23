@@ -19,8 +19,6 @@ export default function TextField({
   rightIconSource,
   onPressRightIcon,
 }) {
-
-    console.log("TextField:", placeholder, "rightIconSource:", rightIconSource);
   const isTouchable = !!onPressField;
 
   return (

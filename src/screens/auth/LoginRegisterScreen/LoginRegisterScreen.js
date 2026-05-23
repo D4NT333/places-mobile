@@ -184,6 +184,8 @@ const canRegister = useMemo(() => {
 };
 
 const onRegister = async () => {
+  console.log("🔥 onRegister presionado");
+
   setTouchedName(true);
   setTouchedEmail(true);
   setTouchedPassword(true);
@@ -192,15 +194,42 @@ const onRegister = async () => {
   setNameAvailabilityError("");
   setEmailAvailabilityError("");
 
-  if (!canRegister) return;
+  console.log("canRegister:", canRegister);
+  console.log({
+    cleanName,
+    cleanEmail,
+    isNameValid,
+    isEmailValid,
+    isPasswordValid,
+    passwordsMatch: password === confirmPassword,
+    isBirthDateValid,
+    acceptedTerms,
+    isRegistering,
+    isCheckingAvailability,
+  });
+
+  if (!canRegister) {
+    console.log("⛔ No pasa canRegister");
+    return;
+  }
 
   try {
     setIsCheckingAvailability(true);
+
+    const availabilityStart = Date.now();
 
     const availability = await checkRegisterAvailabilityService({
       name: cleanName,
       email: cleanEmail,
     });
+
+    console.log(
+      "⏱️ disponibilidad tardó:",
+      Date.now() - availabilityStart,
+      "ms"
+    );
+
+    console.log("Availability result:", availability);
 
     const nextNameError = availability.nameExists
       ? "Este nombre de usuario ya está en uso"
@@ -214,10 +243,14 @@ const onRegister = async () => {
     setEmailAvailabilityError(nextEmailError);
 
     if (nextNameError || nextEmailError) {
+      console.log("⛔ Registro detenido por disponibilidad");
       return;
     }
 
+    setIsCheckingAvailability(false);
     setIsRegistering(true);
+
+    const registerStart = Date.now();
 
     await registerWithEmailService({
       name: cleanName,
@@ -225,6 +258,12 @@ const onRegister = async () => {
       password,
       birthDate: birthDateIso,
     });
+
+    console.log(
+      "⏱️ crear cuenta tardó:",
+      Date.now() - registerStart,
+      "ms"
+    );
 
     Alert.alert(
       "Verifica tu correo",
@@ -259,23 +298,16 @@ const onRegister = async () => {
     }
 
     if (error?.code === "auth/weak-password") {
-      Alert.alert(
-        "Contraseña débil",
-        "Usa una contraseña más segura."
-      );
+      Alert.alert("Contraseña débil", "Usa una contraseña más segura.");
       return;
     }
 
-    Alert.alert(
-      "Error",
-      "No se pudo crear la cuenta. Inténtalo de nuevo."
-    );
+    Alert.alert("Error", "No se pudo crear la cuenta. Inténtalo de nuevo.");
   } finally {
     setIsCheckingAvailability(false);
     setIsRegistering(false);
   }
 };
-
   const goToLogin = () => {
     navigation.navigate("LoginPasswordScreen");
   };
