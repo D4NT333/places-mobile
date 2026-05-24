@@ -11,11 +11,19 @@ export default function LocationMap({
 }) {
   const [initialRegion, setInitialRegion] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [hasUserSelectedLocation, setHasUserSelectedLocation] = useState(false);
+  const [hasUserSelectedLocation, setHasUserSelectedLocation] = useState(
+    !!selectedLocation
+  );
 
   useEffect(() => {
     loadUserLocation();
   }, []);
+
+  useEffect(() => {
+    if (selectedLocation) {
+      setHasUserSelectedLocation(true);
+    }
+  }, [selectedLocation]);
 
   const loadUserLocation = async () => {
     try {
@@ -49,25 +57,44 @@ export default function LocationMap({
     <View style={styles.box}>
       <Text style={styles.title}>Mapa</Text>
 
+      <Text style={styles.subtitle}>
+        Ubica el punto exacto del lugar para que otros usuarios puedan encontrarlo.
+      </Text>
+
       {loading || !initialRegion ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" />
           <Text>Cargando ubicación...</Text>
         </View>
       ) : (
-        <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        initialRegion={initialRegion}
-        showsUserLocation
-        showsMyLocationButton={false}
-        toolbarEnabled={false}
-        onPress={handleMapPress}
-      >
-        {hasUserSelectedLocation && selectedLocation && (
-          <Marker coordinate={selectedLocation} />
-        )}
-      </MapView>
+        <>
+          <View style={styles.mapContainer}>
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.map}
+              initialRegion={initialRegion}
+              showsUserLocation
+              showsMyLocationButton={false}
+              toolbarEnabled={false}
+              onPress={handleMapPress}
+            >
+              {hasUserSelectedLocation && selectedLocation && (
+                <Marker coordinate={selectedLocation} />
+              )}
+            </MapView>
+          </View>
+
+          <Text
+            style={[
+              styles.helperText,
+              hasUserSelectedLocation && styles.helperTextSuccess,
+            ]}
+          >
+            {hasUserSelectedLocation
+              ? "Ubicación marcada correctamente."
+              : "Aún no has seleccionado una ubicación."}
+          </Text>
+        </>
       )}
     </View>
   );

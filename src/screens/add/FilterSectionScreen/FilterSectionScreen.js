@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { LayoutScreen } from "../../../layouts";
 
@@ -23,6 +24,8 @@ import { getTagsService } from "../../../services/firebase/firestore/tags/getTag
 import { getSubtagsByTagId } from "../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";
 import { getApproachesByTagId } from "../../../services/firebase/firestore/approaches/getApproachesByTagId.service";
 import styles from "./styles";
+
+import { icons } from "../../../../assets/icons";
 
 export default function FilterSectionScreen({ navigation }) {
   const [step, setStep] = useState(1);
@@ -277,11 +280,17 @@ navigation.goBack();
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Pressable onPress={() => navigation.goBack()}>
-            <Text style={styles.back}>←</Text>
-          </Pressable>
+         <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Image
+            source={icons.flecha}
+            style={styles.backIcon}
+          />
+        </Pressable>
 
-          <Text style={styles.title}>Filtros</Text>
+          <Text style={styles.title}>Caracteristicas del lugar</Text>
         </View>
 
         {isLoadingCategories ? (

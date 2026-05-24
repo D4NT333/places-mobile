@@ -146,7 +146,7 @@ export default function PhotoPicker({ photos = [], onChangePhotos }) {
       {photos.length === 0 ? (
         <>
           <Text style={styles.subtitle}>
-            Placeholder (luego metemos image picker)
+            Agrega entre 3 y 6 fotos.
           </Text>
 
           <Pressable style={styles.button} onPress={handlePickImages}>

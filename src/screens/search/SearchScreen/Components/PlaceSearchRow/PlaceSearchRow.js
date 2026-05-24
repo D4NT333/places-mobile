@@ -1,24 +1,40 @@
 import React from "react";
-import { Pressable, View, Text } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import styles from "./styles";
+import { icons } from "../../../../../../assets/icons";
 
-export default function PlaceSearchRow({ name, distanceKm, rating, onPress }) {
+export default function PlaceSearchRow({
+  name,
+  distanceKm,
+  rating,
+  onPress,
+}) {
   return (
-    <Pressable onPress={onPress}>
-      <View style={styles.card}>
-        <View style={styles.avatar} />
+    <Pressable style={styles.card} onPress={onPress}>
+      <View style={styles.photoCircle}>
+        <Text style={styles.photoInitial}>
+          {name?.charAt(0)?.toUpperCase() ?? "L"}
+        </Text>
+      </View>
 
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>
-            {name}
-          </Text>
-          <Text style={styles.distance}>A {distanceKm}km</Text>
-        </View>
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={1}>
+          {name}
+        </Text>
 
-        <View style={styles.right}>
-          <Text style={styles.rating}>{rating?.toFixed?.(1) ?? rating}</Text>
-          <Text style={styles.star}>⭐</Text>
-        </View>
+        <Text style={styles.distance}>
+          A {distanceKm} km
+        </Text>
+      </View>
+
+      <View style={styles.ratingBox}>
+        <Text style={styles.ratingText}>{rating}</Text>
+
+        {/* Luego aquí cambias icons.closedeye por tu estrella */}
+        <Image
+          source={icons.closedeye}
+          style={styles.starIcon}
+        />
       </View>
     </Pressable>
   );

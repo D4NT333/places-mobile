@@ -113,7 +113,7 @@ export default function PlaceForm({
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Filtros:</Text>
+        <Text style={styles.label}>Características del lugar:</Text>
         {filters ? (
           <FiltersSummary
             filters={filters}
@@ -121,7 +121,7 @@ export default function PlaceForm({
           />
         ) : (
           <Pressable style={styles.filtersButton} onPress={onPressFilters}>
-            <Text style={styles.filtersButtonText}>Elegir filtros</Text>
+            <Text style={styles.filtersButtonText}>Seleccionar categoría y detalles</Text>
           </Pressable>
         )}
       </View>

@@ -231,11 +231,14 @@ export default function AddPlaceScreen() {
     <LayoutScreen
       scroll
       edges={["top"]}
-      padding={{ top: 16, left: 16, right: 16, bottom: 24 }}
+      padding={{ top: 4, left: 16, right: 16, bottom: 24 }}
       bg="#F6F7FB"
     >
       <View style={styles.container}>
         <Text style={styles.title}>Agregar lugar</Text>
+        <Text style={styles.subtitle}>
+          Comparte establecimientos, espacios o lugares de interés que valga la pena conocer.
+        </Text>
 
         <PlaceForm
           name={draft.name}

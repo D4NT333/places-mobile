@@ -1,18 +1,26 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
+import {icons} from "../../../../../../assets/icons";
 
-export default function Header({ title, onBack }) {
+export default function Header({ title, subtitle, onBack }) {
   return (
     <View style={styles.container}>
-      <Pressable onPress={onBack} style={styles.backBtn}>
-        <Text style={styles.backIcon}>‹</Text>
-      </Pressable>
+      <View style={styles.topRow}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onBack}
+          activeOpacity={0.7}
+        >
+          <Image source={icons.flecha} style={styles.backIcon} />
+        </TouchableOpacity>
 
-      <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{title}</Text>
 
-      {/* Spacer para centrar el título */}
-      <View style={{ width: 36 }} />
+        <View style={styles.placeholder} />
+      </View>
+
+      {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </View>
   );
 }

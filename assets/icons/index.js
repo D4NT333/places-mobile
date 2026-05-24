@@ -6,6 +6,7 @@ export const icons = {
   usuario: require("./logoUsuario.png"),
   lapiz: require("./logoLapiz.png"),
   heart: require("./logoCorazon.png"),
+  redheart: require("./logoCorazonRojo.png"),
   flecha: require("./logoFlecha.png"),
   settings: require("./logoSettings.png"),
   google: require("./logoGoogle.jpg"),

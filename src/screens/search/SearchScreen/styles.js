@@ -1,34 +1,50 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
+  header: {
+    marginBottom: 18,
+  },
+
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 12,
+    fontSize: 34,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 6,
+  },
+
+  headerSubtitle: {
+    fontSize: 15,
+    lineHeight: 21,
+    color: "#6B7280",
+    fontWeight: "600",
   },
 
   listContent: {
-    paddingBottom: 24,
+    paddingTop: 16,
+    paddingBottom: 130,
   },
 
   emptyBox: {
-    marginTop: 24,
-    padding: 14,
+    marginTop: 40,
+    padding: 22,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
     borderWidth: 1,
-    borderRadius: 14,
-    borderColor: "#E7E7E7",
-    backgroundColor: "#FAFAFA",
+    borderColor: "#E5E7EB",
   },
 
   emptyTitle: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#111827",
     marginBottom: 6,
   },
 
   emptyText: {
-    fontSize: 13,
-    opacity: 0.8,
-    lineHeight: 18,
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

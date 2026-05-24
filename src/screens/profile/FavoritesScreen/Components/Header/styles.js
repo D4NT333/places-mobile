@@ -1,25 +1,50 @@
 import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
-    height: 44,
+    marginBottom: 18,
+  },
+
+  topRow: {
+    height: 48,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
+
+  backButton: {
+    width: 42,
+    height: 42,
+    alignItems: "flex-start",
     justifyContent: "center",
   },
+
   backIcon: {
-    fontSize: 26,
-    marginTop: -2,
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+    tintColor: "#111111",
   },
+
   title: {
-    fontSize: 18,
-    fontWeight: "700",
+    flex: 1,
+    textAlign: "center",
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#111111",
+  },
+
+  placeholder: {
+    width: 42,
+    height: 42,
+  },
+
+  subtitle: {
+    marginTop: 2,
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4B4B4B",
   },
 });
+
+export default styles;

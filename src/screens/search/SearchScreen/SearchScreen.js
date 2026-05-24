@@ -7,8 +7,8 @@ import styles from "./styles";
 import { MOCK_PLACES } from "./data";
 import useDebouncedValue from "./hooks";
 
-import  SearchBar  from "./Components/SearchBar";
-import  PlaceSearchRow  from "./Components/PlaceSearchRow";
+import SearchBar from "./Components/SearchBar";
+import PlaceSearchRow from "./Components/PlaceSearchRow";
 
 export default function SearchScreen() {
   const navigation = useNavigation();
@@ -20,24 +20,23 @@ export default function SearchScreen() {
     const q = debouncedQuery.trim().toLowerCase();
     if (!q) return MOCK_PLACES;
 
-    // MVP: contains (mock). Cuando conectes backend, esto se reemplaza por fetch
     return MOCK_PLACES.filter((p) => p.name.toLowerCase().includes(q));
   }, [debouncedQuery]);
 
   return (
     <LayoutScreen
       edges={["top"]}
-      padding={{ top: 16, left: 16, right: 16, bottom: 16 }}
-      bg="#FFFFFF"
+      padding={{ top: 18, left: 18, right: 18, bottom: 16 }}
+      bg="#F6F7FB"
     >
-      <Text style={styles.headerTitle}>SearchScreen</Text>
 
       <SearchBar value={query} onChangeText={setQuery} />
 
       <FlatList
         data={results}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingTop: 14, ...styles.listContent }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         renderItem={({ item }) => (
           <PlaceSearchRow
@@ -45,8 +44,6 @@ export default function SearchScreen() {
             distanceKm={item.distanceKm}
             rating={item.rating}
             onPress={() => {
-              // Cambia "PlaceDetail" por el nombre real de tu route
-              // navigation.navigate("PlaceDetail", { placeId: item.id });
               console.log("Pressed:", item.id);
             }}
           />

@@ -1,8 +1,10 @@
 import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   listContent: {
-    paddingTop: 10,
-    paddingBottom: 24,
+    paddingTop: 2,
+    paddingBottom: 120,
   },
 });
+
+export default styles;

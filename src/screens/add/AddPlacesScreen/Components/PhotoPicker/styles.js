@@ -120,10 +120,10 @@ btnText: {
   },
 
   previewImage: {
-    width: 105,
-    height: 105,
-    borderRadius: 18,
-    backgroundColor: "#F3F4F6",
+    width: 160,
+    height: 160,
+    borderRadius: 28,
+    backgroundColor: "#ffffff",
   },
 
   removeButton: {

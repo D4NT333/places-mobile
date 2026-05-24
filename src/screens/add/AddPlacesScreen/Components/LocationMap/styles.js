@@ -36,10 +36,33 @@ export default StyleSheet.create({
     fontWeight: "500",
   },
 
-  map: {
+  mapContainer: {
     width: "100%",
     height: 310,
+    borderWidth: 1.5,
+    borderColor: "#111827",
     borderRadius: 20,
+    overflow: "hidden",
+    backgroundColor: "#F3F4F6",
+  },
+
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+
+  helperText: {
+    marginTop: 12,
+    fontSize: 13,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 18,
+    fontWeight: "500",
+  },
+
+  helperTextSuccess: {
+    color: "#15803D",
+    fontWeight: "700",
   },
 
   loading: {
@@ -48,5 +71,7 @@ export default StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F3F4F6",
     borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "#111827",
   },
 });

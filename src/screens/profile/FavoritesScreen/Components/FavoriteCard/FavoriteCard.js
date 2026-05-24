@@ -1,37 +1,64 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
+import {icons} from "../../../../../../assets/icons";
 
 export default function FavoriteCard({
   name,
   rating,
-  distanceKm,
+  tag,
+  subtag,
+  imageUrl,
   onPress,
   onPressHeart,
 }) {
   return (
-    <Pressable onPress={onPress} style={styles.card}>
-      {/* Imagen mock */}
-      <View style={styles.avatar}>
-        <Text style={styles.avatarTxt}>IMG</Text>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.85}
+      onPress={onPress}
+    >
+      <View style={styles.imageBox}>
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} />
+        ) : (
+          <Text style={styles.imageText}>IMG</Text>
+        )}
       </View>
 
-      {/* Info */}
       <View style={styles.info}>
-        <Text numberOfLines={1} style={styles.name}>
+        <Text style={styles.name} numberOfLines={1}>
           {name}
         </Text>
 
-        <View style={styles.metaRow}>
-          <Text style={styles.meta}>Valoración {rating.toFixed(1)}</Text>
-          <Text style={styles.meta}>A {distanceKm.toFixed(1)} km</Text>
+        <View style={styles.tagsRow}>
+          {!!tag && (
+            <View style={styles.chip}>
+              <Text style={styles.chipText} numberOfLines={1}>
+                {tag}
+              </Text>
+            </View>
+          )}
+
+          {!!subtag && (
+            <View style={styles.chip}>
+              <Text style={styles.chipText} numberOfLines={1}>
+                {subtag}
+              </Text>
+            </View>
+          )}
         </View>
+
+        <Text style={styles.rating}>Valoración {rating}</Text>
       </View>
 
-      {/* Heart */}
-      <Pressable onPress={onPressHeart} hitSlop={10} style={styles.heartBtn}>
-        <Text style={styles.heart}>♥</Text>
-      </Pressable>
-    </Pressable>
+      <TouchableOpacity
+        style={styles.heartButton}
+        activeOpacity={0.75}
+        onPress={onPressHeart}
+      >
+        <Image source={icons.redheart} style={styles.heartIcon} />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 }

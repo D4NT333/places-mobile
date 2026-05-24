@@ -13,7 +13,7 @@ import ProfileScreen from "../../screens/profile/ProfileScreen";
 
 export default function MainPager() {
   const pagerRef = useRef(null);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(2);
 
   const onNavigate = (i) => {
     setIndex(i);
@@ -24,14 +24,14 @@ export default function MainPager() {
     <View style={styles.container}>
       <PagerView
         style={styles.pager}
-        initialPage={0}
+        initialPage={2}
         ref={pagerRef}
         onPageSelected={(e) => setIndex(e.nativeEvent.position)}
       >
-        <HomeScreen key="home" />
-        <SearchScreen key="search" />
         <AddPlacesScreen key="add" />
         <MetricsScreen key="metrics" />
+        <HomeScreen key="home" />
+        <SearchScreen key="search" />
         <ProfileScreen key="user" />
       </PagerView>
 

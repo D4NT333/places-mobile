@@ -2,54 +2,79 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderColor: "#000000",
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    minHeight: 82,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
+    paddingLeft: 10,
+    paddingRight: 16,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
 
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#000000",
-    marginRight: 12,
-    backgroundColor: "#F5F5F5",
+  photoCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1.5,
+    borderColor: "#111827",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+
+  photoInitial: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111827",
   },
 
   info: {
     flex: 1,
-    gap: 2,
+    justifyContent: "center",
   },
 
   name: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 17,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 2,
   },
 
   distance: {
-    fontSize: 12,
-    opacity: 0.7,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#6B7280",
   },
 
-  right: {
+  ratingBox: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginLeft: 12,
+    marginLeft: 10,
   },
 
-  rating: {
-    fontSize: 14,
-    fontWeight: "700",
+  ratingText: {
+    fontSize: 17,
+    fontWeight: "900",
+    color: "#111827",
+    marginRight: 6,
   },
 
-  star: {
-    fontSize: 16,
+  starIcon: {
+    width: 28,
+    height: 28,
+    resizeMode: "contain",
   },
 });

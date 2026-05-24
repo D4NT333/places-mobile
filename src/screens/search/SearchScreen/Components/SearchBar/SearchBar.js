@@ -1,21 +1,18 @@
 import React from "react";
-import { View, Text, TextInput } from "react-native";
+import { View, TextInput, Image } from "react-native";
 import styles from "./styles";
+import { icons } from "../../../../../../assets/icons";
 
-export default function SearchBar({
-  value,
-  onChangeText,
-  placeholder = "Buscar",
-}) {
+export default function SearchBar({ value, onChangeText }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>🔍</Text>
+      <Image source={icons.buscar} style={styles.icon} />
+
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
-        autoCorrect={false}
-        autoCapitalize="none"
+        placeholder="Buscar"
+        placeholderTextColor="#6B7280"
         style={styles.input}
         returnKeyType="search"
       />

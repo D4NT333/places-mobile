@@ -12,6 +12,14 @@ export default StyleSheet.create({
     fontWeight: "900",
     color: "#111827",
     letterSpacing: -0.5,
-    marginBottom: 2,
+    marginBottom: 1,
   },
+  subtitle: {
+  marginTop: 6,
+  marginBottom: 18,
+  fontSize: 15,
+  lineHeight: 21,
+  color: "#6B7280",
+  fontWeight: "500",
+},
 });

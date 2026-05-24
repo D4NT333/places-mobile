@@ -6,21 +6,19 @@ export default StyleSheet.create({
   },
 
   header: {
-    flexDirection: "row",
+    position: "relative",
+    minHeight: 56,
+    justifyContent: "center",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 10,
-  },
-
-  back: {
-    fontSize: 22,
-    fontWeight: "800",
+    marginBottom: 18,
   },
 
   title: {
-    fontSize: 26,
-    fontWeight: "800",
+    fontSize: 22,
+    fontWeight: "900",
     color: "#111",
+    textAlign: "center",
+    paddingHorizontal: 46,
   },
 
   summary: {
@@ -55,11 +53,27 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
   },
-  
+
   disabledBtn: {
-  opacity: 0.5,
-},
-scrollContent: {
-  paddingBottom: 130,
-},
+    opacity: 0.5,
+  },
+
+  scrollContent: {
+    paddingBottom: 130,
+  },
+
+  backButton: {
+    position: "absolute",
+    left: 0,
+    width: 42,
+    height: 42,
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+
+  backIcon: {
+    width: 30,
+    height: 30,
+    resizeMode: "contain",
+  },
 });
