@@ -8,6 +8,7 @@ import {
   EditHeader,
   EditableTextField,
   EditablePillsField,
+  EditableReturnedSubtagsBox,
   EditablePhotosBox,
   EditableMapBox,
   SubmitAgainBox,
@@ -225,6 +226,35 @@ function toArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function getSelectedReturnedSubtagLabels(returnFields = {}) {
+  const items = Array.isArray(returnFields?.subtags?.items)
+    ? returnFields.subtags.items
+    : [];
+
+  return items
+    .filter((item) => item?.selected)
+    .map((item) => item.label)
+    .filter(Boolean);
+}
+
+function reviewedSubtagsWereChanged({
+  oldSubtags = [],
+  newSubtags = [],
+  returnFields = {},
+}) {
+  const reviewedLabels = getSelectedReturnedSubtagLabels(returnFields);
+
+  if (reviewedLabels.length === 0) {
+    return arraysAreDifferent(oldSubtags, newSubtags);
+  }
+
+  const removedReviewedLabels = reviewedLabels.every((label) => {
+    return !newSubtags.includes(label);
+  });
+
+  return removedReviewedLabels && arraysAreDifferent(oldSubtags, newSubtags);
+}
+
 function buildSinglePill(value) {
   if (!value) return [];
 
@@ -438,6 +468,7 @@ export default function EditAddedPlacesScreen() {
 
   const [tag, setTag] = useState(FALLBACK_PLACE.tag);
   const [subtags, setSubtags] = useState(FALLBACK_PLACE.subtags);
+  const [activeSubtagCorrectionIndex, setActiveSubtagCorrectionIndex] =useState(null);
   const [approaches, setApproaches] = useState(FALLBACK_PLACE.approaches);
 
   const [selectedTagId, setSelectedTagId] = useState(null);
@@ -529,15 +560,19 @@ export default function EditAddedPlacesScreen() {
     }
 
     if (returnFields.subtags?.selected) {
-      checks.push({
-        field: "subtags",
-        valid:
-          Boolean(editingFields.subtags) &&
-          subtags.length > 0 &&
-          arraysAreDifferent(oldPlace.subtags, subtags),
-        message: "Selecciona nuevas subetiquetas.",
-      });
-    }
+  checks.push({
+    field: "subtags",
+    valid:
+      Boolean(editingFields.subtags) &&
+      subtags.length > 0 &&
+      reviewedSubtagsWereChanged({
+        oldSubtags: oldPlace.subtags,
+        newSubtags: subtags,
+        returnFields,
+      }),
+    message: "Cambia las subetiquetas marcadas para corrección.",
+  });
+}
 
     if (returnFields.approaches?.selected) {
       if (!selectedTagHasNoApproaches) {
@@ -1029,30 +1064,48 @@ export default function EditAddedPlacesScreen() {
   };
 
   const handleSelectSubtag = (option) => {
-    if (!selectedTagId) {
-      console.log("Selecciona primero una etiqueta.");
-      return;
+  if (!selectedTagId) {
+    console.log("Selecciona primero una etiqueta.");
+    return;
+  }
+
+  setEditingFields((prev) => ({
+    ...prev,
+    subtags: true,
+  }));
+
+  setSubtags((prev) => {
+    const base = Array.isArray(prev) && prev.length > 0
+      ? [...prev]
+      : [...oldPlace.subtags];
+
+    const targetIndex = Number(activeSubtagCorrectionIndex);
+
+    if (Number.isInteger(targetIndex) && targetIndex >= 0) {
+      base[targetIndex] = option.label;
+
+      return base
+        .filter(Boolean)
+        .filter((item, index, array) => array.indexOf(item) === index)
+        .slice(0, 2);
     }
 
-    setEditingFields((prev) => ({
-      ...prev,
-      subtags: true,
-    }));
+    const exists = base.includes(option.label);
 
-    setSubtags((prev) => {
-      const exists = prev.includes(option.label);
+    if (exists) {
+      return base.filter((item) => item !== option.label);
+    }
 
-      if (exists) {
-        return prev.filter((item) => item !== option.label);
-      }
+    if (base.length >= 2) {
+      return [base[1], option.label];
+    }
 
-      if (prev.length >= 2) {
-        return [prev[1], option.label];
-      }
+    return [...base, option.label];
+  });
 
-      return [...prev, option.label];
-    });
-  };
+  setActiveOptionModal(null);
+  setActiveSubtagCorrectionIndex(null);
+};
 
   const handleSelectApproach = (option) => {
     if (!selectedTagId) {
@@ -1213,16 +1266,26 @@ export default function EditAddedPlacesScreen() {
             onPressEdit={() => setActiveOptionModal("tag")}
           />
 
-          <EditablePillsField
-            label="Subetiqueta"
-            newLabel="Nueva subetiqueta"
-            pills={oldPlace.subtags}
-            newPills={subtags}
-            helperText={returnFields.subtags.message || "Texto"}
-            reviewField={returnFields.subtags}
-            isEditing={Boolean(editingFields.subtags)}
-            onPressEdit={() => setActiveOptionModal("subtags")}
-          />
+  <EditableReturnedSubtagsBox
+  label="Subetiquetas"
+  oldPills={oldPlace.subtags}
+  newPills={subtags}
+  reviewField={returnFields.subtags}
+  onPressEditItem={(item) => {
+    const index = Number(item.index);
+
+    setActiveSubtagCorrectionIndex(
+      Number.isInteger(index) ? index : null
+    );
+
+    setEditingFields((prev) => ({
+      ...prev,
+      subtags: true,
+    }));
+
+    setActiveOptionModal("subtags");
+  }}
+/>
 
           {!selectedTagHasNoApproaches && (
             <EditablePillsField
@@ -1305,14 +1368,21 @@ export default function EditAddedPlacesScreen() {
         />
 
         <EditableOptionModal
-          visible={activeOptionModal === "subtags"}
-          title="Selecciona subetiquetas"
-          options={subtagOptions}
-          selectedValues={subtags}
-          multiple
-          onSelect={handleSelectSubtag}
-          onClose={handleCloseOptionModal}
-        />
+  visible={activeOptionModal === "subtags"}
+  title="Selecciona una nueva subetiqueta"
+  options={subtagOptions}
+  selectedValues={
+    activeSubtagCorrectionIndex !== null
+      ? [subtags[activeSubtagCorrectionIndex]].filter(Boolean)
+      : subtags
+  }
+  multiple={false}
+  onSelect={handleSelectSubtag}
+  onClose={() => {
+    setActiveOptionModal(null);
+    setActiveSubtagCorrectionIndex(null);
+  }}
+/>
 
         <EditableOptionModal
           visible={activeOptionModal === "approaches" && !selectedTagHasNoApproaches}
