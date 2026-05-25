@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import styles from "./styles";
-import { icons } from "../../../../../../assets/icons";
+
+import RatingStars from "../../../../../components/RatingStars";
 
 export default function PlaceSearchRow({
   name,
@@ -9,12 +10,12 @@ export default function PlaceSearchRow({
   rating,
   onPress,
 }) {
+  const initial = name?.charAt(0)?.toUpperCase() || "?";
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.photoCircle}>
-        <Text style={styles.photoInitial}>
-          {name?.charAt(0)?.toUpperCase() ?? "L"}
-        </Text>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>{initial}</Text>
       </View>
 
       <View style={styles.info}>
@@ -22,19 +23,13 @@ export default function PlaceSearchRow({
           {name}
         </Text>
 
-        <Text style={styles.distance}>
-          A {distanceKm} km
-        </Text>
+        <Text style={styles.distance}>A {distanceKm} km</Text>
       </View>
 
       <View style={styles.ratingBox}>
         <Text style={styles.ratingText}>{rating}</Text>
 
-        {/* Luego aquí cambias icons.closedeye por tu estrella */}
-        <Image
-          source={icons.closedeye}
-          style={styles.starIcon}
-        />
+        <RatingStars rating={rating} size={18} />
       </View>
     </Pressable>
   );
