@@ -22,7 +22,10 @@ function makeBatch(startIndex, count = 15) {
     return {
       id: String(n),
       title: `Bosque del centinela ${n}`,
-      height: n % 3 === 0 ? 220 : n % 3 === 1 ? 160 : 190,
+      distanceKm: (Math.random() * 8 + 1).toFixed(1),
+      rating: (Math.random() * 1.2 + 3.8).toFixed(1),
+      tags: ["Naturaleza", "Familiar", "Caminata"],
+      height: n % 4 === 0 ? 280 : n % 3 === 0 ? 245 : 220,
     };
   });
 }

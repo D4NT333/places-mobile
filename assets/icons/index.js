@@ -12,6 +12,9 @@ export const icons = {
   google: require("./logoGoogle.jpg"),
   closedeye: require("./logoClosedEye.png"),
   openeye: require("./logoOpenEye.png"),
+  fullstar: require("./logoEstrellaAmarilla.png"),
+  emptystar: require("./logoEstrellaVacia.png"),
+  mediumstar: require("./logoEstrellaMedia.png"),
 
   art: require("./art.png"),
   entertainment: require("./entertainment.png"),

@@ -10,20 +10,29 @@ export default StyleSheet.create({
   },
 
   content: {
-    paddingHorizontal: 8,
-    paddingTop: 12,
-    paddingBottom: 180,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 130,
   },
 
-  columnWrapper: {
-    justifyContent: "space-between",
+  grid: {
+    flexDirection: "row",
+    gap: 14,
+    alignItems: "flex-start",
+  },
+
+  column: {
+    flex: 1,
+    gap: 14,
   },
 
   cardButton: {
-    width: "48%",
+    width: "100%",
   },
 
   loader: {
-    paddingVertical: 18,
+    paddingVertical: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
