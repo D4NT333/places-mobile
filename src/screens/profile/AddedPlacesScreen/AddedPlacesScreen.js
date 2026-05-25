@@ -1,7 +1,7 @@
 import { auth } from "../../../services/firebase/config";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
 import AddedPlaceCard from "./Components/AddedPlaceCard";
@@ -11,7 +11,7 @@ import RejectionReasonModal from "./Components/RejectionReasonModal";
 import {
   getAddedPlacesCacheSnapshot,
   loadMoreAddedPlacesSubmissions,
-  preloadAddedPlacesSubmissions,
+  refreshAddedPlacesSubmissions,
   removeAddedPlaceFromCache,
   subscribeAddedPlacesCache,
   clearAddedPlacesSubmissionsCache,
@@ -89,34 +89,39 @@ export default function AddedPlacesScreen() {
   const [rejectionReasonError, setRejectionReasonError] = useState("");
   const [selectedRejectionReason, setSelectedRejectionReason] = useState(null);
 
- useEffect(() => {
-  const uid = auth.currentUser?.uid || null;
-
+useEffect(() => {
   const unsubscribe = subscribeAddedPlacesCache((nextSnapshot) => {
     setCacheSnapshot(nextSnapshot);
   });
 
-  if (!uid) {
-    clearAddedPlacesSubmissionsCache();
-    setCacheSnapshot(getAddedPlacesCacheSnapshot());
-    return unsubscribe;
-  }
-
-  setCacheSnapshot(getAddedPlacesCacheSnapshot());
-
-  preloadAddedPlacesSubmissions().catch((error) => {
-    console.log("Error al cargar lugares añadidos:", error);
-  });
-
   return unsubscribe;
-}, [auth.currentUser?.uid]);
+}, []);
 
-  const places = cacheSnapshot.items.map(mapSubmissionToPlace);
 
   const handleCancelDelete = () => {
     setDeleteModalVisible(false);
     setSelectedPlaceToDelete(null);
   };
+
+  useFocusEffect(
+  useCallback(() => {
+    const uid = auth.currentUser?.uid || null;
+
+    if (!uid) {
+      clearAddedPlacesSubmissionsCache();
+      setCacheSnapshot(getAddedPlacesCacheSnapshot());
+      return;
+    }
+
+    setCacheSnapshot(getAddedPlacesCacheSnapshot());
+
+    refreshAddedPlacesSubmissions().catch((error) => {
+  console.log("Error refrescando lugares añadidos:", error);
+});
+  }, [auth.currentUser?.uid])
+);
+
+const places = cacheSnapshot.items.map(mapSubmissionToPlace);
 
   const handleGoBack = () => {
     navigation.goBack();
