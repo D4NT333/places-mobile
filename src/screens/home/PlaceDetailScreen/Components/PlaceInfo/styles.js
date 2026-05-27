@@ -1,89 +1,109 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-  card: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
-    backgroundColor: "#e10cfdff"
-  },
-  rowTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-    alignItems: "flex-start",
-  },
-  title: {
-    //flex: 1, Para que solo use el espacio necesario, si no ocupa todo el row
+  sectionTitle: {
     fontSize: 20,
-    fontWeight: "700",
-    color: "#000000ff",
+    fontWeight: "900",
+    color: "#111111",
+    marginBottom: 8,
   },
-  distance: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 6,
+
+  spacedTitle: {
+    marginTop: 22,
   },
-  desc: {
-    marginTop: 10,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#333",
+
+  descriptionText: {
+    fontSize: 16,
+    lineHeight: 23,
+    color: "#222222",
+    fontWeight: "500",
   },
-  ratingRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  ratingText: {
-    fontWeight: "700",
-    color: "#111",
-  },
-  stars: {
-    fontSize: 14,
-    color: "#111",
-  },
-  reviews: {
-    color: "#666",
-    fontSize: 12,
-  },
-  tagsWrap: {
-    marginTop: 12,
+
+secondaryButton: {
+  alignSelf: "flex-start",
+  marginTop: 16,
+  height: 40,
+  paddingHorizontal: 20,
+  borderRadius: 999,
+  backgroundColor: "#111111",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+secondaryButtonText: {
+  fontSize: 14,
+  fontWeight: "900",
+  color: "#FFFFFF",
+},
+
+ratingsRow: {
+  flexDirection: "row",
+  gap: 14,
+  marginTop: 4,
+},
+
+ratingCard: {
+  flex: 1,
+  minHeight: 88,
+  borderRadius: 22,
+  backgroundColor: "#FFFFFF",
+  paddingHorizontal: 16,
+  paddingVertical: 14,
+  justifyContent: "center",
+
+  borderWidth: 1,
+  borderColor: "rgba(0,0,0,0.06)",
+
+  shadowColor: "#000",
+  shadowOpacity: 0.08,
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 3,
+},
+
+ratingLabel: {
+  fontSize: 15,
+  fontWeight: "900",
+  color: "#222222",
+  marginBottom: 8,
+},
+
+ratingRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+},
+
+ratingNumber: {
+  fontSize: 22,
+  fontWeight: "900",
+  color: "#111111",
+},
+
+  tagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-  },
-  tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fafafa",
-  },
-  tagText: {
-    fontSize: 12,
-    color: "#333",
+    gap: 10,
   },
 
-  
-    improveBtn: {
-    alignSelf: "flex-start",
-    marginTop: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "#111",
-    borderRadius: 14,
-    backgroundColor: "#FFF",
-  },
-  improveBtnPressed: {
-    opacity: 0.75,
-  },
-  improveBtnText: {
-    fontSize: 12,
-    color: "#111",
-  },
+tagChip: {
+  paddingHorizontal: 18,
+  height: 38,
+  borderRadius: 999,
+  backgroundColor: "#111111",
+  alignItems: "center",
+  justifyContent: "center",
 
+  shadowColor: "#000",
+  shadowOpacity: 0.12,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 3 },
+  elevation: 2,
+},
+
+tagText: {
+  fontSize: 14,
+  fontWeight: "800",
+  color: "#FFFFFF",
+},
 });

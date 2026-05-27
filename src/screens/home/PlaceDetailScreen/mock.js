@@ -1,41 +1,55 @@
 export const mockPlace = {
   id: "place_1",
   name: "Parque San Rafael",
-  distanceKm: 3.2,
+  isOpen: true,
+  distanceKm: 2,
+
   description:
-    "Lugar para relajarse y pasar un agradable momento con tus amigos o pareja. Es excelente para caminar, tomar fotos y desconectarte un rato.",
-  rating: 3.6,
-  reviewsCount: 218,
-  tags: ["Familiar", "Fotos", "Bosque", "Café", "Tranquilo"],
+    "Lugar para relajarse y pasar un agradable momento con tus amigos o pareja, es excelente.",
+
   images: [
-    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200",
-    "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?w=1200",
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
   ],
-  location: { lat: 20.6736, lng: -103.344 },
-  address: "Guadalajara, Jal. (Ubicación aproximada)",
+
+  googleRating: 4.8,
+  googleReviewsCount: 1250,
+
+  lsearchRating: 1.3,
+  lsearchReviewsCount: 8,
+
+  lsearchSummary: {
+    rating: 2.6,
+    reviewsCount: 8,
+    recommendationPercent: 75,
+  },
+
+  googleSummary: {
+    rating: 4.3,
+    reviewsCount: 1250,
+  },
+
+  tags: ["Etiqueta", "Subetiqueta", "Subetiqueta", "Enfoque"],
+
+  address: "Av. San Rafael 123, Guadalajara, Jal.",
 };
 
-export const mockComments = [
+export const mockLsearchReviews = [
   {
-    id: "c1",
-    userName: "Mariana",
-    text: "Está bien bonito y tranquilo, ideal para ir en la tarde.",
-    createdAt: "Hace 2 días",
-    avatarUrl: null,
+    id: "review_1",
+    userName: "Usuario",
+    rating: 4,
+    recommends: true,
+    comment: "Muy bonito y tranquilo...",
   },
+];
+
+export const mockGoogleReviews = [
   {
-    id: "c2",
-    userName: "Leo",
-    text: "La zona está cool para fotos, pero ve temprano si no quieres tanta gente.",
-    createdAt: "Hace 1 semana",
-    avatarUrl: null,
-  },
-  {
-    id: "c3",
-    userName: "Ana",
-    text: "Me encantó. Muy buen lugar para caminar y despejarte.",
-    createdAt: "Hace 3 semanas",
-    avatarUrl: null,
+    id: "google_review_1",
+    rating: 4.3,
+    comment: "Muy bonito para caminar...",
   },
 ];

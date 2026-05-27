@@ -1,57 +1,88 @@
-import React, { useMemo, useRef, useState } from "react";
-import { View, Image, FlatList, Pressable, Text, Dimensions } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  FlatList,
+  Image,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import styles from "./styles";
 
 export default function PlaceImageCarousel({
   images = [],
-  onBack,
-  isFavorite = false,
-  onToggleFavorite,
+  onViewAll,
+  onAddPhotos,
 }) {
-  const { width } = Dimensions.get("window");
+  const { width } = useWindowDimensions();
   const listRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const data = useMemo(() => images.filter(Boolean), [images]);
+  const carouselWidth = width - 40;
+  // screen padding horizontal 20 + mainSection padding horizontal 18
 
-  const onScrollEnd = (e) => {
-    const x = e.nativeEvent.contentOffset.x;
-    const index = Math.round(x / width);
+  const handleMomentumEnd = (event) => {
+    const x = event.nativeEvent.contentOffset.x;
+    const index = Math.round(x / carouselWidth);
     setActiveIndex(index);
   };
 
+  const renderItem = ({ item }) => {
+    return (
+      <View style={[styles.slide, { width: carouselWidth }]}>
+        <Image source={{ uri: item }} style={styles.image} />
+      </View>
+    );
+  };
+
+  const total = images.length;
+
   return (
     <View style={styles.container}>
-      <FlatList
-        ref={listRef}
-        data={data}
-        keyExtractor={(item, i) => `${item}-${i}`}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onScrollEnd}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item }} style={[styles.image, { width }]} />
-        )}
-      />
+      <View style={[styles.carouselBox, { width: carouselWidth }]}>
+        <FlatList
+          ref={listRef}
+          data={images}
+          keyExtractor={(item, index) => `${item}-${index}`}
+          renderItem={renderItem}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          bounces={false}
+          onMomentumScrollEnd={handleMomentumEnd}
+          decelerationRate="fast"
+          snapToInterval={carouselWidth}
+          snapToAlignment="start"
+        />
 
-      {/* Top buttons */}
-      <View style={styles.topBar}>
-        <Pressable onPress={onBack} style={styles.iconBtn}>
-          <Text style={styles.iconText}>‹</Text>
+        <Pressable onPress={onViewAll} style={styles.viewAllPill}>
+          <Text style={styles.viewAllText}>Ver todas</Text>
         </Pressable>
 
-        <Pressable onPress={onToggleFavorite} style={styles.iconBtn}>
-          <Text style={styles.iconText}>{isFavorite ? "♥" : "♡"}</Text>
-        </Pressable>
+        <View style={styles.counterPill}>
+          <Text style={styles.counterText}>
+            {activeIndex + 1}/{total}
+          </Text>
+        </View>
+
+        <View style={styles.dotsContainer}>
+          {images.slice(0, 5).map((_, index) => {
+            const isActive =
+              index === activeIndex || (activeIndex >= 5 && index === 4);
+
+            return (
+              <View
+                key={index}
+                style={[styles.dot, isActive && styles.activeDot]}
+              />
+            );
+          })}
+        </View>
       </View>
 
-      {/* Dots */}
-      <View style={styles.dots}>
-        {data.map((_, i) => (
-          <View key={i} style={[styles.dot, i === activeIndex && styles.dotActive]} />
-        ))}
-      </View>
+      <Pressable onPress={onAddPhotos} style={styles.addPhotosButton}>
+        <Text style={styles.addPhotosText}>+ Agregar fotos</Text>
+      </Pressable>
     </View>
   );
 }

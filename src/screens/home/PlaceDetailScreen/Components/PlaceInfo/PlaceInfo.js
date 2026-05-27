@@ -1,59 +1,59 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import styles from "./styles";
 
-function Stars({ rating = 0 }) {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.5;
-  const total = 5;
+import RatingStars from "../../../../../components/RatingStars";
 
-  const stars = Array.from({ length: total }).map((_, i) => {
-    if (i < full) return "★";
-    if (i === full && hasHalf) return "★"; // simple: no half star char
-    return "☆";
-  });
+function RatingCard({ label, rating }) {
+  return (
+    <View style={styles.ratingCard}>
+      <Text style={styles.ratingLabel}>{label}</Text>
 
-  return <Text style={styles.stars}>{stars.join(" ")}</Text>;
+      <View style={styles.ratingRow}>
+        <Text style={styles.ratingNumber}>{rating}</Text>
+        <RatingStars rating={rating} size={16} />
+      </View>
+    </View>
+  );
 }
 
 export default function PlaceInfo({
-  name,
-  distanceKm,
   description,
-  rating,
-  reviewsCount,
+  googleRating,
+  lsearchRating,
   tags = [],
   onImproveDescription,
 }) {
   return (
-    <View style={styles.card}>
-      <View style={styles.rowTop}>
-        <Text style={styles.title} numberOfLines={2}>
-          {name}
-        </Text>
-        <Text style={styles.distance}>{distanceKm ? `A ${distanceKm} km` : ""}</Text>
-      </View>
+    <View>
+      <Text style={styles.sectionTitle}>Descripción</Text>
 
-      <Text style={styles.desc}>{description}</Text>
+      <Text style={styles.descriptionText}>{description}</Text>
 
       <Pressable
         onPress={onImproveDescription}
-        style={({ pressed }) => [styles.improveBtn, pressed && styles.improveBtnPressed]}
-        hitSlop={10}
+        style={styles.secondaryButton}
       >
-        <Text style={styles.improveBtnText}>¿Colocar una mejor descripción?</Text>
+        <Text style={styles.secondaryButtonText}>Mejorar descripción</Text>
       </Pressable>
 
-      <View style={styles.ratingRow}>
-        <Text style={styles.ratingText}>{rating?.toFixed?.(1) ?? rating}</Text>
-        <Stars rating={rating} />
-        <Text style={styles.reviews}>{reviewsCount ? `(${reviewsCount})` : ""}</Text>
+      <Text style={[styles.sectionTitle, styles.spacedTitle]}>
+        Valoraciones
+      </Text>
+
+      <View style={styles.ratingsRow}>
+        <RatingCard label="Google" rating={googleRating} />
+        <RatingCard label="Lsearch" rating={lsearchRating} />
       </View>
 
-      <View style={styles.tagsWrap}>
-        {tags.map((t) => (
-          <View key={t} style={styles.tag}>
-            <Text style={styles.tagText}>{t}</Text>
+      <Text style={[styles.sectionTitle, styles.spacedTitle]}>
+        Categorías
+      </Text>
+
+      <View style={styles.tagsRow}>
+        {tags.map((tag, index) => (
+          <View key={`${tag}-${index}`} style={styles.tagChip}>
+            <Text style={styles.tagText}>{tag}</Text>
           </View>
         ))}
       </View>

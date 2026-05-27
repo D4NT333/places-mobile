@@ -2,49 +2,96 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   container: {
-    height: 280,
-    backgroundColor: "#590bebff",
+    marginBottom: 18,
   },
+
+  carouselBox: {
+  height: 230,
+  borderRadius: 22,
+  overflow: "hidden",
+  backgroundColor: "#E9EDF2",
+},
+
+  slide: {
+    height: "100%",
+  },
+
   image: {
-    height: 280,
+    width: "100%",
+    height: "100%",
     resizeMode: "cover",
   },
-  topBar: {
+
+  viewAllPill: {
     position: "absolute",
-    top: 14,
-    left: 12,
-    right: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: "rgba(255, 36, 208, 0.45)",
-    alignItems: "center",
-    justifyContent: "center",
   },
-  iconText: {
-    color: "#fff",
-    fontSize: 22,
-    marginTop: -2,
+
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#111111",
   },
-  dots: {
+
+  counterPill: {
     position: "absolute",
+    left: 10,
     bottom: 10,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 7,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
+
+  counterText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#111111",
+  },
+
+  dotsContainer: {
+    position: "absolute",
+    bottom: 14,
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 7,
+    backgroundColor: "rgba(255,255,255,0.55)",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+
   dot: {
     width: 7,
     height: 7,
     borderRadius: 99,
-    backgroundColor: "rgba(255,255,255,0.45)",
+    backgroundColor: "rgba(0,0,0,0.25)",
   },
-  dotActive: {
-    backgroundColor: "rgba(255,255,255,0.95)",
+
+  activeDot: {
+    width: 18,
+    backgroundColor: "#111111",
+  },
+
+  addPhotosButton: {
+    alignSelf: "flex-start",
+    marginTop: 10,
+    height: 34,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: "#111111",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  addPhotosText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
   },
 });
