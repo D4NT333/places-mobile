@@ -7,31 +7,23 @@ export default function OptionalCommentSection({
   onChangeText,
   maxLength = 200,
 }) {
-  const currentLength = value.length;
-  const hasReachedLimit = currentLength >= maxLength;
+  const currentLength = value?.length ?? 0;
 
   return (
     <View style={styles.container}>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          maxLength={maxLength}
-          multiline
-          placeholder="Agrega un comentario (opcional)"
-          placeholderTextColor="#6B7280"
-          style={styles.input}
-          textAlignVertical="top"
-          accessibilityLabel="Agrega un comentario opcional"
-          accessibilityHint="Escribe un comentario adicional sobre tu experiencia"
-        />
-      </View>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder="Agrega un comentario (opcional)"
+        placeholderTextColor="#7A818C"
+        maxLength={maxLength}
+        multiline
+        textAlignVertical="top"
+        style={styles.input}
+      />
 
       <View style={styles.footerRow}>
-        <Text style={styles.helperText}>
-          {hasReachedLimit ? "Límite alcanzado" : "Comentario opcional"}
-        </Text>
-
+        <Text style={styles.helperText}>Comentario opcional</Text>
         <Text style={styles.counterText}>
           {currentLength}/{maxLength}
         </Text>

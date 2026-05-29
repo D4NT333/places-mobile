@@ -1,48 +1,39 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
-    paddingTop: 10,
-  },
-
-  title: {
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: "700",
-    color: "#2A2A2A",
-    textAlign: "center",
-    marginBottom: 22,
-  },
-
-  starsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 6,
-  },
-
-  starItem: {
-    flex: 1,
     alignItems: "center",
   },
 
-  star: {
-    fontSize: 42,
-    lineHeight: 46,
-    color: "#D1D5DB",
-    marginBottom: 6,
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#202124",
+    marginBottom: 34,
+    textAlign: "center",
   },
 
-  starSelected: {
-    color: "#111111",
+  labelsRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 12,
+    paddingHorizontal: 2,
   },
 
-  starLabel: {
-    fontSize: 11,
-    lineHeight: 14,
-    color: "#4B5563",
+  scaleLabel: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#5F6673",
+    textAlign: "center",
+  },
+
+  selectedText: {
+    marginTop: 20,
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#202124",
     textAlign: "center",
   },
 });
-
-export default styles;

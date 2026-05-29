@@ -15,6 +15,7 @@ export default function EditablePillsField({
 }) {
   const needsReview = Boolean(reviewField?.selected);
   const pillsToShow = newPills.length > 0 ? newPills : pills;
+  const canEdit = needsReview && typeof onPressEdit === "function";
 
   if (isEditing) {
     return (
@@ -43,13 +44,27 @@ export default function EditablePillsField({
         <View style={styles.divider} />
 
         <View style={styles.compareColumn}>
-          <Text style={styles.compareLabel}>{newLabel || `Nueva ${label}`}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.compareLabel}>
+              {newLabel || `Nueva ${label}`}
+            </Text>
+
+            {canEdit && (
+              <Pressable onPress={onPressEdit} hitSlop={8}>
+                <Text style={styles.editText}>Editar</Text>
+              </Pressable>
+            )}
+          </View>
 
           <View style={styles.comparePillsColumn}>
             {pillsToShow.map((pill) => (
               <View
                 key={`new-${pill}`}
-                style={[styles.pill, needsReview && styles.pillReview]}
+                style={[
+                  styles.pill,
+                  needsReview && styles.pillReview,
+                  newPills.length > 0 && styles.pillSuccess,
+                ]}
               >
                 <Text style={styles.pillText}>{pill}</Text>
               </View>
@@ -69,7 +84,7 @@ export default function EditablePillsField({
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
 
-        {needsReview && (
+        {canEdit && (
           <Pressable onPress={onPressEdit} hitSlop={8}>
             <Text style={styles.editText}>Editar</Text>
           </Pressable>

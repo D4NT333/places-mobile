@@ -29,12 +29,14 @@ export default function EditableTextField({
   minLength = 0,
 }) {
   const needsReview = Boolean(reviewField?.selected);
+  const canEdit = needsReview && typeof onPressEdit === "function";
 
   const oldCounter = getCounterLabel(oldValue, maxLength);
   const newCounter = getCounterLabel(value, maxLength);
 
   const newValueLength = getTextLength(value);
   const hasMinValidation = minLength > 0;
+
   const isNewValueValid = hasMinValidation
     ? newValueLength >= minLength
     : true;
@@ -70,7 +72,17 @@ export default function EditableTextField({
         <View style={styles.divider} />
 
         <View style={styles.compareColumn}>
-          <Text style={styles.compareLabel}>{newLabel || `Nuevo ${label}`}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.compareLabel}>
+              {newLabel || `Nuevo ${label}`}
+            </Text>
+
+            {canEdit && (
+              <Pressable onPress={onPressEdit} hitSlop={8}>
+                <Text style={styles.editText}>Editar</Text>
+              </Pressable>
+            )}
+          </View>
 
           <TextInput
             value={value}
@@ -112,7 +124,7 @@ export default function EditableTextField({
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
 
-        {needsReview && (
+        {canEdit && (
           <Pressable onPress={onPressEdit} hitSlop={8}>
             <Text style={styles.editText}>Editar</Text>
           </Pressable>

@@ -11,10 +11,10 @@ export default function PhotoPicker({ photos = [], onChangePhotos }) {
   minShortSide: 720,
   minLongSide: 1280,
 
-  maxTotalPixels: 40_000_000,
+  maxTotalPixels: 50_000_000,
 
   minFileSizeKB: 60,
-  maxFileSizeMB: 35,
+  maxFileSizeMB: 50,
 
   maxAspectRatio: 2.3,
 };

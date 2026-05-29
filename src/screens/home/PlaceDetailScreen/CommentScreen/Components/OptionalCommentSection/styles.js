@@ -1,49 +1,44 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
     width: "100%",
   },
 
-  inputWrapper: {
-    minHeight: 136,
-    borderWidth: 2,
-    borderColor: "#2A2A2A",
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-
   input: {
-    minHeight: 104,
-    fontSize: 20,
-    lineHeight: 26,
-    fontWeight: "500",
-    color: "#374151",
-    textAlign: "center",
+    minHeight: 170,
+    borderWidth: 2,
+    borderColor: "#202124",
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 18,
+
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#202124",
+
+    textAlign: "left",
+    textAlignVertical: "top",
   },
 
   footerRow: {
     marginTop: 8,
-    paddingHorizontal: 6,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 10,
   },
 
   helperText: {
-    fontSize: 14,
-    lineHeight: 18,
-    color: "#6B7280",
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#7A818C",
   },
 
   counterText: {
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: "600",
-    color: "#4B5563",
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#3B4250",
   },
 });
-
-export default styles;

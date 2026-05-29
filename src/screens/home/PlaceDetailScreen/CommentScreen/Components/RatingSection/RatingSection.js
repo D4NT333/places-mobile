@@ -1,40 +1,49 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import styles from "./styles";
 
-const LABELS = ["Muy malo", "Malo", "Regular", "Bueno", "Excelente"];
+import RatingStarsPicker from "../../../../../../components/RatingStarsPicker";
+
+const RATING_LABELS = {
+  0.5: "Muy malo",
+  1: "Muy malo",
+  1.5: "Malo",
+  2: "Malo",
+  2.5: "Regular",
+  3: "Regular",
+  3.5: "Bueno",
+  4: "Bueno",
+  4.5: "Excelente",
+  5: "Excelente",
+};
 
 export default function RatingSection({ value, onSelect }) {
+  const label = RATING_LABELS[value] ?? "Selecciona una calificación";
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Califica el lugar</Text>
 
-      <View
-        style={styles.starsRow}
-        accessible
-        accessibilityLabel={`Calificación actual: ${value} de 5 estrellas`}
-      >
-        {LABELS.map((label, index) => {
-          const starValue = index + 1;
-          const isSelected = starValue <= value;
+      <RatingStarsPicker
+        value={value}
+        onChange={onSelect}
+        size={48}
+        gap={14}
+      />
 
-          return (
-            <Pressable
-              key={label}
-              onPress={() => onSelect(starValue)}
-              style={styles.starItem}
-              accessibilityRole="button"
-              accessibilityLabel={`${label}, ${starValue} de 5 estrellas`}
-              accessibilityHint="Toca para seleccionar esta calificación"
-            >
-              <Text style={[styles.star, isSelected && styles.starSelected]}>
-                ★
-              </Text>
-              <Text style={styles.starLabel}>{label}</Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.labelsRow}>
+        <Text style={styles.scaleLabel}>Muy malo</Text>
+        <Text style={styles.scaleLabel}>Malo</Text>
+        <Text style={styles.scaleLabel}>Regular</Text>
+        <Text style={styles.scaleLabel}>Bueno</Text>
+        <Text style={styles.scaleLabel}>Excelente</Text>
       </View>
+
+      {value > 0 ? (
+        <Text style={styles.selectedText}>
+          {value.toFixed(1)} / 5 · {label}
+        </Text>
+      ) : null}
     </View>
   );
 }

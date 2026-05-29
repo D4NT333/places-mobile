@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../../layouts";
@@ -153,6 +153,147 @@ function normalizeText(value = "") {
   return String(value || "").trim();
 }
 
+function normalizeForCompare(value = "") {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function sameTextValue(oldValue, newValue) {
+  return normalizeForCompare(oldValue) === normalizeForCompare(newValue);
+}
+
+function arrayIncludesSameText(array = [], value = "") {
+  return array.some((item) => sameTextValue(item, value));
+}
+
+function arraysHaveSameTextValues(a = [], b = []) {
+  const cleanA = Array.isArray(a) ? a.filter(Boolean) : [];
+  const cleanB = Array.isArray(b) ? b.filter(Boolean) : [];
+
+  if (cleanA.length !== cleanB.length) return false;
+
+  return cleanA.every((item) => {
+    return cleanB.some((otherItem) => sameTextValue(item, otherItem));
+  });
+}
+
+function getCorrectionValidationErrors({
+  returnFields,
+  oldPlace,
+  name,
+  description,
+  tag,
+  subtags,
+  approaches,
+  priceRange,
+  openingHours,
+  selectedTagHasNoApproaches,
+}) {
+  const errors = [];
+
+  if (returnFields.name?.selected) {
+    if (!isValidName(name)) {
+      errors.push("El nombre debe tener al menos 3 caracteres.");
+    } else if (sameTextValue(oldPlace.name, name)) {
+      errors.push(
+        "El nuevo nombre debe ser diferente al nombre señalado en la corrección."
+      );
+    }
+  }
+
+  if (returnFields.description?.selected) {
+    if (!isValidDescription(description)) {
+      errors.push("La descripción debe tener al menos 80 caracteres.");
+    } else if (sameTextValue(oldPlace.description, description)) {
+      errors.push(
+        "La nueva descripción debe ser diferente a la descripción señalada en la corrección."
+      );
+    }
+  }
+
+  if (returnFields.tag?.selected) {
+    if (!Array.isArray(tag) || tag.length === 0) {
+      errors.push("Selecciona una nueva etiqueta.");
+    } else if (arraysHaveSameTextValues(oldPlace.tag, tag)) {
+      errors.push(
+        "La nueva etiqueta debe ser diferente a la etiqueta señalada en la corrección."
+      );
+    }
+  }
+
+  if (returnFields.subtags?.selected) {
+    const reviewedLabels = getSelectedReturnedSubtagLabels(returnFields);
+    const blockedSubtags =
+      reviewedLabels.length > 0 ? reviewedLabels : oldPlace.subtags;
+
+    if (!Array.isArray(subtags) || subtags.length === 0) {
+      errors.push("Selecciona nuevas subetiquetas.");
+    }
+
+    const repeatedSubtag = subtags.some((subtag) =>
+      arrayIncludesSameText(blockedSubtags, subtag)
+    );
+
+    if (repeatedSubtag) {
+      errors.push(
+        "Las subetiquetas corregidas no pueden repetirse en el reenvío."
+      );
+    }
+  }
+
+  if (returnFields.approaches?.selected && !selectedTagHasNoApproaches) {
+    if (!Array.isArray(approaches) || approaches.length === 0) {
+      errors.push("Selecciona un nuevo enfoque.");
+    } else if (arraysHaveSameTextValues(oldPlace.approaches, approaches)) {
+      errors.push(
+        "El nuevo enfoque debe ser diferente al enfoque señalado en la corrección."
+      );
+    }
+  }
+
+  if (returnFields.price?.selected) {
+    if (!normalizeText(priceRange)) {
+      errors.push("Selecciona un nuevo rango de precio.");
+    } else if (sameTextValue(oldPlace.priceRange, priceRange)) {
+      errors.push(
+        "El nuevo rango de precio debe ser diferente al señalado en la corrección."
+      );
+    }
+  }
+
+  if (returnFields.schedule?.selected) {
+    if (!isValidOpeningHoursForCorrection(openingHours)) {
+      errors.push("Ingresa un horario válido.");
+    } else if (!openingHoursAreDifferent(oldPlace.openingHours, openingHours)) {
+      errors.push(
+        "El nuevo horario debe ser diferente al horario señalado en la corrección."
+      );
+    }
+  }
+
+  return errors;
+}
+
+function filterOptionsByBlockedLabels(options = [], blockedLabels = []) {
+  const blockedSet = new Set(
+    blockedLabels.map((label) => normalizeForCompare(label))
+  );
+
+  return options.filter((option) => {
+    return !blockedSet.has(normalizeForCompare(option.label));
+  });
+}
+
+function getFirstPendingMessage(checks = []) {
+  const firstInvalid = checks.find((check) => !check.valid);
+
+  return firstInvalid?.message || "Aún faltan correcciones por realizar.";
+}
+
 function removeUndefinedFields(object = {}) {
   return Object.fromEntries(
     Object.entries(object).filter(([, value]) => value !== undefined)
@@ -249,7 +390,7 @@ function reviewedSubtagsWereChanged({
   }
 
   const removedReviewedLabels = reviewedLabels.every((label) => {
-    return !newSubtags.includes(label);
+    return !newSubtags.some((subtag) => sameTextValue(subtag, label));
   });
 
   return removedReviewedLabels && arraysAreDifferent(oldSubtags, newSubtags);
@@ -468,7 +609,8 @@ export default function EditAddedPlacesScreen() {
 
   const [tag, setTag] = useState(FALLBACK_PLACE.tag);
   const [subtags, setSubtags] = useState(FALLBACK_PLACE.subtags);
-  const [activeSubtagCorrectionIndex, setActiveSubtagCorrectionIndex] =useState(null);
+  const [activeSubtagCorrectionIndex, setActiveSubtagCorrectionIndex] =
+    useState(null);
   const [approaches, setApproaches] = useState(FALLBACK_PLACE.approaches);
 
   const [selectedTagId, setSelectedTagId] = useState(null);
@@ -523,6 +665,36 @@ export default function EditAddedPlacesScreen() {
     selectedTagOption?.raw?.price ||
     null;
 
+  const reviewedSubtagLabels = getSelectedReturnedSubtagLabels(returnFields);
+
+  const blockedTagLabels = returnFields.tag?.selected ? oldPlace.tag : [];
+
+  const filteredTagOptions = filterOptionsByBlockedLabels(
+    tagOptions,
+    blockedTagLabels
+  );
+
+  const blockedSubtagLabels =
+    returnFields.subtags?.selected && reviewedSubtagLabels.length > 0
+      ? reviewedSubtagLabels
+      : returnFields.subtags?.selected
+        ? oldPlace.subtags
+        : [];
+
+  const filteredSubtagOptions = filterOptionsByBlockedLabels(
+    subtagOptions,
+    blockedSubtagLabels
+  );
+
+  const blockedApproachLabels = returnFields.approaches?.selected
+    ? oldPlace.approaches
+    : [];
+
+  const filteredApproachOptions = filterOptionsByBlockedLabels(
+    approachOptions,
+    blockedApproachLabels
+  );
+
   const requiredReviewChecks = useMemo(() => {
     const checks = [];
 
@@ -532,8 +704,9 @@ export default function EditAddedPlacesScreen() {
         valid:
           Boolean(editingFields.name) &&
           isValidName(name) &&
-          hasTextChanged(oldPlace.name, name),
-        message: "Corrige el nombre.",
+          !sameTextValue(oldPlace.name, name),
+        message:
+          "El nuevo nombre debe ser diferente al nombre señalado en la corrección.",
       });
     }
 
@@ -543,8 +716,9 @@ export default function EditAddedPlacesScreen() {
         valid:
           Boolean(editingFields.description) &&
           isValidDescription(description) &&
-          hasTextChanged(oldPlace.description, description),
-        message: "Corrige la descripción.",
+          !sameTextValue(oldPlace.description, description),
+        message:
+          "La nueva descripción debe ser diferente a la descripción señalada en la corrección.",
       });
     }
 
@@ -555,24 +729,25 @@ export default function EditAddedPlacesScreen() {
           Boolean(editingFields.tag) &&
           tag.length > 0 &&
           arraysAreDifferent(oldPlace.tag, tag),
-        message: "Selecciona una nueva etiqueta.",
+        message:
+          "Selecciona una etiqueta diferente a la señalada en la corrección.",
       });
     }
 
     if (returnFields.subtags?.selected) {
-  checks.push({
-    field: "subtags",
-    valid:
-      Boolean(editingFields.subtags) &&
-      subtags.length > 0 &&
-      reviewedSubtagsWereChanged({
-        oldSubtags: oldPlace.subtags,
-        newSubtags: subtags,
-        returnFields,
-      }),
-    message: "Cambia las subetiquetas marcadas para corrección.",
-  });
-}
+      checks.push({
+        field: "subtags",
+        valid:
+          Boolean(editingFields.subtags) &&
+          subtags.length > 0 &&
+          reviewedSubtagsWereChanged({
+            oldSubtags: oldPlace.subtags,
+            newSubtags: subtags,
+            returnFields,
+          }),
+        message: "Cambia las subetiquetas señaladas por otras diferentes.",
+      });
+    }
 
     if (returnFields.approaches?.selected) {
       if (!selectedTagHasNoApproaches) {
@@ -582,7 +757,8 @@ export default function EditAddedPlacesScreen() {
             Boolean(editingFields.approaches) &&
             approaches.length > 0 &&
             arraysAreDifferent(oldPlace.approaches, approaches),
-          message: "Selecciona un nuevo enfoque.",
+          message:
+            "Selecciona un enfoque diferente al señalado en la corrección.",
         });
       }
     }
@@ -593,21 +769,23 @@ export default function EditAddedPlacesScreen() {
         valid:
           Boolean(editingFields.price) &&
           normalizeText(priceRange).length > 0 &&
-          hasTextChanged(oldPlace.priceRange, priceRange),
-        message: "Selecciona un nuevo rango de precio.",
+          !sameTextValue(oldPlace.priceRange, priceRange),
+        message:
+          "Selecciona un rango de precio diferente al señalado en la corrección.",
       });
     }
 
-   if (returnFields.schedule?.selected) {
-  checks.push({
-    field: "schedule",
-    valid:
-      Boolean(editingFields.schedule) &&
-      isValidOpeningHoursForCorrection(openingHours) &&
-      openingHoursAreDifferent(oldPlace.openingHours, openingHours),
-    message: "Corrige el horario.",
-  });
-}
+    if (returnFields.schedule?.selected) {
+      checks.push({
+        field: "schedule",
+        valid:
+          Boolean(editingFields.schedule) &&
+          isValidOpeningHoursForCorrection(openingHours) &&
+          openingHoursAreDifferent(oldPlace.openingHours, openingHours),
+        message:
+          "El nuevo horario debe ser diferente al horario señalado en la corrección.",
+      });
+    }
 
     if (returnFields.photos?.selected) {
       const reviewedPhotos = oldPlace.photos.filter((photo) => photo.selected);
@@ -939,15 +1117,31 @@ export default function EditAddedPlacesScreen() {
     return uploadedPhotos;
   };
 
-  const handleOpenScheduleModal = () => {
-    setScheduleModalVisible(true);
-  };
+const handleOpenScheduleModal = () => {
+  setEditingFields((prev) => ({
+    ...prev,
+    schedule: true,
+  }));
+
+  setScheduleModalVisible(true);
+};
 
   const handleCloseScheduleModal = () => {
     setScheduleModalVisible(false);
   };
 
   const handleApplyOpeningHours = (nextOpeningHours) => {
+    if (
+      returnFields.schedule?.selected &&
+      !openingHoursAreDifferent(oldPlace.openingHours, nextOpeningHours)
+    ) {
+      Alert.alert(
+        "Horario no válido",
+        "Debes ingresar un horario diferente al señalado en la corrección."
+      );
+      return;
+    }
+
     setOpeningHours(nextOpeningHours);
 
     setEditingFields((prev) => ({
@@ -956,90 +1150,164 @@ export default function EditAddedPlacesScreen() {
     }));
   };
 
-  const handleSubmitAgain = async () => {
-    if (!canSubmitAgain) {
-      console.log("Aún faltan correcciones:", pendingReviewChecks);
-      return;
-    }
+ const handleSubmitAgain = async () => {
+  const correctionErrors = getCorrectionValidationErrors({
+    returnFields,
+    oldPlace,
+    name,
+    description,
+    tag,
+    subtags,
+    approaches,
+    priceRange,
+    openingHours,
+    selectedTagHasNoApproaches,
+  });
 
-    if (submitting) return;
+  if (correctionErrors.length > 0) {
+    Alert.alert("Corrección incompleta", correctionErrors[0]);
+    return;
+  }
 
-    try {
-      setSubmitting(true);
+  if (!canSubmitAgain) {
+    console.log("Aún faltan correcciones:", pendingReviewChecks);
 
-      const uploadedReplacementPhotos = returnFields.photos?.selected
-        ? await uploadCorrectedPhotos()
-        : [];
+    Alert.alert(
+      "Corrección incompleta",
+      getFirstPendingMessage(pendingReviewChecks)
+    );
 
-      const correctedFields = removeUndefinedFields({
-        name: returnFields.name?.selected ? normalizeText(name) : undefined,
+    return;
+  }
 
-        description: returnFields.description?.selected
-          ? normalizeText(description)
+  if (submitting) return;
+
+  try {
+    setSubmitting(true);
+
+    const uploadedReplacementPhotos = returnFields.photos?.selected
+      ? await uploadCorrectedPhotos()
+      : [];
+
+    const correctedFields = removeUndefinedFields({
+      name: returnFields.name?.selected ? normalizeText(name) : undefined,
+
+      description: returnFields.description?.selected
+        ? normalizeText(description)
+        : undefined,
+
+      tag: returnFields.tag?.selected
+        ? {
+            tagId: resolvedSelectedTagId,
+            label: tag[0] || null,
+          }
+        : undefined,
+
+      subtags: returnFields.subtags?.selected ? subtags : undefined,
+
+      approaches: selectedTagHasNoApproaches
+        ? null
+        : returnFields.approaches?.selected
+          ? approaches
           : undefined,
 
-        tag: returnFields.tag?.selected
-          ? {
-              tagId: resolvedSelectedTagId,
-              label: tag[0] || null,
-            }
-          : undefined,
+      price: returnFields.price?.selected
+        ? normalizeText(priceRange)
+        : undefined,
 
-        subtags: returnFields.subtags?.selected ? subtags : undefined,
+      openingHours: returnFields.schedule?.selected
+        ? openingHours
+        : undefined,
 
-        approaches: selectedTagHasNoApproaches
-          ? null
-          : returnFields.approaches?.selected
-            ? approaches
-            : undefined,
+      location: returnFields.location?.selected ? editedLocation : undefined,
 
-        price: returnFields.price?.selected
-          ? normalizeText(priceRange)
-          : undefined,
+      photos: returnFields.photos?.selected
+        ? uploadedReplacementPhotos
+        : undefined,
+    });
 
-        openingHours: returnFields.schedule?.selected
-          ? openingHours
-          : undefined,
+    const payload = {
+      placeId,
+      returnId: editData?.activeReturn?.returnId || null,
+      correctedFields,
+    };
 
-        location: returnFields.location?.selected ? editedLocation : undefined,
+    console.log("PAYLOAD FINAL PARA BACKEND:", payload);
 
-        photos: returnFields.photos?.selected
-          ? uploadedReplacementPhotos
-          : undefined,
-      });
+    const result = await resubmitReturnedPlaceSubmissionService({
+      submissionId: placeId,
+      payload,
+    });
 
-      const payload = {
-        placeId,
-        returnId: editData?.activeReturn?.returnId || null,
-        correctedFields,
-      };
+    console.log("REENVÍO COMPLETADO:", result);
 
-      console.log("PAYLOAD FINAL PARA BACKEND:", payload);
+    setSuccessModalVisible(true);
+  } catch (error) {
+    console.log("Error al reenviar propuesta:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
 
-      const result = await resubmitReturnedPlaceSubmissionService({
-        submissionId: placeId,
-        payload,
-      });
-
-      console.log("REENVÍO COMPLETADO:", result);
-
-      setSuccessModalVisible(true);
-    } catch (error) {
-      console.log("Error al reenviar propuesta:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    Alert.alert(
+      "Error",
+      error?.response?.data?.message ||
+        error?.message ||
+        "No se pudo reenviar la propuesta."
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleCloseOptionModal = () => {
     setActiveOptionModal(null);
   };
 
+  const handleOpenTagModal = () => {
+  setEditingFields((prev) => ({
+    ...prev,
+    tag: true,
+  }));
+
+  setActiveOptionModal("tag");
+};
+
+const handleOpenApproachModal = () => {
+  setEditingFields((prev) => ({
+    ...prev,
+    approaches: true,
+  }));
+
+  setActiveOptionModal("approaches");
+};
+
+const handleOpenSubtagModal = (item) => {
+  const index = Number(item.index);
+
+  setActiveSubtagCorrectionIndex(Number.isInteger(index) ? index : null);
+
+  setEditingFields((prev) => ({
+    ...prev,
+    subtags: true,
+  }));
+
+  setActiveOptionModal("subtags");
+};
+
   const handleSelectTag = (option) => {
+    if (returnFields.tag?.selected) {
+      const oldTagLabel = oldPlace.tag?.[0] || "";
+
+      if (sameTextValue(oldTagLabel, option.label)) {
+        Alert.alert(
+          "Etiqueta no válida",
+          "Debes seleccionar una etiqueta diferente a la señalada en la corrección."
+        );
+        return;
+      }
+    }
+
     const nextTagHasNoApproaches = tagDoesNotUseApproaches(option.id);
 
     setTag([option.label]);
@@ -1064,48 +1332,64 @@ export default function EditAddedPlacesScreen() {
   };
 
   const handleSelectSubtag = (option) => {
-  if (!selectedTagId) {
-    console.log("Selecciona primero una etiqueta.");
-    return;
-  }
-
-  setEditingFields((prev) => ({
-    ...prev,
-    subtags: true,
-  }));
-
-  setSubtags((prev) => {
-    const base = Array.isArray(prev) && prev.length > 0
-      ? [...prev]
-      : [...oldPlace.subtags];
-
-    const targetIndex = Number(activeSubtagCorrectionIndex);
-
-    if (Number.isInteger(targetIndex) && targetIndex >= 0) {
-      base[targetIndex] = option.label;
-
-      return base
-        .filter(Boolean)
-        .filter((item, index, array) => array.indexOf(item) === index)
-        .slice(0, 2);
+    if (!selectedTagId) {
+      console.log("Selecciona primero una etiqueta.");
+      return;
     }
 
-    const exists = base.includes(option.label);
+    const blockedLabels =
+      reviewedSubtagLabels.length > 0 ? reviewedSubtagLabels : oldPlace.subtags;
 
-    if (exists) {
-      return base.filter((item) => item !== option.label);
+    const isBlocked = blockedLabels.some((label) =>
+      sameTextValue(label, option.label)
+    );
+
+    if (returnFields.subtags?.selected && isBlocked) {
+      Alert.alert(
+        "Subetiqueta no válida",
+        "Debes seleccionar una subetiqueta diferente a la señalada en la corrección."
+      );
+      return;
     }
 
-    if (base.length >= 2) {
-      return [base[1], option.label];
-    }
+    setEditingFields((prev) => ({
+      ...prev,
+      subtags: true,
+    }));
 
-    return [...base, option.label];
-  });
+    setSubtags((prev) => {
+      const base =
+        Array.isArray(prev) && prev.length > 0
+          ? [...prev]
+          : [...oldPlace.subtags];
 
-  setActiveOptionModal(null);
-  setActiveSubtagCorrectionIndex(null);
-};
+      const targetIndex = Number(activeSubtagCorrectionIndex);
+
+      if (Number.isInteger(targetIndex) && targetIndex >= 0) {
+        base[targetIndex] = option.label;
+
+        return base
+          .filter(Boolean)
+          .filter((item, index, array) => array.indexOf(item) === index)
+          .slice(0, 2);
+      }
+
+      const exists = base.includes(option.label);
+
+      if (exists) {
+        return base.filter((item) => item !== option.label);
+      }
+
+      if (base.length >= 2) {
+        return [base[1], option.label];
+      }
+
+      return [...base, option.label];
+    });
+
+    setActiveOptionModal(null);
+    setActiveSubtagCorrectionIndex(null);
+  };
 
   const handleSelectApproach = (option) => {
     if (!selectedTagId) {
@@ -1120,6 +1404,18 @@ export default function EditAddedPlacesScreen() {
       return;
     }
 
+    const isBlocked = oldPlace.approaches.some((label) =>
+      sameTextValue(label, option.label)
+    );
+
+    if (returnFields.approaches?.selected && isBlocked) {
+      Alert.alert(
+        "Enfoque no válido",
+        "Debes seleccionar un enfoque diferente al señalado en la corrección."
+      );
+      return;
+    }
+
     setApproaches([option.label]);
 
     setEditingFields((prev) => ({
@@ -1131,65 +1427,68 @@ export default function EditAddedPlacesScreen() {
   };
 
   const handleOpenPriceModal = () => {
-    console.log("DEBUG PRICE MODAL:", {
-      selectedTagId,
-      tag,
-      tagOptions,
-      selectedTagOption,
-      selectedTagPriceConfig,
-    });
+  console.log("DEBUG PRICE MODAL:", {
+    selectedTagId,
+    tag,
+    tagOptions,
+    selectedTagOption,
+    selectedTagPriceConfig,
+  });
 
-    if (!selectedTagPriceConfig) {
-      console.log("No hay configuración de precio para esta etiqueta.");
-      return;
-    }
+  if (!selectedTagPriceConfig) {
+    console.log("No hay configuración de precio para esta etiqueta.");
+    return;
+  }
 
-    const currentRangeId = findRangeIdByPriceLabel(
-      selectedTagPriceConfig,
-      priceRange || oldPlace.priceRange
-    );
+  const currentRangeId = findRangeIdByPriceLabel(
+    selectedTagPriceConfig,
+    priceRange || oldPlace.priceRange
+  );
 
-    setSelectedPriceRangeId(currentRangeId);
-    setPriceModalVisible(true);
-  };
+  setEditingFields((prev) => ({
+    ...prev,
+    price: true,
+  }));
+
+  setSelectedPriceRangeId(currentRangeId);
+  setPriceModalVisible(true);
+};
 
   const handleClosePriceModal = () => {
     setPriceModalVisible(false);
   };
 
-  const handleChangePriceRangeId = (rangeId) => {
-    setSelectedPriceRangeId(rangeId);
-    setIsFreePrice(false);
+ const handleChangePriceRangeId = (rangeId) => {
+  const nextPriceLabel = getRangeLabelById(selectedTagPriceConfig, rangeId);
 
-    const nextPriceLabel = getRangeLabelById(selectedTagPriceConfig, rangeId);
+  setSelectedPriceRangeId(rangeId);
+  setIsFreePrice(false);
+  setPriceRange(nextPriceLabel);
+
+  setEditingFields((prev) => ({
+    ...prev,
+    price: true,
+  }));
+};
+
+const handleToggleFreePrice = () => {
+  setIsFreePrice((prev) => {
+    const nextIsFree = !prev;
+
+    const nextPriceLabel = nextIsFree
+      ? "Gratis"
+      : getRangeLabelById(selectedTagPriceConfig, selectedPriceRangeId);
 
     setPriceRange(nextPriceLabel);
 
-    setEditingFields((prev) => ({
-      ...prev,
+    setEditingFields((current) => ({
+      ...current,
       price: true,
     }));
-  };
 
-  const handleToggleFreePrice = () => {
-    setIsFreePrice((prev) => {
-      const nextIsFree = !prev;
-
-      const nextPriceLabel = nextIsFree
-        ? "Gratis"
-        : getRangeLabelById(selectedTagPriceConfig, selectedPriceRangeId);
-
-      setPriceRange(nextPriceLabel);
-
-      setEditingFields((current) => ({
-        ...current,
-        price: true,
-      }));
-
-      return nextIsFree;
-    });
-  };
-
+    return nextIsFree;
+  });
+};
   const handleCloseSuccessModal = () => {
     setSuccessModalVisible(false);
     navigation.goBack();
@@ -1255,78 +1554,75 @@ export default function EditAddedPlacesScreen() {
             minLength={80}
           />
 
-          <EditablePillsField
-            label="Etiqueta"
-            newLabel="Nueva etiqueta"
-            pills={oldPlace.tag}
-            newPills={tag}
-            helperText={returnFields.tag.message || "Texto"}
-            reviewField={returnFields.tag}
-            isEditing={Boolean(editingFields.tag)}
-            onPressEdit={() => setActiveOptionModal("tag")}
-          />
-
-  <EditableReturnedSubtagsBox
-  label="Subetiquetas"
-  oldPills={oldPlace.subtags}
-  newPills={subtags}
-  reviewField={returnFields.subtags}
-  onPressEditItem={(item) => {
-    const index = Number(item.index);
-
-    setActiveSubtagCorrectionIndex(
-      Number.isInteger(index) ? index : null
-    );
-
-    setEditingFields((prev) => ({
-      ...prev,
-      subtags: true,
-    }));
-
-    setActiveOptionModal("subtags");
-  }}
+   <EditablePillsField
+  label="Etiqueta"
+  newLabel="Nueva etiqueta"
+  pills={oldPlace.tag}
+  newPills={tag}
+  helperText={returnFields.tag.message || "Texto"}
+  reviewField={returnFields.tag}
+  isEditing={Boolean(editingFields.tag)}
+  onPressEdit={handleOpenTagModal}
 />
 
-          {!selectedTagHasNoApproaches && (
-            <EditablePillsField
-              label="Enfoque"
-              newLabel="Nuevo enfoque"
-              pills={oldPlace.approaches}
-              newPills={approaches}
-              helperText={returnFields.approaches.message || "Texto"}
-              reviewField={returnFields.approaches}
-              isEditing={Boolean(editingFields.approaches)}
-              onPressEdit={() => setActiveOptionModal("approaches")}
-            />
-          )}
+          <EditableReturnedSubtagsBox
+            label="Subetiquetas"
+            oldPills={oldPlace.subtags}
+            newPills={subtags}
+            reviewField={returnFields.subtags}
+            onPressEditItem={(item) => {
+              const index = Number(item.index);
 
-          <EditableTextField
-            label="Rango de precio"
-            newLabel="Nuevo rango"
-            oldValue={oldPlace.priceRange}
-            value={priceRange}
-            onChangeText={setPriceRange}
-            placeholder="Rango de precio"
-            helperText={returnFields.price.message || "Texto"}
-            reviewField={returnFields.price}
-            isEditing={Boolean(editingFields.price)}
-            onPressEdit={handleOpenPriceModal}
-            maxLength={40}
-          />
+              setActiveSubtagCorrectionIndex(
+                Number.isInteger(index) ? index : null
+              );
 
-          <EditableTextField
-            label="Horario"
-            newLabel="Nuevo horario"
-            oldValue={oldPlace.schedule}
-            value={openingHours?.label || "Horario no especificado"}
-            onChangeText={() => {}}
-            placeholder="Horario"
-            helperText={returnFields.schedule.message || "Texto"}
-            reviewField={returnFields.schedule}
-            isEditing={Boolean(editingFields.schedule)}
-            onPressEdit={handleOpenScheduleModal}
-            maxLength={80}
+              setEditingFields((prev) => ({
+                ...prev,
+                subtags: true,
+              }));
+
+              setActiveOptionModal("subtags");
+            }}
           />
+<EditablePillsField
+  label="Enfoque"
+  newLabel="Nuevo enfoque"
+  pills={oldPlace.approaches}
+  newPills={approaches}
+  helperText={returnFields.approaches.message || "Texto"}
+  reviewField={returnFields.approaches}
+  isEditing={Boolean(editingFields.approaches)}
+  onPressEdit={() => setActiveOptionModal("approaches")}
+/>
+
+<EditableTextField
+  label="Rango de precio"
+  newLabel="Nuevo rango"
+  oldValue={oldPlace.priceRange}
+  value={priceRange}
+  onChangeText={setPriceRange}
+  placeholder="Rango de precio"
+  helperText={returnFields.price.message || "Texto"}
+  reviewField={returnFields.price}
+  isEditing={Boolean(editingFields.price)}
+  onPressEdit={handleOpenPriceModal}
+  maxLength={40}
+/>
+
+   <EditableTextField
+  label="Horario"
+  newLabel="Nuevo horario"
+  oldValue={oldPlace.schedule}
+  value={openingHours?.label || "Horario no especificado"}
+  onChangeText={() => {}}
+  placeholder="Horario"
+  helperText={returnFields.schedule.message || "Texto"}
+  reviewField={returnFields.schedule}
+  isEditing={Boolean(editingFields.schedule)}
+  onPressEdit={handleOpenScheduleModal}
+  maxLength={80}
+/>
 
           <EditablePhotosBox
             label="Fotos"
@@ -1353,14 +1649,14 @@ export default function EditAddedPlacesScreen() {
 
           <SubmitAgainBox
             onSubmit={handleSubmitAgain}
-            disabled={!canSubmitAgain || submitting}
+            disabled={submitting}
           />
         </ScrollView>
 
         <EditableOptionModal
           visible={activeOptionModal === "tag"}
           title="Selecciona una etiqueta"
-          options={tagOptions}
+          options={filteredTagOptions}
           selectedValues={tag}
           multiple={false}
           onSelect={handleSelectTag}
@@ -1368,26 +1664,28 @@ export default function EditAddedPlacesScreen() {
         />
 
         <EditableOptionModal
-  visible={activeOptionModal === "subtags"}
-  title="Selecciona una nueva subetiqueta"
-  options={subtagOptions}
-  selectedValues={
-    activeSubtagCorrectionIndex !== null
-      ? [subtags[activeSubtagCorrectionIndex]].filter(Boolean)
-      : subtags
-  }
-  multiple={false}
-  onSelect={handleSelectSubtag}
-  onClose={() => {
-    setActiveOptionModal(null);
-    setActiveSubtagCorrectionIndex(null);
-  }}
-/>
+          visible={activeOptionModal === "subtags"}
+          title="Selecciona una nueva subetiqueta"
+          options={filteredSubtagOptions}
+          selectedValues={
+            activeSubtagCorrectionIndex !== null
+              ? [subtags[activeSubtagCorrectionIndex]].filter(Boolean)
+              : subtags
+          }
+          multiple={false}
+          onSelect={handleSelectSubtag}
+          onClose={() => {
+            setActiveOptionModal(null);
+            setActiveSubtagCorrectionIndex(null);
+          }}
+        />
 
         <EditableOptionModal
-          visible={activeOptionModal === "approaches" && !selectedTagHasNoApproaches}
+          visible={
+            activeOptionModal === "approaches" && !selectedTagHasNoApproaches
+          }
           title="Selecciona un enfoque"
-          options={approachOptions}
+          options={filteredApproachOptions}
           selectedValues={approaches}
           multiple={false}
           onSelect={handleSelectApproach}

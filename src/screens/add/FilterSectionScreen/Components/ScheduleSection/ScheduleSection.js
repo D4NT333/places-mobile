@@ -66,7 +66,7 @@ export default function ScheduleSection({
               scheduleType === "not_specified" && styles.selectedChipText,
             ]}
           >
-            No sé
+            No especificado
           </Text>
         </Pressable>
 

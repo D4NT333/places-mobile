@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View } from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../../layouts";
@@ -158,6 +158,11 @@ export default function CommentScreen() {
 
   return (
     <>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
+    >
       <LayoutScreen
         scroll
         edges={["top"]}
@@ -252,6 +257,7 @@ export default function CommentScreen() {
           />
         </View>
       </LayoutScreen>
+      </KeyboardAvoidingView>
 
       <ExitCommentModal
         visible={showExitModal}
