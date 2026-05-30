@@ -28,14 +28,7 @@ export { default as VisualizedAddedDescriptionScreen } from "./profile/AddedDesc
 
 export { default as EditAddedPlacesScreen } from "./profile/AddedPlacesScreen/EditAddedPlacesScreen";
 
-
-export { default as EditProfileScreen } from "./profile/EditProfile/EditProfileScreen";
-export { default as EditProfileNameScreen } from "./profile/EditProfile/EditProfileNameScreen";
-export { default as EditProfileDescriptionScreen } from "./profile/EditProfile/EditProfileDescriptionScreen";
-export { default as EditProfilePhotoScreen } from "./profile/EditProfile/EditProfilePhotoScreen";    
-
-
-
+export {default as NotificationsScreen} from "./profile/NotificationsScreen";
 
 export { default as SettingsProfileScreen } from "./profile/settings/SettingsProfileScreen";
 export { default as NotificationScreen } from "./profile/settings/NotificationScreen";

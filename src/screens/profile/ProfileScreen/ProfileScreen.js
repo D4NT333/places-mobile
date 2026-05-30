@@ -28,7 +28,7 @@ useEffect(() => {
         <ProfileHeader
           name="Dante Orozco Gomez Serrano"
           description="Descripción"
-          onEditPress={() => navigation.navigate("EditProfileScreen")}
+          onEditPress={() => navigation.navigate("NotificationsScreen")}
         />
 
         <ProfileSettings

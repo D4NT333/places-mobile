@@ -10,6 +10,8 @@ import {CommentScreen} from "../screens";
 
 import {FavoritesScreen} from "../screens"; 
 
+import {NotificationsScreen} from "../screens";
+
 import {AddedPlacesScreen} from "../screens";
 import {AddedPhotosScreen} from "../screens";
 import {AddedDescriptionScreen} from "../screens";
@@ -20,12 +22,6 @@ import { VisualizedAddedDescriptionScreen } from "../screens";
 import {EditAddedPlacesScreen} from "../screens";
 
 import {FilterSectionScreen} from "../screens";
-
-
-import {EditProfileScreen} from "../screens";
-import {EditProfileNameScreen} from "../screens";
-import {EditProfileDescriptionScreen} from "../screens";
-import {EditProfilePhotoScreen} from "../screens";  
 
 import {SettingsProfileScreen} from "../screens";
 import {NotificationScreen} from "../screens";
@@ -64,34 +60,15 @@ export default function AppNavigator() {
           component={CommentScreen}
         />
         
-          {/* Pantalla de edición de perfil */}
-          <Stack.Screen
-          name="EditProfileScreen"
-          component={EditProfileScreen}
-        />
-
-        <Stack.Screen
-          name="EditProfileNameScreen"
-          component={EditProfileNameScreen}
-        />  
-
-        <Stack.Screen
-          name="EditProfileDescriptionScreen"
-          component={EditProfileDescriptionScreen}
-        />
-
-        <Stack.Screen
-          name="EditProfilePhotoScreen"
-          component={EditProfilePhotoScreen}
-        />
-
-        {/* Fin de las pantallas de edición de perfil */}
-
-
         {/* Pantalla de agregar lugares */}
          <Stack.Screen
           name="FavoritesScreen"
           component={FavoritesScreen}
+        />
+
+         <Stack.Screen
+          name="NotificationsScreen"
+          component={NotificationsScreen}
         />
 
          <Stack.Screen
