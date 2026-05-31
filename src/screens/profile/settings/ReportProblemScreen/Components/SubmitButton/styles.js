@@ -1,27 +1,37 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-  btn: {
+  button: {
+    marginTop: 34,
     alignSelf: "flex-end",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    minWidth: 150,
+    height: 48,
+    paddingHorizontal: 26,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#111",
-    backgroundColor: "#FFF",
+    borderColor: "#111111",
+    backgroundColor: "#050505",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  btnPressed: {
+
+  buttonDisabled: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#BDBDBD",
+  },
+
+  buttonPressed: {
+    opacity: 0.78,
     transform: [{ scale: 0.98 }],
   },
-  btnDisabled: {
-    borderColor: "#BBB",
-  },
+
   text: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#111",
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#FFFFFF",
   },
+
   textDisabled: {
-    color: "#999",
+    color: "#A0A0A0",
   },
 });

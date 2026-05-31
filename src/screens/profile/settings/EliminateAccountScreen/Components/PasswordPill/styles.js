@@ -1,33 +1,47 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-  wrapper: {
-    gap: 6,
+  container: {
+    width: "100%",
   },
+
   label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111",
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#111111",
+    marginBottom: 8,
   },
-  inputRow: {
-    height: 44,
+
+  inputWrapper: {
+    minHeight: 48,
     borderWidth: 1.5,
-    borderColor: "#111",
-    borderRadius: 22,
-    paddingHorizontal: 14,
+    borderColor: "#111111",
+    borderRadius: 999,
+    paddingLeft: 16,
+    paddingRight: 8,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
   },
+
   input: {
     flex: 1,
-    paddingVertical: 10,
-    paddingRight: 10,
-    fontSize: 14,
-    color: "#111",
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111111",
+    paddingVertical: 0,
   },
-  eye: {
-    fontSize: 16,
-    color: "#111",
+
+  eyeButton: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  eyeIcon: {
+    width: 23,
+    height: 23,
+    resizeMode: "contain",
   },
 });

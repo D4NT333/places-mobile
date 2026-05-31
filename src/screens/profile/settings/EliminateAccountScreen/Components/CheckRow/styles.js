@@ -1,33 +1,41 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-  row: {
+  container: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 10,
-    paddingVertical: 8,
+    paddingVertical: 2,
   },
+
   box: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     borderWidth: 1.5,
-    borderColor: "#111",
+    borderColor: "#111111",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    marginTop: 1,
   },
+
   boxChecked: {
-    backgroundColor: "#111",
+    backgroundColor: "#111111",
   },
+
   check: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "800",
-    marginTop: -1,
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    lineHeight: 20,
   },
+
   label: {
     flex: 1,
-    fontSize: 12,
-    color: "#111",
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#333333",
+    lineHeight: 21,
   },
 });

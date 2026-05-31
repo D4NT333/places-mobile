@@ -1,13 +1,15 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { View, Text, Pressable } from "react-native";
+
 import styles from "./styles";
 
 export default function CheckRow({ checked, onToggle, label }) {
   return (
-    <Pressable style={styles.row} onPress={onToggle} hitSlop={10}>
+    <Pressable onPress={onToggle} style={styles.container}>
       <View style={[styles.box, checked && styles.boxChecked]}>
-        {checked ? <Text style={styles.check}>✓</Text> : null}
+        {checked && <Text style={styles.check}>✓</Text>}
       </View>
+
       <Text style={styles.label}>{label}</Text>
     </Pressable>
   );

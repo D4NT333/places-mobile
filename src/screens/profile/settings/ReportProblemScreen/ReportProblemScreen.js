@@ -1,78 +1,170 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
+
 import { LayoutScreen } from "../../../../layouts";
+import { icons } from "../../../../../assets/icons";
 
 import styles from "./styles";
+
 import ProblemTypeChips from "./Components/ProblemTypeChips";
 import ProblemMessageBox from "./Components/ProblemMessageBox";
 import SubmitButton from "./Components/SubmitButton";
 
+const REPORT_TARGETS = [
+  { id: "general", label: "General" },
+  { id: "place", label: "Lugar" },
+  { id: "user", label: "Usuario" },
+];
+
+const REPORT_REASONS = {
+  general: [
+    { id: "error", label: "Error" },
+    { id: "performance", label: "Rendimiento" },
+    { id: "visual_problem", label: "Problema visual" },
+  ],
+  place: [
+    { id: "wrong_info", label: "Información incorrecta" },
+    { id: "wrong_location", label: "Ubicación incorrecta" },
+    { id: "wrong_photos", label: "Fotos incorrectas" },
+  ],
+  user: [
+    { id: "spam", label: "Spam" },
+    { id: "offensive_content", label: "Contenido ofensivo" },
+    { id: "suspicious_activity", label: "Actividad sospechosa" },
+  ],
+};
+
 export default function ReportProblemScreen() {
   const navigation = useNavigation();
-
-  const TYPES = useMemo(
-    () => [
-      { id: "performance", label: "Rendimiento" },
-      { id: "error", label: "Error" },
-      { id: "wrong_info", label: "Información\nincorrecta" },
-    ],
-    []
-  );
-
-  const [typeId, setTypeId] = useState("performance");
-  const [message, setMessage] = useState("");
 
   const MIN_CHARS = 20;
   const MAX_CHARS = 500;
 
-  const canSubmit = message.trim().length >= MIN_CHARS;
+  const [reportTarget, setReportTarget] = useState("general");
+  const [reasonId, setReasonId] = useState(REPORT_REASONS.general[0].id);
+  const [message, setMessage] = useState("");
+
+  const currentReasons = useMemo(() => {
+    return REPORT_REASONS[reportTarget] || [];
+  }, [reportTarget]);
+
+  const messageLength = message.trim().length;
+  const canSubmit = messageLength >= MIN_CHARS;
+
+  const handleTargetChange = (targetId) => {
+    setReportTarget(targetId);
+
+    const firstReason = REPORT_REASONS[targetId]?.[0]?.id;
+    if (firstReason) {
+      setReasonId(firstReason);
+    }
+  };
 
   const onSubmit = async () => {
-    if (!canSubmit) {
-      Alert.alert("Falta info", `Escribe al menos ${MIN_CHARS} caracteres.`);
+    const cleanMessage = message.trim();
+
+    if (cleanMessage.length < MIN_CHARS) {
+      Alert.alert(
+        "Falta información",
+        `Describe el problema con al menos ${MIN_CHARS} caracteres.`
+      );
       return;
     }
 
-    // Aquí luego conectas a tu backend / firestore:
-    // await reportProblem({ typeId, message: message.trim(), createdAt: Date.now() })
+    const payload = {
+      reportTarget,
+      reasonId,
+      message: cleanMessage,
+      status: "pending",
+      createdAt: Date.now(),
+    };
 
-    Alert.alert("Gracias", "Tu reporte fue enviado.");
+    console.log("Reporte enviado:", payload);
+
+    // Luego conectamos esto con backend / Firestore:
+    // await createReport(payload);
+
+    Alert.alert("Gracias", "Tu reporte fue enviado para revisión.");
     navigation.goBack();
   };
 
   return (
+  <KeyboardAvoidingView
+    style={styles.keyboardView}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+  >
     <LayoutScreen
       scroll
       edges={["top"]}
-      padding={{ top: 16, left: 16, right: 16, bottom: 24 }}
+      padding={{ top: 14, left: 20, right: 20, bottom: 34 }}
       bg="#FFFFFF"
     >
-      {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={10}>
-          <Text style={styles.backIcon}>←</Text>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+          hitSlop={12}
+        >
+          <Image source={icons.flecha} style={styles.backIcon} />
         </Pressable>
 
         <Text style={styles.headerTitle}>Reportar un problema</Text>
-        <View style={{ width: 36 }} />
+
+        <View style={styles.headerSpacer} />
       </View>
 
-      <Text style={styles.title}>Cuéntanos tu problema:</Text>
+      <View style={styles.content}>
+        <Text style={styles.subtitle}>
+          Selecciona qué tipo de reporte quieres enviar.
+        </Text>
 
-      <Text style={styles.sectionLabel}>Tipo de problema:</Text>
-      <ProblemTypeChips options={TYPES} value={typeId} onChange={setTypeId} />
+        <Text style={styles.sectionTitle}>¿Qué quieres reportar?</Text>
 
-      <ProblemMessageBox
-        value={message}
-        onChange={setMessage}
-        minChars={MIN_CHARS}
-        maxChars={MAX_CHARS}
-      />
+        <ProblemTypeChips
+          options={REPORT_TARGETS}
+          value={reportTarget}
+          onChange={handleTargetChange}
+          size="small"
+        />
 
-      <View style={{ height: 14 }} />
+        <Text style={[styles.sectionTitle, styles.reasonTitle]}>
+          Selecciona el motivo
+        </Text>
 
-      <SubmitButton title="Enviar" onPress={onSubmit} disabled={!canSubmit} />
+        <ProblemTypeChips
+          options={currentReasons}
+          value={reasonId}
+          onChange={setReasonId}
+          size="medium"
+        />
+
+        <Text style={[styles.sectionTitle, styles.messageTitle]}>
+          Cuéntanos qué ocurrió:
+        </Text>
+
+        <ProblemMessageBox
+          value={message}
+          onChange={setMessage}
+          minChars={MIN_CHARS}
+          maxChars={MAX_CHARS}
+          placeholder="Describe brevemente qué ocurrió..."
+        />
+
+        <SubmitButton title="Enviar" onPress={onSubmit} disabled={!canSubmit} />
+
+        <View style={styles.keyboardBottomSpace} />
+      </View>
     </LayoutScreen>
-  );
+  </KeyboardAvoidingView>
+);
 }

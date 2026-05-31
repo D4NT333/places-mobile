@@ -1,27 +1,38 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable } from "react-native";
+import { View, Text, TextInput, Pressable, Image } from "react-native";
+
+import { icons } from "../../../../../../../assets/icons";
+
 import styles from "./styles";
 
 export default function PasswordPill({ label, value, onChangeText }) {
-  const [secure, setSecure] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
 
-      <View style={styles.inputRow}>
+      <View style={styles.inputWrapper}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
-          secureTextEntry={secure}
+          placeholder="Ingresa tu contraseña"
+          placeholderTextColor="#9A9A9A"
+          secureTextEntry={!visible}
           autoCapitalize="none"
           autoCorrect={false}
           style={styles.input}
-          placeholderTextColor="#999"
         />
 
-        <Pressable onPress={() => setSecure((s) => !s)} hitSlop={10}>
-          <Text style={styles.eye}>{secure ? "👁️" : "🙈"}</Text>
+        <Pressable
+          onPress={() => setVisible((current) => !current)}
+          style={styles.eyeButton}
+          hitSlop={10}
+        >
+          <Image
+            source={visible ? icons.openeye : icons.closedeye}
+            style={styles.eyeIcon}
+          />
         </Pressable>
       </View>
     </View>

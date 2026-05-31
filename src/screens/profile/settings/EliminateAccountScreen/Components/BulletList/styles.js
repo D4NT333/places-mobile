@@ -2,26 +2,28 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   container: {
-    marginTop: 14,
     gap: 10,
-    paddingHorizontal: 6,
   },
+
   row: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 10,
   },
+
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#111",
-    marginTop: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#111111",
+    marginTop: 8,
   },
+
   text: {
     flex: 1,
-    fontSize: 12,
-    color: "#111",
-    lineHeight: 16,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#222222",
+    lineHeight: 22,
   },
 });

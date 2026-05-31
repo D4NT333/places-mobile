@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, Text } from "react-native";
+
 import styles from "./styles";
 
 export default function SubmitButton({ title = "Enviar", onPress, disabled }) {
@@ -8,12 +9,14 @@ export default function SubmitButton({ title = "Enviar", onPress, disabled }) {
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
-        styles.btn,
-        disabled && styles.btnDisabled,
-        pressed && !disabled && styles.btnPressed,
+        styles.button,
+        disabled && styles.buttonDisabled,
+        pressed && !disabled && styles.buttonPressed,
       ]}
     >
-      <Text style={[styles.text, disabled && styles.textDisabled]}>{title}</Text>
+      <Text style={[styles.text, disabled && styles.textDisabled]}>
+        {title}
+      </Text>
     </Pressable>
   );
 }
