@@ -1,65 +1,97 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
-  card: {
+export default StyleSheet.create({
+  screen: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: "#374151",
-    borderRadius: 12,
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 16,
   },
 
   headerRow: {
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 18,
   },
 
   closeButton: {
-    width: 28,
-    height: 28,
-    justifyContent: "center",
+    width: 38,
+    height: 38,
     alignItems: "center",
-    marginRight: 10,
+    justifyContent: "center",
+    marginRight: 6,
   },
 
   closeText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#374151",
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111111",
   },
 
   placeName: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#374151",
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111111",
   },
 
   statusText: {
-    marginLeft: 8,
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#6B7280",
-    maxWidth: 72,
+    maxWidth: 96,
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#555555",
     textAlign: "right",
+    marginLeft: 8,
+  },
+
+  content: {
+    paddingTop: 18,
+    paddingBottom: 24,
   },
 
   submittedAt: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#4B5563",
-    marginBottom: 10,
+    color: "#555555",
+    marginBottom: 12,
+  },
+
+  descriptionIntro: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333333",
+    lineHeight: 20,
+    marginBottom: 8,
   },
 
   divider: {
     height: 1.5,
-    backgroundColor: "#4B5563",
-    marginBottom: 8,
+    backgroundColor: "#4F5660",
+    marginBottom: 18,
+  },
+
+  rejectedBox: {
+    marginTop: 18,
+    borderWidth: 1.5,
+    borderColor: "#111111",
+    borderRadius: 14,
+    padding: 14,
+    backgroundColor: "#FFFFFF",
+  },
+
+  rejectedTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#111111",
+    marginBottom: 6,
+  },
+
+  rejectedText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#444444",
+    lineHeight: 21,
+  },
+
+  bottomSpace: {
+    height: 40,
   },
 });
-
-export default styles;

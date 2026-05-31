@@ -1,111 +1,124 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   card: {
+    width: "100%",
     borderWidth: 1.5,
-    borderColor: "#6B7280",
-    borderRadius: 10,
+    borderColor: "#6F7680",
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    paddingBottom: 10,
   },
 
-  topRow: {
+  cardPressed: {
+    opacity: 0.75,
+  },
+
+  mainRow: {
     flexDirection: "row",
     alignItems: "flex-start",
   },
 
   imageCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     borderWidth: 1.5,
-    borderColor: "#6B7280",
-    justifyContent: "center",
+    borderColor: "#6F7680",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
+    justifyContent: "center",
     marginRight: 10,
-    flexShrink: 0,
+  },
+
+  image: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 31,
+    resizeMode: "cover",
   },
 
   imageText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#4B5563",
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#555555",
   },
 
-  infoSection: {
+  info: {
     flex: 1,
-    paddingTop: 4,
+    paddingTop: 2,
   },
 
   name: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#4B5563",
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#4B5360",
     marginBottom: 2,
   },
 
   description: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#4B5563",
-    marginBottom: 4,
-  },
-
-  submittedAt: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#4B5563",
+    color: "#4B5360",
+    marginBottom: 5,
   },
 
-  bottomSection: {
-    marginTop: 8,
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+
+  date: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#111111",
+  },
+
+  status: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#4B5360",
+    textAlign: "right",
   },
 
   divider: {
     height: 1.5,
-    backgroundColor: "#6B7280",
-    width: "100%",
+    backgroundColor: "#6F7680",
+    marginTop: 8,
+    marginBottom: 6,
   },
 
-  statusRow: {
-    alignItems: "flex-end",
-    marginTop: 6,
-    minHeight: 20,
-    justifyContent: "center",
-  },
+ actionsRow: {
+  minHeight: 34,
+  flexDirection: "row",
+  justifyContent: "flex-end",
+  alignItems: "center",
+  gap: 8,
+},
 
-  statusText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#6B7280",
-  },
-
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-    marginTop: 4,
-  },
-
-  button: {
-    minWidth: 86,
-    height: 30,
+  actionButton: {
+    minHeight: 28,
     paddingHorizontal: 12,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: "#6B7280",
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
+    borderColor: "#706a6a",
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
 
-  buttonText: {
-    fontSize: 12,
+  actionPressed: {
+    opacity: 0.7,
+  },
+
+  actionText: {
+    fontSize: 13,
     fontWeight: "700",
-    color: "#6B7280",
+    color: "#111111",
   },
 });
-
-export default styles;

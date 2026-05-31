@@ -1,36 +1,13 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
+
 import styles from "./styles";
 
-function getStatusLabel(status) {
-  switch (status) {
-    case "approved":
-      return "Aprobado";
-    case "in_review":
-      return "En revisión";
-    case "returned":
-      return "Devuelto";
-    case "rejected":
-      return "Rechazado";
-    default:
-      return "Pendiente";
-  }
-}
-
-function getActions(status) {
-  switch (status) {
-    case "approved":
-      return ["delete"];
-    case "in_review":
-      return [];
-    case "returned":
-      return ["edit", "delete"];
-    case "rejected":
-      return ["reason", "delete"];
-    default:
-      return ["delete"];
-  }
-}
+const STATUS_LABELS = {
+  approved: "Aprobado",
+  in_review: "En revisión",
+  rejected: "Rechazado",
+};
 
 export default function AddedDescriptionCard({
   item,
@@ -39,67 +16,68 @@ export default function AddedDescriptionCard({
   onEdit,
   onViewReason,
 }) {
-  const statusLabel = getStatusLabel(item.status);
-  const actions = getActions(item.status);
+  const statusLabel = STATUS_LABELS[item.status] || "En revisión";
+
+  const canDelete = item.status === "approved" || item.status === "rejected";
+  const canViewReason = item.status === "rejected";
 
   return (
-    <Pressable style={styles.card} onPress={() => onPressCard?.(item)}>
-      <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={1}>
-          {item.name}
-        </Text>
+    <Pressable
+      onPress={() => onPressCard(item)}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    >
+      <View style={styles.mainRow}>
+        <View style={styles.imageCircle}>
+          {item.image ? (
+            <Image source={item.image} style={styles.image} />
+          ) : (
+            <Text style={styles.imageText}>IMG</Text>
+          )}
+        </View>
 
-        <Text style={styles.description} numberOfLines={2}>
-          {item.description}
-        </Text>
-
-        <View style={styles.metaRow}>
-          <Text style={styles.dateText} numberOfLines={1}>
-            {item.submittedAtLabel}
+        <View style={styles.info}>
+          <Text numberOfLines={1} style={styles.name}>
+            {item.name}
           </Text>
 
-          <Text style={styles.statusText}>{statusLabel}</Text>
+          <Text numberOfLines={1} style={styles.description}>
+            {item.description}
+          </Text>
+
+          <View style={styles.metaRow}>
+            <Text style={styles.date}>{item.submittedAtLabel}</Text>
+
+            <Text style={styles.status}>{statusLabel}</Text>
+          </View>
         </View>
       </View>
 
       <View style={styles.divider} />
 
       <View style={styles.actionsRow}>
-        {actions.includes("reason") ? (
+        {canViewReason && (
           <Pressable
-            style={styles.actionButton}
-            onPress={(event) => {
-              event.stopPropagation();
-              onViewReason?.(item.id);
-            }}
+            onPress={() => onViewReason(item.id)}
+            style={({ pressed }) => [
+              styles.actionButton,
+              pressed && styles.actionPressed,
+            ]}
           >
-            <Text style={styles.actionButtonText}>Ver motivo</Text>
+            <Text style={styles.actionText}>Ver motivo</Text>
           </Pressable>
-        ) : null}
+        )}
 
-        {actions.includes("edit") ? (
+        {canDelete && (
           <Pressable
-            style={styles.actionButton}
-            onPress={(event) => {
-              event.stopPropagation();
-              onEdit?.(item.id);
-            }}
+            onPress={() => onDelete(item.id)}
+            style={({ pressed }) => [
+              styles.actionButton,
+              pressed && styles.actionPressed,
+            ]}
           >
-            <Text style={styles.actionButtonText}>Editar</Text>
+            <Text style={styles.actionText}>Eliminar</Text>
           </Pressable>
-        ) : null}
-
-        {actions.includes("delete") ? (
-          <Pressable
-            style={styles.actionButton}
-            onPress={(event) => {
-              event.stopPropagation();
-              onDelete?.(item.id);
-            }}
-          >
-            <Text style={styles.actionButtonText}>Eliminar</Text>
-          </Pressable>
-        ) : null}
+        )}
       </View>
     </Pressable>
   );

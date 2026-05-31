@@ -1,8 +1,10 @@
 import React from "react";
-import { ScrollView, Text, View, Pressable } from "react-native";
+import { ScrollView, Text, View, Pressable, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
+import { icons } from "../../../../assets/icons";
+
 import AddedDescriptionCard from "./Components/AddedDescriptionCard";
 
 import styles from "./styles";
@@ -10,25 +12,29 @@ import styles from "./styles";
 const MOCK_DESCRIPTIONS = [
   {
     id: "1",
-    name: "Nombre",
-    description: "Descripcion",
+    name: "Bosque del Centinela",
+    description: "Un lugar tranquilo rodeado de naturaleza.",
     submittedAtLabel: "Enviado el 14 de junio",
     status: "approved",
+    image: null,
   },
   {
     id: "2",
-    name: "Nombre",
-    description: "Descripcion",
+    name: "La Chata de Guadalajara",
+    description: "Propuesta de descripción para restaurante tradicional.",
     submittedAtLabel: "Enviado el 14 de junio",
     status: "in_review",
+    image: null,
   },
   {
     id: "4",
-    name: "Nombre",
-    description: "Descripcion",
+    name: "Café Chapultepec",
+    description: "Café casual con ambiente agradable.",
     submittedAtLabel: "Enviado el 14 de junio",
     status: "rejected",
+    image: null,
   },
+  
 ];
 
 export default function AddedDescriptionsScreen() {
@@ -65,33 +71,44 @@ export default function AddedDescriptionsScreen() {
   };
 
   return (
-    <LayoutScreen>
+    <LayoutScreen
+      scroll={false}
+      edges={["top"]}
+      padding={{ top: 16, left: 16, right: 16, bottom: 0 }}
+      bg="#FFFFFF"
+    >
       <View style={styles.screen}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Pressable onPress={handleGoBack} style={styles.backButton}>
-              <Text style={styles.backIcon}>←</Text>
-            </Pressable>
+        <View style={styles.header}>
+          <Pressable onPress={handleGoBack} style={styles.backButton} hitSlop={12}>
+            <Image source={icons.flecha} style={styles.backIcon} />
+          </Pressable>
 
-            <Text style={styles.headerTitle}>Descripciones añadidas</Text>
-          </View>
+          <Text style={styles.headerTitle}>Descripciones añadidas</Text>
 
-          <ScrollView
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-          >
-            {MOCK_DESCRIPTIONS.map((item) => (
-              <AddedDescriptionCard
-                key={item.id}
-                item={item}
-                onPressCard={handlePressCard}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onViewReason={handleViewReason}
-              />
-            ))}
-          </ScrollView>
+          <View style={styles.headerSpacer} />
         </View>
+
+        <Text style={styles.subtitle}>
+          Revisa el estado de las descripciones que has propuesto para distintos lugares.
+        </Text>
+
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          {MOCK_DESCRIPTIONS.map((item) => (
+            <AddedDescriptionCard
+              key={item.id}
+              item={item}
+              onPressCard={handlePressCard}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              onViewReason={handleViewReason}
+            />
+          ))}
+
+          <View style={styles.bottomSpace} />
+        </ScrollView>
       </View>
     </LayoutScreen>
   );

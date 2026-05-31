@@ -1,55 +1,62 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   screen: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 12,
-  },
-
-  container: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: "#4B5563",
-    borderRadius: 12,
     backgroundColor: "#FFFFFF",
-    overflow: "hidden",
   },
 
   header: {
+    minHeight: 42,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    justifyContent: "space-between",
   },
 
   backButton: {
-    width: 28,
-    height: 28,
-    justifyContent: "center",
+    width: 38,
+    height: 38,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   backIcon: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    lineHeight: 24,
+    width: 23,
+    height: 23,
+    resizeMode: "contain",
+    tintColor: "#111111",
   },
 
   headerTitle: {
-    fontSize: 18,
+    flex: 1,
+    textAlign: "left",
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111111",
+  },
+
+  headerSpacer: {
+    width: 38,
+    height: 38,
+  },
+
+  subtitle: {
+    marginTop: 8,
+    marginBottom: 20,
+    paddingHorizontal: 6,
+    textAlign: "left",
+    fontSize: 14,
     fontWeight: "700",
-    color: "#4B5563",
+    color: "#555555",
+    lineHeight: 22,
   },
 
   content: {
-    paddingHorizontal: 8,
-    paddingBottom: 16,
-    gap: 16,
+    paddingBottom: 20,
+    gap: 14,
+  },
+
+  bottomSpace: {
+    height: 40,
   },
 });
-
-export default styles;
