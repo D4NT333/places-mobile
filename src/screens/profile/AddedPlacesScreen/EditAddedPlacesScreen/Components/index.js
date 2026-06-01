@@ -9,3 +9,4 @@ export { default as EditablePriceModal } from "./EditablePriceModal";
 export { default as ResubmitSuccessModal } from "./ResubmitSuccessModal";
 export { default as EditableScheduleModal } from "./EditableScheduleModal";
 export { default as EditableReturnedSubtagsBox } from "./EditableReturnedSubtagsBox";
+export { default as DeleteSubtagWarningModal } from "./DeleteSubtagWarningModal";

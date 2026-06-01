@@ -21,53 +21,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
 
-  rowBlock: {
-    position: "relative",
-    paddingTop: 28,
-  },
-
-  rowBlockWithGap: {
-    marginBottom: 22,
-    paddingBottom: 0,
-  },
-
-  editButton: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    zIndex: 2,
-  },
-
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: "900",
-    color: "#303847",
-    textDecorationLine: "underline",
-  },
-
-  columns: {
+  topRow: {
     flexDirection: "row",
-    alignItems: "stretch",
-  },
-
-  column: {
-    flex: 1,
-    justifyContent: "flex-start",
-  },
-
-  columnLabel: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#6B7280",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
 
-  divider: {
-    width: 2,
-    backgroundColor: "#4B5563",
-    borderRadius: 99,
-    marginHorizontal: 18,
-    alignSelf: "stretch",
+  topActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+
+  editText: {
+    color: "#303847",
+    fontSize: 14,
+    fontWeight: "900",
+    textDecorationLine: "underline",
+  },
+
+  deleteX: {
+    color: "#EF4444",
+    fontSize: 24,
+    fontWeight: "900",
+    lineHeight: 26,
   },
 
   oldPill: {
@@ -113,6 +91,83 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontWeight: "700",
   },
+  topRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 14,
+},
+
+editText: {
+  color: "#303847",
+  fontSize: 14,
+  fontWeight: "900",
+  textDecorationLine: "underline",
+},
+
+compactContent: {
+  alignSelf: "flex-start",
+},
+
+pillWrapper: {
+  position: "relative",
+  alignSelf: "flex-start",
+  paddingTop: 6,
+  paddingRight: 8,
+},
+
+deleteBubble: {
+  position: "absolute",
+  top: -6,
+  right: -6,
+  width: 24,
+  height: 24,
+  borderRadius: 12,
+  backgroundColor: "#303847",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 5,
+},
+
+deleteBubbleText: {
+  color: "#FFFFFF",
+  fontSize: 18,
+  fontWeight: "900",
+  lineHeight: 20,
+},
+
+rowBlock: {
+  width: "100%",
+},
+
+rowBlockWithGap: {
+  marginBottom: 28,
+},
+
+columns: {
+  flexDirection: "row",
+  alignItems: "stretch",
+},
+
+column: {
+  flex: 1,
+  justifyContent: "flex-start",
+},
+
+columnLabel: {
+  fontSize: 13,
+  fontWeight: "800",
+  color: "#6B7280",
+  marginBottom: 10,
+},
+
+divider: {
+  width: 2,
+  backgroundColor: "#4B5563",
+  borderRadius: 99,
+  marginHorizontal: 18,
+  alignSelf: "stretch",
+},
 });
 
 export default styles;

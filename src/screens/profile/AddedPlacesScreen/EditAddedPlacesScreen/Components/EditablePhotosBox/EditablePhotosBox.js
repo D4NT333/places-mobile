@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Image, Modal, Pressable, Text, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Alert, Image, Modal, Pressable, Text, View } from "react-native";
 
 import { pickSingleImage } from "../../../../../../services";
 
@@ -10,13 +10,27 @@ export default function EditablePhotosBox({
   photos = [],
   reviewField,
   helperText,
-  onChangeReplacementPhotos,
+  minPhotos = 3,
+  maxPhotos = 6,
+  onChangePhotoCorrections,
 }) {
-  
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [replacementPhotos, setReplacementPhotos] = useState({});
+  const [photoCorrections, setPhotoCorrections] = useState({});
 
   const needsReview = Boolean(reviewField?.selected);
+
+  const visiblePhotosCount = useMemo(() => {
+    const deletedCount = Object.values(photoCorrections).filter(
+      (correction) => correction?.type === "delete"
+    ).length;
+
+    return photos.length - deletedCount;
+  }, [photos.length, photoCorrections]);
+
+  const emitCorrections = (next) => {
+    setPhotoCorrections(next);
+    onChangePhotoCorrections?.(next);
+  };
 
   const handleOpenPhotoModal = (photo) => {
     setSelectedPhoto(photo);
@@ -34,21 +48,53 @@ export default function EditablePhotosBox({
 
       if (!pickedPhoto) return;
 
-     setReplacementPhotos((prev) => {
       const next = {
-        ...prev,
-        [selectedPhoto.id]: pickedPhoto,
+        ...photoCorrections,
+        [selectedPhoto.id]: {
+          type: "replace",
+          photo: pickedPhoto,
+        },
       };
 
-      onChangeReplacementPhotos?.(next);
-
-      return next;
-    });
-
+      emitCorrections(next);
       setSelectedPhoto(null);
     } catch (error) {
       console.log("Error al seleccionar nueva foto:", error);
+
+      Alert.alert(
+        "Foto no válida",
+        error?.message || "No se pudo seleccionar la foto."
+      );
     }
+  };
+
+  const handleDeletePhoto = () => {
+    if (!selectedPhoto?.id) return;
+
+    if (visiblePhotosCount <= minPhotos) {
+      Alert.alert(
+        "No puedes eliminar esta foto",
+        `La propuesta debe conservar al menos ${minPhotos} fotos.`
+      );
+      return;
+    }
+
+    const next = {
+      ...photoCorrections,
+      [selectedPhoto.id]: {
+        type: "delete",
+      },
+    };
+
+    emitCorrections(next);
+    setSelectedPhoto(null);
+  };
+
+  const handleUndoCorrection = (photoId) => {
+    const next = { ...photoCorrections };
+    delete next[photoId];
+
+    emitCorrections(next);
   };
 
   const getPhotoUri = (photo) => {
@@ -84,25 +130,43 @@ export default function EditablePhotosBox({
     );
   };
 
-  const selectedReplacementPhoto = selectedPhoto?.id
-    ? replacementPhotos[selectedPhoto.id]
+  const selectedCorrection = selectedPhoto?.id
+    ? photoCorrections[selectedPhoto.id]
     : null;
+
+  const selectedReplacementPhoto =
+    selectedCorrection?.type === "replace" ? selectedCorrection.photo : null;
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
 
+      <Text style={styles.helperText}>
+        Deben quedar entre {minPhotos} y {maxPhotos} fotos. Actualmente quedarían{" "}
+        {visiblePhotosCount}.
+      </Text>
+
       <View style={[styles.box, needsReview && styles.boxReview]}>
         {photos.map((photo) => {
           const photoNeedsReview = Boolean(photo.selected);
-          const replacementPhoto = replacementPhotos[photo.id];
+          const correction = photoCorrections[photo.id];
+
+          const isDeleted = correction?.type === "delete";
+          const replacementPhoto =
+            correction?.type === "replace" ? correction.photo : null;
 
           return (
-            <View key={photo.id} style={styles.photoItem}>
+            <View
+              key={photo.id}
+              style={[
+                styles.photoItem,
+                isDeleted && styles.photoItemDeleted,
+              ]}
+            >
               <View style={styles.photoHeader}>
                 <Text style={styles.photoTitle}>{photo.label}</Text>
 
-                {photoNeedsReview && (
+                {photoNeedsReview && !isDeleted && (
                   <Pressable
                     onPress={() => handleOpenPhotoModal(photo)}
                     hitSlop={8}
@@ -112,11 +176,26 @@ export default function EditablePhotosBox({
                     </Text>
                   </Pressable>
                 )}
+
+                {photoNeedsReview && isDeleted && (
+                  <Pressable
+                    onPress={() => handleUndoCorrection(photo.id)}
+                    hitSlop={8}
+                  >
+                    <Text style={styles.editText}>Deshacer</Text>
+                  </Pressable>
+                )}
               </View>
 
-              {renderPhotoPreview(
-                replacementPhoto || photo,
-                photoNeedsReview && styles.photoPlaceholderReview
+              {isDeleted ? (
+                <View style={styles.photoPlaceholderDeleted}>
+                  <Text style={styles.emptyPhotoText}>Foto eliminada</Text>
+                </View>
+              ) : (
+                renderPhotoPreview(
+                  replacementPhoto || photo,
+                  photoNeedsReview && styles.photoPlaceholderReview
+                )
               )}
 
               <Text
@@ -125,11 +204,13 @@ export default function EditablePhotosBox({
                   photoNeedsReview && styles.photoHelperReview,
                 ]}
               >
-                {replacementPhoto
-                  ? "Nueva foto seleccionada."
-                  : photoNeedsReview
-                  ? photo.message || "Esta foto requiere revisión."
-                  : "texto"}
+                {isDeleted
+                  ? "Esta foto será eliminada."
+                  : replacementPhoto
+                    ? "Nueva foto seleccionada."
+                    : photoNeedsReview
+                      ? photo.message || "Esta foto requiere revisión."
+                      : "Foto sin observaciones."}
               </Text>
             </View>
           );
@@ -160,7 +241,7 @@ export default function EditablePhotosBox({
 
             <Text style={styles.modalMessage}>
               {selectedPhoto?.message ||
-                "Selecciona una nueva foto para reemplazar esta imagen."}
+                "Puedes reemplazar esta foto o eliminarla si no es necesaria."}
             </Text>
 
             <View style={styles.photoCompareRow}>
@@ -184,9 +265,25 @@ export default function EditablePhotosBox({
                   )
                 ) : (
                   <View style={styles.comparePhotoBox}>
-                    <Text style={styles.comparePhotoText}>Nueva foto</Text>
+                    <Text style={styles.comparePhotoText}>Reemplazar</Text>
                   </View>
                 )}
+              </Pressable>
+            </View>
+
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.deleteButton}
+                onPress={handleDeletePhoto}
+              >
+                <Text style={styles.deleteButtonText}>Eliminar foto</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.cancelButton}
+                onPress={handleClosePhotoModal}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
               </Pressable>
             </View>
           </View>

@@ -16,6 +16,7 @@ import {
   EditablePriceModal,
   EditableScheduleModal,
   ResubmitSuccessModal,
+  DeleteSubtagWarningModal,
 } from "./Components";
 
 import getReturnedPlaceSubmissionEditDataService from "../../../../services/api/getReturnedPlaceSubmissionEditData.service";
@@ -26,7 +27,7 @@ import { getApproachesByTagId } from "../../../../services/firebase/firestore/ap
 
 import {
   uploadCorrectedSubmissionPhotoService,
-  resubmitReturnedPlaceSubmissionService,
+  resubmitReturnedPlaceSubmissionService
 } from "../../../../services";
 
 import styles from "./styles";
@@ -459,6 +460,35 @@ function getPhotoId(photo = {}, index = 0) {
   );
 }
 
+const MIN_PHOTOS = 3;
+const MAX_PHOTOS = 6;
+
+function getReviewedPhotos(oldPlace = {}) {
+  return Array.isArray(oldPlace.photos)
+    ? oldPlace.photos.filter((photo) => photo.selected)
+    : [];
+}
+
+function getFinalPhotosCount({ oldPhotos = [], photoCorrections = {} }) {
+  const deletedCount = Object.values(photoCorrections).filter(
+    (correction) => correction?.type === "delete"
+  ).length;
+
+  return oldPhotos.length - deletedCount;
+}
+
+function reviewedPhotosWereResolved({ oldPlace, photoCorrections }) {
+  const reviewedPhotos = getReviewedPhotos(oldPlace);
+
+  if (reviewedPhotos.length === 0) return false;
+
+  return reviewedPhotos.every((photo) => {
+    const correction = photoCorrections[photo.id];
+
+    return correction?.type === "replace" || correction?.type === "delete";
+  });
+}
+
 function normalizePhotosForEdit({ photos = [], photosField }) {
   const needsPhotosReview = Boolean(photosField?.selected);
 
@@ -499,6 +529,145 @@ function normalizePhotosForEdit({ photos = [], photosField }) {
           "Esta foto requiere revisión."
         : "",
       raw: photo,
+    };
+  });
+}
+
+function getSubtagSlotKey(index) {
+  return `slot_${index}`;
+}
+
+function getIndexFromSubtagSlotKey(key = "") {
+  const value = String(key).replace("slot_", "");
+  const index = Number(value);
+
+  return Number.isInteger(index) ? index : -1;
+}
+
+function getOldSubtagIndexFromItem(item = {}, oldSubtags = []) {
+  if (Number.isInteger(Number(item?.oldIndex))) {
+    return Number(item.oldIndex);
+  }
+
+  if (item?.oldLabel) {
+    const foundIndex = oldSubtags.findIndex((subtag) =>
+      sameTextValue(subtag, item.oldLabel)
+    );
+
+    if (foundIndex >= 0) return foundIndex;
+  }
+
+  if (item?.label) {
+    const foundIndex = oldSubtags.findIndex((subtag) =>
+      sameTextValue(subtag, item.label)
+    );
+
+    if (foundIndex >= 0) return foundIndex;
+  }
+
+  const rawIndex = Number(item?.index);
+
+  if (Number.isInteger(rawIndex)) {
+    if (oldSubtags[rawIndex]) return rawIndex;
+    if (oldSubtags[rawIndex - 1]) return rawIndex - 1;
+  }
+
+  return -1;
+}
+
+function getOldSubtagLabelFromItem(item = {}, oldSubtags = []) {
+  if (item?.oldLabel) return item.oldLabel;
+
+  const index = getOldSubtagIndexFromItem(item, oldSubtags);
+
+  if (index >= 0) {
+    return oldSubtags[index] || "";
+  }
+
+  return item?.label || "";
+}
+
+function getSubtagKeyFromItem(item = {}, oldSubtags = []) {
+  if (item?.correctionKey) return item.correctionKey;
+
+  const index = getOldSubtagIndexFromItem(item, oldSubtags);
+
+  if (index < 0) return "";
+
+  return getSubtagSlotKey(index);
+}
+
+function getOldSubtagLabelFromSlotKey(key = "", oldSubtags = []) {
+  const index = getIndexFromSubtagSlotKey(key);
+
+  if (index < 0) return "";
+
+  return oldSubtags[index] || "";
+}
+
+function buildFinalSubtagsFromCorrections({
+  oldSubtags = [],
+  rows = [],
+  corrections = {},
+}) {
+  const result = [...oldSubtags];
+
+  rows.forEach((row) => {
+    const correction = corrections[row.correctionKey];
+
+    if (!correction) return;
+
+    if (correction.type === "delete") {
+      result[row.oldIndex] = null;
+      return;
+    }
+
+    if (correction.type === "replace") {
+      result[row.oldIndex] = correction.label;
+    }
+  });
+
+  return result.filter(Boolean);
+}
+
+function buildReturnedSubtagRows({ returnFields = {}, oldSubtags = [] }) {
+  const items = Array.isArray(returnFields?.subtags?.items)
+    ? returnFields.subtags.items
+    : [];
+
+  const selectedItems = items.filter((item) => item?.selected);
+
+  return selectedItems.map((item, visualIndex) => {
+    const itemIndex = Number(item?.index);
+
+    let oldIndex = -1;
+
+    if (Number.isInteger(itemIndex) && oldSubtags[itemIndex]) {
+      oldIndex = itemIndex;
+    } else if (Number.isInteger(itemIndex) && oldSubtags[itemIndex - 1]) {
+      oldIndex = itemIndex - 1;
+    } else if (item?.label) {
+      oldIndex = oldSubtags.findIndex((subtag) =>
+        sameTextValue(subtag, item.label)
+      );
+    }
+
+    if (oldIndex < 0) {
+      oldIndex = visualIndex;
+    }
+
+    const oldLabel =
+      oldSubtags[oldIndex] ||
+      item?.label ||
+      `Subetiqueta ${visualIndex + 1}`;
+
+    return {
+      id: `slot_${visualIndex}`,
+      correctionKey: `slot_${visualIndex}`,
+      oldIndex,
+      oldLabel,
+      message: item?.message || "Esta subetiqueta requiere corrección.",
+      raw: item,
     };
   });
 }
@@ -609,8 +778,10 @@ export default function EditAddedPlacesScreen() {
 
   const [tag, setTag] = useState(FALLBACK_PLACE.tag);
   const [subtags, setSubtags] = useState(FALLBACK_PLACE.subtags);
-  const [activeSubtagCorrectionIndex, setActiveSubtagCorrectionIndex] =
-    useState(null);
+  const [subtagCorrections, setSubtagCorrections] = useState({});
+  const [activeSubtagCorrectionKey, setActiveSubtagCorrectionKey] =
+  useState(null);
+  const [activeSubtagItem, setActiveSubtagItem] = useState(null);
   const [approaches, setApproaches] = useState(FALLBACK_PLACE.approaches);
 
   const [selectedTagId, setSelectedTagId] = useState(null);
@@ -629,11 +800,14 @@ export default function EditAddedPlacesScreen() {
 
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
 
-  const [replacementPhotos, setReplacementPhotos] = useState({});
+  const [photoCorrections, setPhotoCorrections] = useState({});
   const [editedLocation, setEditedLocation] = useState(null);
 
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const [deleteSubtagModalVisible, setDeleteSubtagModalVisible] = useState(false);
+const [pendingDeleteSubtagRow, setPendingDeleteSubtagRow] = useState(null);
 
   const editSources = useMemo(
     () =>
@@ -646,6 +820,13 @@ export default function EditAddedPlacesScreen() {
 
   const { oldPlace, newPlace, returnFields, generalMessage } = editSources;
 
+  const returnedSubtagRows = useMemo(() => {
+  return buildReturnedSubtagRows({
+    returnFields,
+    oldSubtags: oldPlace.subtags,
+  });
+}, [returnFields, oldPlace.subtags]);
+
   const selectedTagLabel = tag?.[0] || "";
 
   const selectedTagOption = tagOptions.find((option) => {
@@ -656,6 +837,66 @@ export default function EditAddedPlacesScreen() {
   });
 
   const resolvedSelectedTagId = selectedTagOption?.id || selectedTagId;
+
+  const handleDeleteSubtag = (row) => {
+  if (!row?.correctionKey) return;
+
+  setPendingDeleteSubtagRow(row);
+  setDeleteSubtagModalVisible(true);
+};
+
+const handleCloseDeleteSubtagModal = () => {
+  setDeleteSubtagModalVisible(false);
+  setPendingDeleteSubtagRow(null);
+};
+
+const confirmDeleteSubtag = () => {
+  const row = pendingDeleteSubtagRow;
+
+  if (!row?.correctionKey) {
+    setDeleteSubtagModalVisible(false);
+    setPendingDeleteSubtagRow(null);
+    return;
+  }
+
+  setSubtagCorrections((prev) => {
+    const nextCorrections = {
+      ...prev,
+      [row.correctionKey]: {
+        type: "delete",
+        oldLabel: row.oldLabel,
+        oldIndex: row.oldIndex,
+      },
+    };
+
+    const nextSubtags = buildFinalSubtagsFromCorrections({
+      oldSubtags: oldPlace.subtags,
+      rows: returnedSubtagRows,
+      corrections: nextCorrections,
+    });
+
+    if (nextSubtags.length <= 0) {
+      Alert.alert(
+        "No puedes eliminarla",
+        "La propuesta debe conservar al menos una subetiqueta."
+      );
+
+      return prev;
+    }
+
+    setEditingFields((current) => ({
+      ...current,
+      subtags: true,
+    }));
+
+    setSubtags(nextSubtags);
+
+    return nextCorrections;
+  });
+
+  setDeleteSubtagModalVisible(false);
+  setPendingDeleteSubtagRow(null);
+};
 
   const selectedTagHasNoApproaches =
     tagDoesNotUseApproaches(resolvedSelectedTagId);
@@ -788,19 +1029,30 @@ export default function EditAddedPlacesScreen() {
     }
 
     if (returnFields.photos?.selected) {
-      const reviewedPhotos = oldPlace.photos.filter((photo) => photo.selected);
+  const finalPhotosCount = getFinalPhotosCount({
+    oldPhotos: oldPlace.photos,
+    photoCorrections,
+  });
 
-      const allReviewedPhotosChanged =
-        reviewedPhotos.length > 0 &&
-        reviewedPhotos.every((photo) => Boolean(replacementPhotos[photo.id]));
+  const allReviewedPhotosResolved = reviewedPhotosWereResolved({
+    oldPlace,
+    photoCorrections,
+  });
 
-      checks.push({
-        field: "photos",
-        valid: allReviewedPhotosChanged,
-        message: "Cambia las fotos marcadas para revisión.",
-      });
-    }
-
+  checks.push({
+    field: "photos",
+    valid:
+      allReviewedPhotosResolved &&
+      finalPhotosCount >= MIN_PHOTOS &&
+      finalPhotosCount <= MAX_PHOTOS,
+    message:
+      finalPhotosCount < MIN_PHOTOS
+        ? "La propuesta debe conservar al menos 3 fotos."
+        : finalPhotosCount > MAX_PHOTOS
+          ? "La propuesta no puede tener más de 6 fotos."
+          : "Cambia o elimina las fotos marcadas para revisión.",
+  });
+}
     if (returnFields.location?.selected) {
       checks.push({
         field: "location",
@@ -821,7 +1073,7 @@ export default function EditAddedPlacesScreen() {
     priceRange,
     openingHours,
     oldPlace,
-    replacementPhotos,
+    photoCorrections,
     editedLocation,
     selectedTagHasNoApproaches,
   ]);
@@ -1059,63 +1311,63 @@ export default function EditAddedPlacesScreen() {
     return -1;
   }
 
-  const uploadCorrectedPhotos = async () => {
-    const entries = Object.entries(replacementPhotos);
+const uploadCorrectedPhotos = async () => {
+  const entries = Object.entries(photoCorrections);
 
-    if (entries.length === 0) return [];
+  if (entries.length === 0) return [];
 
-    const returnId = editData?.activeReturn?.returnId;
+  const returnId = editData?.activeReturn?.returnId;
 
-    if (!returnId) {
-      throw new Error("Falta returnId para subir fotos corregidas.");
-    }
+  if (!returnId) {
+    throw new Error("Falta returnId para subir fotos corregidas.");
+  }
 
-    const uploadedPhotos = await Promise.all(
-      entries.map(async ([oldPhotoId, newPhoto]) => {
-        const photoIndex = findOldPhotoIndexByReplacementKey({
-          photos: oldPlace.photos,
+  const uploadedPhotoOperations = await Promise.all(
+    entries.map(async ([oldPhotoId, correction]) => {
+      const photoIndex = findOldPhotoIndexByReplacementKey({
+        photos: oldPlace.photos,
+        oldPhotoId,
+      });
+
+      if (photoIndex < 0) {
+        throw new Error(`No se encontró la foto original: ${oldPhotoId}`);
+      }
+
+      const oldPhoto = oldPlace.photos[photoIndex];
+
+      if (correction?.type === "delete") {
+        return {
+          type: "delete",
           oldPhotoId,
-        });
+          photoIndex,
+          oldPhoto,
+        };
+      }
 
-        if (photoIndex < 0) {
-          console.log("NO SE ENCONTRÓ FOTO ORIGINAL:", {
-            oldPhotoId,
-            normalizedOldPhotoId: normalizePhotoKey(oldPhotoId),
-            oldPlacePhotos: oldPlace.photos.map((photo, index) => ({
-              index,
-              id: photo.id,
-              photoId: photo.photoId,
-              label: photo.label,
-              rawPhotoId: photo.raw?.photoId,
-              rawOriginalFileName: photo.raw?.original?.fileName,
-              rawMediumFileName: photo.raw?.medium?.fileName,
-              rawThumbnailFileName: photo.raw?.thumbnail?.fileName,
-            })),
-          });
-
-          throw new Error(`No se encontró la foto original: ${oldPhotoId}`);
-        }
-
-        const oldPhoto = oldPlace.photos[photoIndex];
-
+      if (correction?.type === "replace") {
         const uploadedPhoto = await uploadCorrectedSubmissionPhotoService({
           submissionId: placeId,
           returnId,
           oldPhoto,
-          newPhoto,
+          newPhoto: correction.photo,
           photoIndex,
         });
 
         return {
+          type: "replace",
           oldPhotoId,
           photoIndex,
+          oldPhoto,
           photo: uploadedPhoto,
         };
-      })
-    );
+      }
 
-    return uploadedPhotos;
-  };
+      return null;
+    })
+  );
+
+  return uploadedPhotoOperations.filter(Boolean);
+};
 
 const handleOpenScheduleModal = () => {
   setEditingFields((prev) => ({
@@ -1282,10 +1534,14 @@ const handleOpenApproachModal = () => {
   setActiveOptionModal("approaches");
 };
 
-const handleOpenSubtagModal = (item) => {
-  const index = Number(item.index);
 
-  setActiveSubtagCorrectionIndex(Number.isInteger(index) ? index : null);
+const handleOpenSubtagModal = (row) => {
+  if (!row?.correctionKey) return;
+
+  console.log("EDITANDO ROW REAL:", row);
+
+  setActiveSubtagCorrectionKey(row.correctionKey);
+  setActiveSubtagItem(row);
 
   setEditingFields((prev) => ({
     ...prev,
@@ -1313,7 +1569,10 @@ const handleOpenSubtagModal = (item) => {
     setTag([option.label]);
     setSelectedTagId(option.id);
 
-    setSubtags([]);
+   setSubtags([]);
+    setSubtagCorrections({});
+    setActiveSubtagCorrectionKey(null);
+    setActiveSubtagItem(null);
     setApproaches([]);
 
     setEditingFields((prev) => ({
@@ -1331,65 +1590,82 @@ const handleOpenSubtagModal = (item) => {
     setActiveOptionModal(null);
   };
 
+
   const handleSelectSubtag = (option) => {
-    if (!selectedTagId) {
-      console.log("Selecciona primero una etiqueta.");
-      return;
-    }
+  if (!selectedTagId) {
+    console.log("Selecciona primero una etiqueta.");
+    return;
+  }
 
-    const blockedLabels =
-      reviewedSubtagLabels.length > 0 ? reviewedSubtagLabels : oldPlace.subtags;
+  const row = activeSubtagItem;
 
-    const isBlocked = blockedLabels.some((label) =>
-      sameTextValue(label, option.label)
+  if (!row?.correctionKey) {
+    console.log("No hay subetiqueta activa para corregir.");
+    return;
+  }
+
+  if (sameTextValue(row.oldLabel, option.label)) {
+    Alert.alert(
+      "Subetiqueta no válida",
+      "Debes seleccionar una subetiqueta diferente a la señalada en la corrección."
     );
+    return;
+  }
 
-    if (returnFields.subtags?.selected && isBlocked) {
-      Alert.alert(
-        "Subetiqueta no válida",
-        "Debes seleccionar una subetiqueta diferente a la señalada en la corrección."
-      );
-      return;
-    }
+  setEditingFields((prev) => ({
+    ...prev,
+    subtags: true,
+  }));
 
-    setEditingFields((prev) => ({
+  setSubtagCorrections((prev) => {
+    const nextCorrections = {
       ...prev,
-      subtags: true,
-    }));
+      [row.correctionKey]: {
+        type: "replace",
+        oldLabel: row.oldLabel,
+        oldIndex: row.oldIndex,
+        label: option.label,
+      },
+    };
 
-    setSubtags((prev) => {
-      const base =
-        Array.isArray(prev) && prev.length > 0
-          ? [...prev]
-          : [...oldPlace.subtags];
-
-      const targetIndex = Number(activeSubtagCorrectionIndex);
-
-      if (Number.isInteger(targetIndex) && targetIndex >= 0) {
-        base[targetIndex] = option.label;
-
-        return base
-          .filter(Boolean)
-          .filter((item, index, array) => array.indexOf(item) === index)
-          .slice(0, 2);
-      }
-
-      const exists = base.includes(option.label);
-
-      if (exists) {
-        return base.filter((item) => item !== option.label);
-      }
-
-      if (base.length >= 2) {
-        return [base[1], option.label];
-      }
-
-      return [...base, option.label];
+    const nextSubtags = buildFinalSubtagsFromCorrections({
+      oldSubtags: oldPlace.subtags,
+      rows: returnedSubtagRows,
+      corrections: nextCorrections,
     });
 
-    setActiveOptionModal(null);
-    setActiveSubtagCorrectionIndex(null);
-  };
+    const hasDuplicate = nextSubtags.some((subtag, index) => {
+      return nextSubtags.some(
+        (otherSubtag, otherIndex) =>
+          index !== otherIndex && sameTextValue(subtag, otherSubtag)
+      );
+    });
+
+    if (hasDuplicate) {
+      Alert.alert(
+        "Subetiqueta duplicada",
+        "No puedes usar la misma subetiqueta dos veces."
+      );
+
+      return prev;
+    }
+
+    console.log("SUBTAG PINTADA:", {
+      row,
+      selected: option.label,
+      nextCorrections,
+      nextSubtags,
+    });
+
+    setSubtags(nextSubtags);
+
+    return nextCorrections;
+  });
+
+  setActiveOptionModal(null);
+  setActiveSubtagCorrectionKey(null);
+  setActiveSubtagItem(null);
+};
 
   const handleSelectApproach = (option) => {
     if (!selectedTagId) {
@@ -1565,26 +1841,15 @@ const handleToggleFreePrice = () => {
   onPressEdit={handleOpenTagModal}
 />
 
-          <EditableReturnedSubtagsBox
-            label="Subetiquetas"
-            oldPills={oldPlace.subtags}
-            newPills={subtags}
-            reviewField={returnFields.subtags}
-            onPressEditItem={(item) => {
-              const index = Number(item.index);
+<EditableReturnedSubtagsBox
+  label="Subetiquetas"
+  rows={returnedSubtagRows}
+  reviewField={returnFields.subtags}
+  subtagCorrections={subtagCorrections}
+  onPressEditItem={handleOpenSubtagModal}
+  onPressDeleteItem={handleDeleteSubtag}
+/>
 
-              setActiveSubtagCorrectionIndex(
-                Number.isInteger(index) ? index : null
-              );
-
-              setEditingFields((prev) => ({
-                ...prev,
-                subtags: true,
-              }));
-
-              setActiveOptionModal("subtags");
-            }}
-          />
 <EditablePillsField
   label="Enfoque"
   newLabel="Nuevo enfoque"
@@ -1624,13 +1889,15 @@ const handleToggleFreePrice = () => {
   maxLength={80}
 />
 
-          <EditablePhotosBox
-            label="Fotos"
-            photos={oldPlace.photos}
-            reviewField={returnFields.photos}
-            helperText={returnFields.photos.message || "Texto"}
-            onChangeReplacementPhotos={setReplacementPhotos}
-          />
+         <EditablePhotosBox
+  label="Fotos"
+  photos={oldPlace.photos}
+  reviewField={returnFields.photos}
+  helperText={returnFields.photos.message || "Texto"}
+  minPhotos={MIN_PHOTOS}
+  maxPhotos={MAX_PHOTOS}
+  onChangePhotoCorrections={setPhotoCorrections}
+/>
 
           <EditableMapBox
             label="Mapa"
@@ -1664,21 +1931,22 @@ const handleToggleFreePrice = () => {
         />
 
         <EditableOptionModal
-          visible={activeOptionModal === "subtags"}
-          title="Selecciona una nueva subetiqueta"
-          options={filteredSubtagOptions}
-          selectedValues={
-            activeSubtagCorrectionIndex !== null
-              ? [subtags[activeSubtagCorrectionIndex]].filter(Boolean)
-              : subtags
-          }
-          multiple={false}
-          onSelect={handleSelectSubtag}
-          onClose={() => {
-            setActiveOptionModal(null);
-            setActiveSubtagCorrectionIndex(null);
-          }}
-        />
+  visible={activeOptionModal === "subtags"}
+  title="Selecciona una nueva subetiqueta"
+  options={filteredSubtagOptions}
+  selectedValues={
+    activeSubtagCorrectionKey
+      ? [subtagCorrections[activeSubtagCorrectionKey]?.label].filter(Boolean)
+      : []
+  }
+  multiple={false}
+  onSelect={handleSelectSubtag}
+  onClose={() => {
+    setActiveOptionModal(null);
+    setActiveSubtagCorrectionKey(null);
+    setActiveSubtagItem(null);
+  }}
+/>
 
         <EditableOptionModal
           visible={
@@ -1713,7 +1981,15 @@ const handleToggleFreePrice = () => {
           visible={successModalVisible}
           onClose={handleCloseSuccessModal}
         />
+
+        
       </View>
+      <DeleteSubtagWarningModal
+  visible={deleteSubtagModalVisible}
+  subtagLabel={pendingDeleteSubtagRow?.oldLabel || ""}
+  onCancel={handleCloseDeleteSubtagModal}
+  onConfirm={confirmDeleteSubtag}
+/>
     </LayoutScreen>
   );
 }

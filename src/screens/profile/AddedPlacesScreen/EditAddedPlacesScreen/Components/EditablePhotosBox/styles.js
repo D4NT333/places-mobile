@@ -198,4 +198,53 @@ comparePhotoBox: {
   backgroundColor: "#FFFFFF",
   overflow: "hidden",
 },
+photoItemDeleted: {
+  opacity: 0.65,
+},
+
+photoPlaceholderDeleted: {
+  width: "100%",
+  height: 130,
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "#E5484D",
+  backgroundColor: "#FFECEC",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+modalActions: {
+  marginTop: 18,
+  gap: 10,
+},
+
+deleteButton: {
+  minHeight: 44,
+  borderRadius: 14,
+  backgroundColor: "#FFECEC",
+  alignItems: "center",
+  justifyContent: "center",
+  paddingHorizontal: 16,
+},
+
+deleteButtonText: {
+  color: "#C62828",
+  fontSize: 14,
+  fontWeight: "700",
+},
+
+cancelButton: {
+  minHeight: 44,
+  borderRadius: 14,
+  backgroundColor: "#F1F3F5",
+  alignItems: "center",
+  justifyContent: "center",
+  paddingHorizontal: 16,
+},
+
+cancelButtonText: {
+  color: "#222",
+  fontSize: 14,
+  fontWeight: "700",
+},
 });
