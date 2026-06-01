@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,19 @@ import {
   Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { signOut } from "firebase/auth";
 
 import { LayoutScreen } from "../../../../layouts";
 import styles from "./styles";
 
 import { icons } from "../../../../../assets/icons";
+
+import { auth } from "../../../../services/firebase/config";
+
+import { getMobileMeService } from "../../../../services/firebase/auth/getMobileMe.service";
+import { deleteMyAccountService } from "../../../../services/firebase/auth/deleteMyAccount.service";
+import { reauthenticatePasswordUserService } from "../../../../services/firebase/auth/reauthenticatePasswordUser.service";
+import { reauthenticateGoogleUserService } from "../../../../services/firebase/auth/reauthenticateGoogleUser.service";
 
 import WarningCard from "./Components/WarningCard";
 import BulletList from "./Components/BulletList";
@@ -29,8 +37,13 @@ export default function EliminateAccountScreen() {
   const [accepted, setAccepted] = useState(false);
   const [googleConfirmed, setGoogleConfirmed] = useState(false);
 
-  // Por ahora maqueta. Luego esto vendrá de Firebase:
-  const providerId = "google.com"; // "password" | "google.com"
+  const [account, setAccount] = useState(null);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+
+  const [confirmingGoogle, setConfirmingGoogle] = useState(false);
+
+  const providerId = account?.providerId || null;
 
   const isPasswordUser = providerId === "password";
   const isGoogleUser = providerId === "google.com";
@@ -46,8 +59,86 @@ export default function EliminateAccountScreen() {
   );
 
   const canDelete = isPasswordUser
-  ? password.trim().length > 0 && accepted
-  : googleConfirmed && accepted;
+    ? password.trim().length > 0 && accepted && !deleting
+    : googleConfirmed && accepted && !deleting;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAccount = async () => {
+      try {
+        setLoadingAccount(true);
+
+        const user = await getMobileMeService();
+
+        if (!isMounted) return;
+
+        setAccount(user);
+      } catch (error) {
+        console.error("Error cargando cuenta:", error);
+
+        if (!isMounted) return;
+
+        Alert.alert(
+          "No se pudo cargar tu cuenta",
+          error.message || "Intenta nuevamente."
+        );
+
+        navigation.goBack();
+      } finally {
+        if (isMounted) {
+          setLoadingAccount(false);
+        }
+      }
+    };
+
+    loadAccount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigation]);
+
+  const handleGoogleConfirm = async () => {
+  if (confirmingGoogle || googleConfirmed) return;
+
+  try {
+    setConfirmingGoogle(true);
+
+    await reauthenticateGoogleUserService();
+
+    setGoogleConfirmed(true);
+
+    Alert.alert(
+      "Identidad confirmada",
+      "Ya puedes continuar con la eliminación de tu cuenta."
+    );
+  } catch (error) {
+    console.error("Error confirmando Google:", error);
+
+    let message =
+      error.message || "No se pudo confirmar tu identidad con Google.";
+
+    if (error.code === "auth/user-mismatch") {
+      message =
+        "La cuenta de Google seleccionada no coincide con la cuenta actual.";
+    }
+
+    if (error.code === "auth/invalid-credential") {
+      message = "No se pudo validar la credencial de Google.";
+    }
+
+    if (error.code === "auth/requires-recent-login") {
+      message =
+        "Por seguridad, vuelve a iniciar sesión e inténtalo nuevamente.";
+    }
+
+    Alert.alert("No se pudo confirmar", message);
+  } finally {
+    setConfirmingGoogle(false);
+  }
+};
+
 
   const handleDelete = () => {
     if (!accepted) {
@@ -66,6 +157,14 @@ export default function EliminateAccountScreen() {
       return;
     }
 
+    if (!isPasswordUser && !isGoogleUser) {
+      Alert.alert(
+        "Método no compatible",
+        "No se pudo identificar el método de inicio de sesión de tu cuenta."
+      );
+      return;
+    }
+
     Alert.alert(
       "Eliminar cuenta",
       "Esta acción no se puede deshacer. ¿Deseas continuar?",
@@ -75,20 +174,111 @@ export default function EliminateAccountScreen() {
           style: "cancel",
         },
         {
-          text: isGoogleUser ? "Confirmar con Google" : "Eliminar",
+          text: "Eliminar",
           style: "destructive",
-          onPress: () => {
-            console.log("Eliminar cuenta");
-            // Aquí después conectamos:
-            // password -> reauthenticateWithCredential
-            // google -> reauthenticateWithCredential con Google
-            // backend -> borrar datos
-            // auth.currentUser.delete()
+          onPress: async () => {
+            try {
+              setDeleting(true);
+
+              if (isPasswordUser) {
+                await reauthenticatePasswordUserService(password);
+              }
+
+              if (isGoogleUser && !googleConfirmed) {
+                Alert.alert(
+                  "Confirmación requerida",
+                  "Primero confirma nuevamente tu identidad con Google."
+                );
+                return;
+              }
+
+              await deleteMyAccountService();
+
+             Alert.alert(
+  "Cuenta eliminada",
+  "Tu cuenta fue eliminada correctamente.",
+  [
+    {
+      text: "Aceptar",
+      onPress: async () => {
+        try {
+          await signOut(auth);
+        } catch (signOutError) {
+          console.log(
+            "No fue necesario cerrar sesión o la cuenta ya no existe:",
+            signOutError?.message
+          );
+        }
+      },
+    },
+  ],
+  { cancelable: false }
+);
+            } catch (error) {
+              console.error("Error eliminando cuenta:", error);
+
+              let message =
+                error.message || "No se pudo eliminar la cuenta.";
+
+              if (
+                error.code === "auth/invalid-credential" ||
+                error.code === "auth/wrong-password"
+              ) {
+                message = "La contraseña ingresada no es correcta.";
+              }
+
+              if (error.code === "auth/too-many-requests") {
+                message =
+                  "Se hicieron demasiados intentos. Espera un momento e inténtalo nuevamente.";
+              }
+
+              if (error.code === "auth/requires-recent-login") {
+                message =
+                  "Por seguridad, vuelve a iniciar sesión e intenta eliminar la cuenta nuevamente.";
+              }
+
+              Alert.alert("No se pudo eliminar la cuenta", message);
+            } finally {
+              setDeleting(false);
+            }
           },
         },
       ]
     );
   };
+
+  if (loadingAccount) {
+    return (
+      <LayoutScreen
+        edges={["top"]}
+        padding={{ top: 16, left: 16, right: 16, bottom: 28 }}
+        bg="#FFFFFF"
+      >
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            hitSlop={12}
+          >
+            <Image source={icons.flecha} style={styles.backIcon} />
+          </Pressable>
+
+          <Text style={styles.headerTitle}>Eliminar cuenta</Text>
+
+          <View style={styles.headerSpacer} />
+        </View>
+
+        <View style={styles.container}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Cargando cuenta</Text>
+            <Text style={styles.cardText}>
+              Estamos verificando tu método de inicio de sesión.
+            </Text>
+          </View>
+        </View>
+      </LayoutScreen>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -102,18 +292,19 @@ export default function EliminateAccountScreen() {
         bg="#FFFFFF"
       >
         <View style={styles.header}>
-      <Pressable
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-        hitSlop={12}
-      >
-        <Image source={icons.flecha} style={styles.backIcon} />
-      </Pressable>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            hitSlop={12}
+            disabled={deleting}
+          >
+            <Image source={icons.flecha} style={styles.backIcon} />
+          </Pressable>
 
-      <Text style={styles.headerTitle}>Eliminar cuenta</Text>
+          <Text style={styles.headerTitle}>Eliminar cuenta</Text>
 
-      <View style={styles.headerSpacer} />
-    </View>
+          <View style={styles.headerSpacer} />
+        </View>
 
         <View style={styles.container}>
           <WarningCard />
@@ -145,24 +336,32 @@ export default function EliminateAccountScreen() {
             {isGoogleUser && (
               <>
                 <Text style={styles.cardText}>
-                  Tu cuenta fue creada con Google. Para eliminarla, primero confirma
-                  nuevamente tu identidad.
+                  Tu cuenta fue creada con Google. Para eliminarla, primero
+                  confirma nuevamente tu identidad.
                 </Text>
 
-                <GoogleConfirmButton
-                  confirmed={googleConfirmed}
-                  onPress={() => {
-                    // Luego aquí conectamos reautenticación real con Google.
-                    setGoogleConfirmed(true);
-                  }}
-                />
+               <GoogleConfirmButton
+                confirmed={googleConfirmed}
+                loading={confirmingGoogle}
+                onPress={handleGoogleConfirm}
+              />
               </>
+            )}
+
+            {!isPasswordUser && !isGoogleUser && (
+              <Text style={styles.cardText}>
+                No se pudo identificar el método de inicio de sesión de esta
+                cuenta.
+              </Text>
             )}
           </View>
 
           <CheckRow
             checked={accepted}
-            onToggle={() => setAccepted((value) => !value)}
+            onToggle={() => {
+              if (deleting) return;
+              setAccepted((value) => !value);
+            }}
             label="Entiendo que esta acción es permanente y no podré recuperar mi cuenta."
           />
 
@@ -170,7 +369,7 @@ export default function EliminateAccountScreen() {
             onCancel={() => navigation.goBack()}
             onDelete={handleDelete}
             disabled={!canDelete}
-            deleteLabel="Eliminar cuenta"
+            deleteLabel={deleting ? "Eliminando..." : "Eliminar cuenta"}
           />
 
           <View style={styles.bottomSpace} />

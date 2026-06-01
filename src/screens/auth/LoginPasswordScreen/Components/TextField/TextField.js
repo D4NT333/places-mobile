@@ -1,6 +1,8 @@
-import React from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import React, { useState } from "react";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
 import styles from "./styles";
+
+import { icons } from "../../../../../../assets/icons";
 
 export default function TextField({
   value,
@@ -14,7 +16,10 @@ export default function TextField({
   rightHint = "",
   onPressField,
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+
   const isTouchable = !!onPressField;
+  const isPasswordField = !!secureTextEntry;
 
   return (
     <View style={styles.block}>
@@ -40,19 +45,35 @@ export default function TextField({
             !!errorText && styles.wrapError,
           ]}
         >
-          <TextInput
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={placeholder}
-            placeholderTextColor="#666"
-            secureTextEntry={secureTextEntry}
-            keyboardType={keyboardType}
-            autoCapitalize={autoCapitalize}
-            autoCorrect={false}
-            style={styles.input}
-          />
+         <TextInput
+  value={value}
+  onChangeText={onChangeText}
+  placeholder={placeholder}
+  placeholderTextColor="#666"
+  secureTextEntry={isPasswordField && !showPassword}
+  keyboardType={keyboardType}
+  autoCapitalize={autoCapitalize}
+  autoCorrect={false}
+  style={[
+    styles.input,
+    isPasswordField && styles.inputPassword,
+  ]}
+/>
 
-          {rightHint ? <Text style={styles.hint}>{rightHint}</Text> : null}
+          {isPasswordField ? (
+            <Pressable
+              onPress={() => setShowPassword((value) => !value)}
+              style={styles.eyeButton}
+              hitSlop={10}
+            >
+              <Image
+                source={showPassword ? icons.openeye : icons.closedeye}
+                style={styles.eyeIcon}
+              />
+            </Pressable>
+          ) : rightHint ? (
+            <Text style={styles.hint}>{rightHint}</Text>
+          ) : null}
         </View>
       )}
 

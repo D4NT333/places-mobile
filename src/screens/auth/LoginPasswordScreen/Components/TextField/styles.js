@@ -11,8 +11,23 @@ export default StyleSheet.create({
     top: 6,
     
   },
-  input: {
-    fontSize: 16,
-    color: "#111",
-  },
+ inputPassword: {
+  paddingRight: 44,
+},
+
+eyeButton: {
+  position: "absolute",
+  right: 2,
+  top: 0,
+  bottom: 0,
+  width: 40,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+eyeIcon: {
+  width: 28,
+  height: 28,
+  resizeMode: "contain",
+},
 });
