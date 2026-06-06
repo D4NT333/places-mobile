@@ -62,7 +62,22 @@ export default function AddPlaceScreen() {
 
   const hasOpeningHours = !!filters.openingHours?.type;
 
-  const isNameValid = trimmedName.length >= 3 && trimmedName.length <= 60;
+const firstThreeNameCharsRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3}/;
+
+const isNameValid =
+  trimmedName.length >= 3 &&
+  trimmedName.length <= 30 &&
+  firstThreeNameCharsRegex.test(trimmedName);
+
+  const nameError =
+  trimmedName.length > 0 && trimmedName.length < 3
+    ? "El nombre debe tener al menos 3 caracteres"
+    : trimmedName.length > 30
+      ? "El nombre no puede tener más de 30 caracteres"
+      : trimmedName.length >= 3 && !firstThreeNameCharsRegex.test(trimmedName)
+        ? "Los primeros 3 caracteres no pueden ser números ni caracteres especiales"
+        : "";
+
   const isDescriptionValid =
     trimmedDescription.length >= 80 && trimmedDescription.length <= 200;
   const arePhotosValid = photos.length >= 3 && photos.length <= 6;
@@ -244,6 +259,7 @@ export default function AddPlaceScreen() {
           name={draft.name}
           description={draft.description}
           filters={draft.filters}
+          nameError={nameError}
           onChangeName={(value) => updateDraft({ name: value })}
           onChangeDescription={(value) => updateDraft({ description: value })}
           onPressFilters={handleGoToFilters}

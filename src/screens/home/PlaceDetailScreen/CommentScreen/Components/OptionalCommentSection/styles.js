@@ -41,4 +41,20 @@ export default StyleSheet.create({
     fontWeight: "800",
     color: "#3B4250",
   },
+  inputError: {
+  borderColor: "#D32F2F",
+  backgroundColor: "#FFF5F5",
+},
+
+errorText: {
+  flex: 1,
+  color: "#D32F2F",
+  fontSize: 13,
+  fontWeight: "700",
+},
+
+counterError: {
+  color: "#D32F2F",
+  fontWeight: "700",
+},
 });

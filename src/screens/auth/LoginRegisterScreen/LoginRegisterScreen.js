@@ -51,7 +51,13 @@ const cleanName = useMemo(() => name.trim(), [name]);
 const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
 const isNameValid = useMemo(() => {
-  return cleanName.length >= 3;
+  const firstThreeCharsRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3}/;
+
+  return (
+    cleanName.length >= 3 &&
+    cleanName.length <= 30 &&
+    firstThreeCharsRegex.test(cleanName)
+  );
 }, [cleanName]);
 
 const isEmailValid = useMemo(() => {
@@ -99,9 +105,23 @@ const isBirthDateValid = useMemo(() => {
 const nameError = useMemo(() => {
   if (!touchedName) return "";
   if (!cleanName) return "";
-  if (!isNameValid) return "Mínimo 3 letras";
+
+  const firstThreeCharsRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3}/;
+
+  if (cleanName.length < 3) {
+    return "Mínimo 3 caracteres";
+  }
+
+  if (cleanName.length > 30) {
+    return "Máximo 30 caracteres";
+  }
+
+  if (!firstThreeCharsRegex.test(cleanName)) {
+    return "Los primeros 3 caracteres deben ser letras";
+  }
+
   return "";
-}, [touchedName, cleanName, isNameValid]);
+}, [touchedName, cleanName]);
 
 const emailError = useMemo(() => {
   if (!touchedEmail) return "";
@@ -329,20 +349,19 @@ const onRegister = async () => {
             </Text>
           </View>
 
-         <TextField
-            value={name}
-            onChangeText={(value) => {
-              setName(value);
-              setNameAvailabilityError("");
-            }}
-            onBlur={() => {
-              setTouchedName(true);
-            }}
-            placeholder="Nombre de usuario"
-            errorText={nameError || nameAvailabilityError}
-          />
-
-          {/* Fecha (por ahora es input tocable) */}
+        <TextField
+  value={name}
+  onChangeText={(value) => {
+    setName(value);
+    setNameAvailabilityError("");
+  }}
+  onBlur={() => {
+    setTouchedName(true);
+  }}
+  placeholder="Nombre de usuario"
+  errorText={nameError || nameAvailabilityError}
+  maxLength={30}
+/>
 
       <TextField
   value={email}

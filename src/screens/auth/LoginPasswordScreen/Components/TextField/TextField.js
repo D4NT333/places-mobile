@@ -45,7 +45,7 @@ export default function TextField({
             !!errorText && styles.wrapError,
           ]}
         >
-         <TextInput
+  <TextInput
   value={value}
   onChangeText={onChangeText}
   placeholder={placeholder}
@@ -54,6 +54,9 @@ export default function TextField({
   keyboardType={keyboardType}
   autoCapitalize={autoCapitalize}
   autoCorrect={false}
+  underlineColorAndroid="transparent"
+  cursorColor="#7CC9C6"
+  selectionColor="#7CC9C6"
   style={[
     styles.input,
     isPasswordField && styles.inputPassword,

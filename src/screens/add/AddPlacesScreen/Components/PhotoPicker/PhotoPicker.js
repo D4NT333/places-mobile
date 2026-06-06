@@ -197,7 +197,7 @@ export default function PhotoPicker({ photos = [], onChangePhotos }) {
 
       {showQualityWarning && (
         <Text style={styles.inputErrorText}>
-          Algunas fotos tienen baja calidad. Selecciona imágenes más claras y con mejor resolución.
+          Algunas fotos tienen o muy alta calidad o muy baja calidad. Selecciona imágenes más claras o con menor resolución.
         </Text>
       )}
     </View>

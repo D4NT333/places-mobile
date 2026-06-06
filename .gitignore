@@ -42,3 +42,8 @@ yarn-error.*
 
 # Environment variables
 .env
+credentials.json
+google-services.json
+
+# Backups
+android_backup/

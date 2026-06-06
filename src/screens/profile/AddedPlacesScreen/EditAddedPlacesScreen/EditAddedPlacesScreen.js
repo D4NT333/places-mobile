@@ -635,39 +635,31 @@ function buildReturnedSubtagRows({ returnFields = {}, oldSubtags = [] }) {
     ? returnFields.subtags.items
     : [];
 
-  const selectedItems = items.filter((item) => item?.selected);
-
-  return selectedItems.map((item, visualIndex) => {
-    const itemIndex = Number(item?.index);
-
-    let oldIndex = -1;
-
-    if (Number.isInteger(itemIndex) && oldSubtags[itemIndex]) {
-      oldIndex = itemIndex;
-    } else if (Number.isInteger(itemIndex) && oldSubtags[itemIndex - 1]) {
-      oldIndex = itemIndex - 1;
-    } else if (item?.label) {
-      oldIndex = oldSubtags.findIndex((subtag) =>
-        sameTextValue(subtag, item.label)
+  // 1. Mapeamos TODAS las subetiquetas originales (las buenas y las malas)
+  return oldSubtags.map((subtagLabel, index) => {
+    
+    // 2. Usamos TU misma lógica de seguridad para encontrar si hay un error para esta subetiqueta
+    const reviewItem = items.find((item) => {
+      const itemIndex = Number(item?.index);
+      return (
+        sameTextValue(item?.label, subtagLabel) || // Búsqueda por nombre
+        itemIndex === index ||                     // Búsqueda por índice exacto
+        itemIndex - 1 === index                    // Búsqueda por índice desfasado
       );
-    }
+    });
 
-    if (oldIndex < 0) {
-      oldIndex = visualIndex;
-    }
+    // 3. Verificamos si realmente está marcada como "con error"
+    const isSelected = reviewItem?.selected;
 
-    const oldLabel =
-      oldSubtags[oldIndex] ||
-      item?.label ||
-      `Subetiqueta ${visualIndex + 1}`;
-
+    // 4. Retornamos el objeto final para la UI
     return {
-      id: `slot_${visualIndex}`,
-      correctionKey: `slot_${visualIndex}`,
-      oldIndex,
-      oldLabel,
-      message: item?.message || "Esta subetiqueta requiere corrección.",
-      raw: item,
+      id: `slot_${index}`,
+      correctionKey: `slot_${index}`,
+      oldIndex: index,
+      oldLabel: subtagLabel,
+      // Si tiene error (isSelected), le pasamos el mensaje. Si no, se va vacío y la UI lo pinta "normal".
+      message: isSelected ? (reviewItem?.message || "Esta subetiqueta requiere corrección.") : "",
+      raw: reviewItem || { label: subtagLabel, selected: false },
     };
   });
 }

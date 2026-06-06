@@ -12,24 +12,30 @@ import { auth } from "../services/firebase/config";
 
 import { warmCatalogsCache } from "../services/firebase/warmCatalogsCache.service";
 
+import { usePushNotifications } from "../hooks/usePushNotifications";
+
 export default function App() {
   const [isLogged, setIsLogged] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    const canEnterApp = !!user && user.emailVerified === true;
-
-    setIsLogged(canEnterApp);
-    setIsCheckingAuth(false);
-  });
-
-  return unsubscribe;
-}, []);
+  const [authUser, setAuthUser] = useState(null);
 
   useEffect(() => {
-  warmCatalogsCache();
-}, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const canEnterApp = !!user && user.emailVerified === true;
+
+      setAuthUser(canEnterApp ? user : null);
+      setIsLogged(canEnterApp);
+      setIsCheckingAuth(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  //usePushNotifications(authUser);
+
+  useEffect(() => {
+    warmCatalogsCache();
+  }, []);
 
   if (isCheckingAuth) {
     return null;
@@ -39,9 +45,9 @@ useEffect(() => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AddPlaceDraftProvider>
-        <NavigationContainer>
-          <RootNavigator isLogged={isLogged} />
-        </NavigationContainer>
+          <NavigationContainer>
+            <RootNavigator isLogged={isLogged} />
+          </NavigationContainer>
         </AddPlaceDraftProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

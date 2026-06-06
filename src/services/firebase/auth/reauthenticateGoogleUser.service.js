@@ -3,6 +3,11 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 import { auth } from "../config";
 
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  offlineAccess: false,
+});
+
 export async function reauthenticateGoogleUserService() {
   const currentUser = auth.currentUser;
 
@@ -14,15 +19,22 @@ export async function reauthenticateGoogleUserService() {
     showPlayServicesUpdateDialog: true,
   });
 
-  await GoogleSignin.signIn();
+  const signInResult = await GoogleSignin.signIn();
 
-  const { idToken } = await GoogleSignin.getTokens();
+  const idTokenFromSignIn =
+    signInResult?.data?.idToken ||
+    signInResult?.idToken ||
+    null;
 
-  if (!idToken) {
+  const idTokenFromTokens = idTokenFromSignIn
+    ? idTokenFromSignIn
+    : (await GoogleSignin.getTokens())?.idToken;
+
+  if (!idTokenFromTokens) {
     throw new Error("No se pudo obtener el token de Google.");
   }
 
-  const credential = GoogleAuthProvider.credential(idToken);
+  const credential = GoogleAuthProvider.credential(idTokenFromTokens);
 
   await reauthenticateWithCredential(currentUser, credential);
 

@@ -42,7 +42,6 @@ export default function EditableReturnedSubtagsBox({
     if (expandedItemKey === row.correctionKey) {
       setExpandedItemKey(null);
     }
-
     onPressDeleteItem?.(row);
   };
 
@@ -53,18 +52,47 @@ export default function EditableReturnedSubtagsBox({
       <View style={styles.box}>
         {visibleRows.length > 0 ? (
           visibleRows.map((row, index) => {
+            const isReadOnly = !row.message;
+
+            if (isReadOnly) {
+              return (
+                <View
+                  key={row.correctionKey || `valid-${index}`}
+                  style={[
+                    styles.rowBlock,
+                    index < visibleRows.length - 1 && styles.rowBlockWithGap,
+                    // 🔥 Aquí quitamos el fondo gris feo y los bordes para que parezca parte de la caja principal
+                    { backgroundColor: "transparent", borderBottomWidth: 0, paddingBottom: 10 }
+                  ]}
+                >
+                  <View style={styles.compactContent}>
+                    <View style={styles.pillWrapper}>
+                      {/* 🔥 Le damos el estilo de las pills normales (blanco, borde oscuro, letra oscura) */}
+                      <Text
+                        style={[
+                          styles.oldPill,
+                          {
+                            backgroundColor: "#FFFFFF",
+                            color: "#374151", 
+                            borderColor: "#374151",
+                          },
+                        ]}
+                      >
+                        {row.oldLabel}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            }
+
             const correction = subtagCorrections[row.correctionKey];
-
-            const newLabel =
-              correction?.type === "replace" ? correction.label : "";
-
+            const newLabel = correction?.type === "replace" ? correction.label : "";
             const hasNewLabel = Boolean(
               newLabel && !sameTextValue(newLabel, row.oldLabel)
             );
 
-            // 🔥 AQUÍ ESTÁ LA SOLUCIÓN: Si ya hay una etiqueta nueva, obligamos a que se mantenga expandido.
             const isExpanded = expandedItemKey === row.correctionKey || hasNewLabel;
-            
             const canDeleteThisItem = visibleRows.length > 1;
 
             return (
@@ -75,17 +103,18 @@ export default function EditableReturnedSubtagsBox({
                   index < visibleRows.length - 1 && styles.rowBlockWithGap,
                 ]}
               >
-               <View style={styles.topRow}>
-                {!isExpanded ? (
-                  <Text style={styles.columnLabel}>Antes</Text>
-                ) : (
-                  <View />
-                )}
+                <View style={styles.topRow}>
+                  {!isExpanded ? (
+                    <Text style={styles.columnLabel}>Antes</Text>
+                  ) : (
+                    <View />
+                  )}
 
-                <Pressable onPress={() => handleEdit(row)} hitSlop={8}>
-                  <Text style={styles.editText}>Editar</Text>
-                </Pressable>
-              </View>
+                  <Pressable onPress={() => handleEdit(row)} hitSlop={8}>
+                    <Text style={styles.editText}>Editar</Text>
+                  </Pressable>
+                </View>
+
                 {!isExpanded ? (
                   <View style={styles.compactContent}>
                     <View style={styles.pillWrapper}>

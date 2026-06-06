@@ -23,6 +23,9 @@ const LIKERT_LABELS = {
   5: "Totalmente satisfecho",
 };
 
+const COMMENT_MIN_LENGTH = 80;
+const COMMENT_MAX_LENGTH = 200;
+
 export default function CommentScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -35,8 +38,33 @@ export default function CommentScreen() {
   const [questionOneValue, setQuestionOneValue] = useState(0);
   const [questionTwoValue, setQuestionTwoValue] = useState(0);
   const [commentText, setCommentText] = useState("");
+  const [commentTouched, setCommentTouched] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [showDetailsFlow, setShowDetailsFlow] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+
+  const trimmedCommentText = commentText.trim();
+  const commentLength = trimmedCommentText.length;
+
+  const commentRequired =
+    showDetailsFlow &&
+    matchesAnnouncement !== null &&
+    questionOneValue > 0 &&
+    questionTwoValue > 0;
+
+  const shouldShowCommentError =
+    commentRequired &&
+    (commentTouched || submitAttempted) &&
+    commentLength < COMMENT_MIN_LENGTH;
+
+  const commentValidationMessage = shouldShowCommentError
+    ? commentLength === 0
+      ? `Escribe un comentario de al menos ${COMMENT_MIN_LENGTH} caracteres.`
+      : `El comentario debe tener al menos ${COMMENT_MIN_LENGTH} caracteres.`
+    : null;
+
+  const isCommentValid =
+    !commentRequired || commentLength >= COMMENT_MIN_LENGTH;
 
   const recommendationSummaryType = useMemo(() => {
     if (recommendation === true) return "positive";
@@ -73,8 +101,23 @@ export default function CommentScreen() {
       rating === 0 ||
       matchesAnnouncement === null ||
       questionOneValue === 0 ||
-      questionTwoValue === 0
+      questionTwoValue === 0 ||
+      !isCommentValid
     : recommendation === null || rating === 0;
+
+  const resetCommentValidation = () => {
+    setCommentTouched(false);
+    setSubmitAttempted(false);
+  };
+
+  const resetDetailsFlow = () => {
+    setShowDetailsFlow(false);
+    setMatchesAnnouncement(null);
+    setQuestionOneValue(0);
+    setQuestionTwoValue(0);
+    setCommentText("");
+    resetCommentValidation();
+  };
 
   const handleSelectRecommendation = (value) => {
     setRecommendation(value);
@@ -82,11 +125,7 @@ export default function CommentScreen() {
 
   const handleEditRecommendation = () => {
     setRecommendation(null);
-    setShowDetailsFlow(false);
-    setMatchesAnnouncement(null);
-    setQuestionOneValue(0);
-    setQuestionTwoValue(0);
-    setCommentText("");
+    resetDetailsFlow();
   };
 
   const handleSelectRating = (value) => {
@@ -94,11 +133,7 @@ export default function CommentScreen() {
   };
 
   const handleEditRatingSummary = () => {
-    setShowDetailsFlow(false);
-    setMatchesAnnouncement(null);
-    setQuestionOneValue(0);
-    setQuestionTwoValue(0);
-    setCommentText("");
+    resetDetailsFlow();
   };
 
   const handleSelectMatchesAnnouncement = (value) => {
@@ -106,6 +141,7 @@ export default function CommentScreen() {
     setQuestionOneValue(0);
     setQuestionTwoValue(0);
     setCommentText("");
+    resetCommentValidation();
   };
 
   const handleEditMatchesAnnouncement = () => {
@@ -113,6 +149,19 @@ export default function CommentScreen() {
     setQuestionOneValue(0);
     setQuestionTwoValue(0);
     setCommentText("");
+    resetCommentValidation();
+  };
+
+  const handleChangeCommentText = (text) => {
+    setCommentText(text);
+
+    if (submitAttempted) {
+      setSubmitAttempted(false);
+    }
+  };
+
+  const handleBlurComment = () => {
+    setCommentTouched(true);
   };
 
   const handlePressClose = () => {
@@ -139,6 +188,12 @@ export default function CommentScreen() {
   };
 
   const handleSubmit = () => {
+    setSubmitAttempted(true);
+
+    if (showDetailsFlow && commentText.trim().length < COMMENT_MIN_LENGTH) {
+      return;
+    }
+
     const payload = {
       placeName,
       recommendation,
@@ -158,105 +213,116 @@ export default function CommentScreen() {
 
   return (
     <>
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
-    >
-      <LayoutScreen
-        scroll
-        edges={["top"]}
-        padding={{ top: 0, left: 0, right: 0, bottom: 18 }}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
       >
-        <View style={styles.screen}>
-          <CommentHeader
-            title="Califica tu experiencia"
-            subtitle="Tu opinión ayuda a otros usuarios a descubrir mejores lugares."
-            onClose={handlePressClose}
-          />
+        <LayoutScreen
+          scroll
+          edges={["top"]}
+          padding={{ top: 0, left: 0, right: 0, bottom: 18 }}
+        >
+          <View style={styles.screen}>
+            <CommentHeader
+              title="Califica tu experiencia"
+              subtitle="Tu opinión ayuda a otros usuarios a descubrir mejores lugares."
+              onClose={handlePressClose}
+            />
 
-          <RecommendSection
-            question="¿Lo recomendarías?"
-            value={recommendation}
-            summaryType={recommendationSummaryType}
-            onSelect={handleSelectRecommendation}
-            onEdit={handleEditRecommendation}
-          />
+            <RecommendSection
+              question="¿Lo recomendarías?"
+              value={recommendation}
+              summaryType={recommendationSummaryType}
+              onSelect={handleSelectRecommendation}
+              onEdit={handleEditRecommendation}
+            />
 
-          <View style={styles.sectionGap} />
+            <View style={styles.sectionGap} />
 
-          {!showDetailsFlow ? (
-            <RatingSection value={rating} onSelect={handleSelectRating} />
-          ) : (
-            <>
-              <RatingSummaryCard
-                value={rating}
-                onEdit={handleEditRatingSummary}
-              />
+            {!showDetailsFlow ? (
+              <RatingSection value={rating} onSelect={handleSelectRating} />
+            ) : (
+              <>
+                <RatingSummaryCard
+                  value={rating}
+                  onEdit={handleEditRatingSummary}
+                />
 
-              <View style={styles.sectionGap} />
+                <View style={styles.sectionGap} />
 
-              <RecommendSection
-                question="¿Lo que viviste coincide con lo que se anuncia?"
-                value={matchesAnnouncement}
-                summaryType={matchesAnnouncementSummaryType}
-                onSelect={handleSelectMatchesAnnouncement}
-                onEdit={handleEditMatchesAnnouncement}
-              />
+                <RecommendSection
+                  question="¿Lo que viviste coincide con lo que se anuncia?"
+                  value={matchesAnnouncement}
+                  summaryType={matchesAnnouncementSummaryType}
+                  onSelect={handleSelectMatchesAnnouncement}
+                  onEdit={handleEditMatchesAnnouncement}
+                />
 
-              {showLikertQuestions && !showLikertSummary ? (
-                <>
-                  <View style={styles.sectionGap} />
+                {showLikertQuestions && !showLikertSummary ? (
+                  <>
+                    <View style={styles.sectionGap} />
 
-                  <LikertQuestionSection
-                    title="Pregunta 1"
-                    value={questionOneValue}
-                    onSelect={setQuestionOneValue}
-                  />
+                    <LikertQuestionSection
+                      title="Pregunta 1"
+                      value={questionOneValue}
+                      onSelect={setQuestionOneValue}
+                    />
 
-                  <View style={styles.sectionGap} />
+                    <View style={styles.sectionGap} />
 
-                  <LikertQuestionSection
-                    title="Pregunta 2"
-                    value={questionTwoValue}
-                    onSelect={setQuestionTwoValue}
-                  />
-                </>
-              ) : null}
+                    <LikertQuestionSection
+                      title="Pregunta 2"
+                      value={questionTwoValue}
+                      onSelect={setQuestionTwoValue}
+                    />
+                  </>
+                ) : null}
 
-              {showLikertSummary ? (
-                <>
-                  <View style={styles.sectionGap} />
+                {showLikertSummary ? (
+                  <>
+                    <View style={styles.sectionGap} />
 
-                  <LikertAnswersSummary
-                    questionOneLabel={LIKERT_LABELS[questionOneValue]}
-                    questionTwoLabel={LIKERT_LABELS[questionTwoValue]}
-                    onEditQuestionOne={() => setQuestionOneValue(0)}
-                    onEditQuestionTwo={() => setQuestionTwoValue(0)}
-                  />
+                    <LikertAnswersSummary
+                      questionOneLabel={LIKERT_LABELS[questionOneValue]}
+                      questionTwoLabel={LIKERT_LABELS[questionTwoValue]}
+                      onEditQuestionOne={() => {
+                        setQuestionOneValue(0);
+                        setCommentText("");
+                        resetCommentValidation();
+                      }}
+                      onEditQuestionTwo={() => {
+                        setQuestionTwoValue(0);
+                        setCommentText("");
+                        resetCommentValidation();
+                      }}
+                    />
 
-                  <View style={styles.sectionGap} />
+                    <View style={styles.sectionGap} />
 
-                  <OptionalCommentSection
-                    value={commentText}
-                    onChangeText={setCommentText}
-                    maxLength={200}
-                  />
-                </>
-              ) : null}
-            </>
-          )}
+                    <OptionalCommentSection
+                      value={commentText}
+                      onChangeText={handleChangeCommentText}
+                      onBlur={handleBlurComment}
+                      minLength={COMMENT_MIN_LENGTH}
+                      maxLength={COMMENT_MAX_LENGTH}
+                      errorMessage={commentValidationMessage}
+                    />
+                  </>
+                ) : null}
+              </>
+            )}
 
-          <View style={styles.bottomSpacer} />
+            <View style={styles.bottomSpacer} />
 
-          <CommentActions
-            onAddDetails={handleAddDetails}
-            onSubmit={handleSubmit}
-            submitDisabled={submitDisabled}
-            hideAddDetails={showDetailsFlow}
-          />
-        </View>
-      </LayoutScreen>
+            <CommentActions
+              onAddDetails={handleAddDetails}
+              onSubmit={handleSubmit}
+              submitDisabled={submitDisabled}
+              hideAddDetails={showDetailsFlow}
+            />
+          </View>
+        </LayoutScreen>
       </KeyboardAvoidingView>
 
       <ExitCommentModal

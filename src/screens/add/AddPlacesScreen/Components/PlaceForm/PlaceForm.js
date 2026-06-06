@@ -9,6 +9,7 @@ export default function PlaceForm({
   description,
   filters,
   onChangeName,
+  nameError,
   onChangeDescription,
   onPressFilters,
 }) {
@@ -27,10 +28,13 @@ export default function PlaceForm({
     return styles.charCount;
   };
 
-  const handleNameBlur = () => {
-    const trimmedName = name.trim();
-    setShowNameMinWarning(trimmedName.length < MIN_NAME_LENGTH);
-  };
+ const handleNameBlur = () => {
+  const trimmedName = name.trim();
+  setShowNameMinWarning(
+    trimmedName.length > 0 &&
+    (trimmedName.length < MIN_NAME_LENGTH || !!nameError)
+  );
+};
 
   const handleDescriptionBlur = () => {
     const trimmedDescription = description.trim();
@@ -38,12 +42,12 @@ export default function PlaceForm({
   };
 
   const handleChangeName = (text) => {
-    onChangeName(text);
+  onChangeName(text);
 
-    if (showNameMinWarning && text.trim().length >= MIN_NAME_LENGTH) {
-      setShowNameMinWarning(false);
-    }
-  };
+  if (showNameMinWarning) {
+    setShowNameMinWarning(false);
+  }
+};
 
   const handleChangeDescription = (text) => {
     onChangeDescription(text);
@@ -65,19 +69,20 @@ export default function PlaceForm({
           placeholderTextColor="#9CA3AF"
           maxLength={NAME_LIMIT}
           style={[
-            styles.input,
-            name.length >= 60 && styles.inputDanger,
-            name.length >= 40 && name.length < 60 && styles.inputWarning
-          ]}
+          styles.input,
+          showNameMinWarning && nameError && styles.inputDanger,
+          name.length >= NAME_LIMIT && styles.inputDanger,
+          name.length >= 24 && name.length < NAME_LIMIT && styles.inputWarning
+        ]}
         />
 
-        {showNameMinWarning && (
+        {showNameMinWarning && nameError && (
           <Text style={{ color: "#DC2626", marginTop: 6, fontSize: 12 }}>
-            El nombre debe tener al menos 3 caracteres.
+            {nameError}
           </Text>
         )}
 
-        <Text style={getCharColor(name.length, NAME_LIMIT, 40)}>
+        <Text style={getCharColor(name.length, NAME_LIMIT, 24)}>
           {name.length}/{NAME_LIMIT}
         </Text>
       </View>

@@ -23,12 +23,15 @@ export default {
     android: {
       edgeToEdgeEnabled: true,
       package: "com.dante_orozzco.placesmobile",
+      googleServicesFile: "./google-services.json",
       config: {
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY,
+          apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
         },
       },
     },
+
+    plugins: ["expo-notifications"],
 
     extra: {
       eas: {
@@ -37,3 +40,6 @@ export default {
     },
   },
 };
+
+
+
