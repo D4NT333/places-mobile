@@ -247,4 +247,43 @@ cancelButtonText: {
   fontSize: 14,
   fontWeight: "700",
 },
+addPhotoButtonRow: {
+  width: "100%",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: 4,
+  marginBottom: 4,
+},
+
+addPhotoButton: {
+  minWidth: 180,
+  minHeight: 44,
+  paddingHorizontal: 20,
+  paddingVertical: 10,
+  borderRadius: 999,
+  borderWidth: 1.8,
+  borderColor: "#4B5563",
+  backgroundColor: "#FFFFFF",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+addPhotoButtonPressed: {
+  opacity: 0.7,
+},
+
+addPhotoButtonDisabled: {
+  borderColor: "#C8CDD6",
+  backgroundColor: "#F3F4F6",
+},
+
+addPhotoButtonText: {
+  fontSize: 14,
+  fontWeight: "900",
+  color: "#4B5563",
+},
+
+addPhotoButtonTextDisabled: {
+  color: "#8B95A1",
+},
 });

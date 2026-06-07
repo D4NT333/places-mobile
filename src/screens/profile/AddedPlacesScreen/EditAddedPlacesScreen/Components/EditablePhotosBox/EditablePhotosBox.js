@@ -19,12 +19,28 @@ export default function EditablePhotosBox({
 
   const needsReview = Boolean(reviewField?.selected);
 
+  const addedPhotos = useMemo(() => {
+    return Object.entries(photoCorrections)
+      .filter(([, correction]) => correction?.type === "add")
+      .map(([id, correction], index) => ({
+        id,
+        label: `Foto nueva ${index + 1}`,
+        photo: correction.photo,
+      }));
+  }, [photoCorrections]);
+
   const visiblePhotosCount = useMemo(() => {
-    const deletedCount = Object.values(photoCorrections).filter(
+    const corrections = Object.values(photoCorrections);
+
+    const deletedCount = corrections.filter(
       (correction) => correction?.type === "delete"
     ).length;
 
-    return photos.length - deletedCount;
+    const addedCount = corrections.filter(
+      (correction) => correction?.type === "add"
+    ).length;
+
+    return photos.length - deletedCount + addedCount;
   }, [photos.length, photoCorrections]);
 
   const emitCorrections = (next) => {
@@ -68,29 +84,71 @@ export default function EditablePhotosBox({
     }
   };
 
-  const handleDeletePhoto = () => {
-    if (!selectedPhoto?.id) return;
-
-    if (visiblePhotosCount <= minPhotos) {
+  const handleAddPhoto = async () => {
+    if (!needsReview) {
       Alert.alert(
-        "No puedes eliminar esta foto",
-        `La propuesta debe conservar al menos ${minPhotos} fotos.`
+        "Fotos no disponibles",
+        "Solo puedes agregar fotos cuando las fotos fueron señaladas para revisión."
       );
       return;
     }
 
-    const next = {
-      ...photoCorrections,
-      [selectedPhoto.id]: {
-        type: "delete",
-      },
-    };
+    if (visiblePhotosCount >= maxPhotos) {
+      Alert.alert(
+        "Límite alcanzado",
+        `La propuesta no puede tener más de ${maxPhotos} fotos.`
+      );
+      return;
+    }
 
-    emitCorrections(next);
-    setSelectedPhoto(null);
+    try {
+      const pickedPhoto = await pickSingleImage();
+
+      if (!pickedPhoto) return;
+
+      const newPhotoKey = `add_${Date.now()}`;
+
+      const next = {
+        ...photoCorrections,
+        [newPhotoKey]: {
+          type: "add",
+          photo: pickedPhoto,
+        },
+      };
+
+      emitCorrections(next);
+    } catch (error) {
+      console.log("Error al agregar foto:", error);
+
+      Alert.alert(
+        "Foto no válida",
+        error?.message || "No se pudo seleccionar la foto."
+      );
+    }
   };
 
+  const handleDeletePhoto = () => {
+  if (!selectedPhoto?.id) return;
+
+  const next = {
+    ...photoCorrections,
+    [selectedPhoto.id]: {
+      type: "delete",
+    },
+  };
+
+  emitCorrections(next);
+  setSelectedPhoto(null);
+};
+
   const handleUndoCorrection = (photoId) => {
+    const next = { ...photoCorrections };
+    delete next[photoId];
+
+    emitCorrections(next);
+  };
+
+  const handleRemoveAddedPhoto = (photoId) => {
     const next = { ...photoCorrections };
     delete next[photoId];
 
@@ -141,10 +199,10 @@ export default function EditablePhotosBox({
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
 
-      <Text style={styles.helperText}>
-        Deben quedar entre {minPhotos} y {maxPhotos} fotos. Actualmente quedarían{" "}
-        {visiblePhotosCount}.
-      </Text>
+        <Text style={styles.helperText}>
+      Puedes eliminar fotos y agregar nuevas. Al reenviar deben quedar entre{" "}
+      {minPhotos} y {maxPhotos} fotos. Actualmente quedarían {visiblePhotosCount}.
+    </Text>
 
       <View style={[styles.box, needsReview && styles.boxReview]}>
         {photos.map((photo) => {
@@ -215,6 +273,55 @@ export default function EditablePhotosBox({
             </View>
           );
         })}
+
+        {addedPhotos.map((item) => (
+          <View key={item.id} style={styles.photoItem}>
+            <View style={styles.photoHeader}>
+              <Text style={styles.photoTitle}>{item.label}</Text>
+
+              <Pressable
+                onPress={() => handleRemoveAddedPhoto(item.id)}
+                hitSlop={8}
+              >
+                <Text style={styles.editText}>Quitar</Text>
+              </Pressable>
+            </View>
+
+            {renderPhotoPreview(item.photo, styles.photoPlaceholderReview)}
+
+            <Text style={[styles.photoHelper, styles.photoHelperReview]}>
+              Esta foto nueva se agregará al reenviar la propuesta.
+            </Text>
+          </View>
+        ))}
+
+        {needsReview && (
+  <View style={styles.addPhotoButtonRow}>
+    <Pressable
+      onPress={handleAddPhoto}
+      disabled={visiblePhotosCount >= maxPhotos}
+      style={({ pressed }) => [
+        styles.addPhotoButton,
+        visiblePhotosCount >= maxPhotos && styles.addPhotoButtonDisabled,
+        pressed &&
+          visiblePhotosCount < maxPhotos &&
+          styles.addPhotoButtonPressed,
+      ]}
+    >
+      <Text
+        style={[
+          styles.addPhotoButtonText,
+          visiblePhotosCount >= maxPhotos &&
+            styles.addPhotoButtonTextDisabled,
+        ]}
+      >
+        {visiblePhotosCount >= maxPhotos
+          ? `Máximo ${maxPhotos} fotos`
+          : "Agregar foto"}
+      </Text>
+    </Pressable>
+  </View>
+)}
       </View>
 
       {!!helperText && (
