@@ -92,7 +92,7 @@ export default StyleSheet.create({
   },
 
   tagText: {
-    fontSize: 6.5,
+    fontSize: 7.6,
     fontWeight: "800",
     color: "#374151",
   },

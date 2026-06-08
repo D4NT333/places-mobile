@@ -7,7 +7,7 @@ export default StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 10,
+    paddingBottom: 4,
   },
 
   scroll: {

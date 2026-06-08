@@ -11,7 +11,7 @@ export default StyleSheet.create({
 
   content: {
     paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingTop: 0,
     paddingBottom: 130,
   },
 

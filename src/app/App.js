@@ -11,6 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../services/firebase/config";
 
 import { warmCatalogsCache } from "../services/firebase/warmCatalogsCache.service";
+import { warmHomeFeedCache } from "../services/firebase/homeFeedCache.service";
 
 import { usePushNotifications } from "../hooks/usePushNotifications";
 
@@ -31,10 +32,16 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  //usePushNotifications(authUser);
+  // usePushNotifications(authUser);
 
   useEffect(() => {
-    warmCatalogsCache();
+    warmCatalogsCache().catch((error) => {
+      console.log("Error precalentando catálogos:", error);
+    });
+
+    warmHomeFeedCache().catch((error) => {
+      console.log("Error precalentando feed inicial:", error);
+    });
   }, []);
 
   if (isCheckingAuth) {
