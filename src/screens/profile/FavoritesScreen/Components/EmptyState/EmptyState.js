@@ -7,7 +7,7 @@ export default function EmptyState() {
     <View style={styles.container}>
       <Text style={styles.title}>Aún no tienes favoritos</Text>
       <Text style={styles.subtitle}>
-        Guarda lugares tocando el corazón y aparecerán aquí.
+        Guarda lugares y aparecerán aquí.
       </Text>
     </View>
   );

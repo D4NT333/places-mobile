@@ -5,10 +5,10 @@ import ProfileAvatar from "../ProfileAvatar";
 import styles from "./styles";
 import { icons } from "../../../../../../assets/icons";
 
-export default function ProfileHeader({ name, onBellPress }) {
+export default function ProfileHeader({ name, photoURL, onBellPress }) {
   return (
     <View style={styles.container}>
-      <ProfileAvatar />
+      <ProfileAvatar name={name} photoURL={photoURL} />
 
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={2}>

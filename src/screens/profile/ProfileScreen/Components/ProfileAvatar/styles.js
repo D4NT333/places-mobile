@@ -1,19 +1,38 @@
 import { StyleSheet } from "react-native";
 
+const AVATAR_SIZE = 118;
+
 export default StyleSheet.create({
   circle: {
-    width: 100,
-    height: 100,
-    borderRadius: 120,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     borderWidth: 2,
-    borderColor: "#111",
+    borderColor: "#111111",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    backgroundColor: "#FFFFFF",
   },
+
+  image: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    borderWidth: 2,
+    borderColor: "#111111",
+    backgroundColor: "#FFFFFF",
+  },
+
+  initial: {
+    fontSize: 44,
+    fontWeight: "800",
+    color: "#111111",
+  },
+
   text: {
-    fontSize: 12,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111111",
     textAlign: "center",
-    fontWeight: "500",
   },
 });
