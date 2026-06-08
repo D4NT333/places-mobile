@@ -15,6 +15,9 @@ import LikertQuestionSection from "./Components/LikertQuestionSection";
 import LikertAnswersSummary from "./Components/LikertAnswersSummary";
 import OptionalCommentSection from "./Components/OptionalCommentSection";
 
+import { getReviewQuestionsByTagId } from "./commentQuestions";
+import createPlaceReviewService from "../../../../services/api/createPlaceReview.service";
+
 const LIKERT_LABELS = {
   1: "Muy insatisfecho",
   2: "Insatisfecho",
@@ -30,7 +33,17 @@ export default function CommentScreen() {
   const navigation = useNavigation();
   const route = useRoute();
 
+  const placeId = route?.params?.placeId ?? null;
   const placeName = route?.params?.placeName ?? "este lugar";
+  const tagId = route?.params?.tagId ?? null;
+  const tagLabel = route?.params?.tagLabel ?? null;
+
+  const reviewQuestionConfig = useMemo(() => {
+    return getReviewQuestionsByTagId(tagId);
+  }, [tagId]);
+
+  const questionOne = reviewQuestionConfig.questions[0];
+  const questionTwo = reviewQuestionConfig.questions[1];
 
   const [recommendation, setRecommendation] = useState(null);
   const [rating, setRating] = useState(0);
@@ -42,6 +55,7 @@ export default function CommentScreen() {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [showDetailsFlow, setShowDetailsFlow] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const trimmedCommentText = commentText.trim();
   const commentLength = trimmedCommentText.length;
@@ -102,8 +116,9 @@ export default function CommentScreen() {
       matchesAnnouncement === null ||
       questionOneValue === 0 ||
       questionTwoValue === 0 ||
-      !isCommentValid
-    : recommendation === null || rating === 0;
+      !isCommentValid ||
+      submitLoading
+    : recommendation === null || rating === 0 || submitLoading;
 
   const resetCommentValidation = () => {
     setCommentTouched(false);
@@ -187,28 +202,83 @@ export default function CommentScreen() {
     setShowDetailsFlow(true);
   };
 
-  const handleSubmit = () => {
+  const buildReviewPayload = () => {
+    if (!showDetailsFlow) {
+      return {
+        placeId,
+        placeName,
+
+        tagId,
+        tagLabel: tagLabel || reviewQuestionConfig.tagLabel,
+
+        recommended: recommendation,
+        rating,
+
+        hasDetails: false,
+        matchesAnnouncement: null,
+        answers: [],
+        commentText: "",
+      };
+    }
+
+    return {
+      placeId,
+      placeName,
+
+      tagId,
+      tagLabel: tagLabel || reviewQuestionConfig.tagLabel,
+
+      recommended: recommendation,
+      rating,
+
+      hasDetails: true,
+      matchesAnnouncement,
+
+      answers: [
+        {
+          questionId: questionOne.id,
+          questionText: questionOne.label,
+          value: questionOneValue,
+          label: LIKERT_LABELS[questionOneValue] ?? null,
+        },
+        {
+          questionId: questionTwo.id,
+          questionText: questionTwo.label,
+          value: questionTwoValue,
+          label: LIKERT_LABELS[questionTwoValue] ?? null,
+        },
+      ],
+
+      commentText: trimmedCommentText,
+    };
+  };
+
+  const handleSubmit = async () => {
+    if (submitLoading) return;
+
     setSubmitAttempted(true);
 
-    if (showDetailsFlow && commentText.trim().length < COMMENT_MIN_LENGTH) {
+    if (showDetailsFlow && trimmedCommentText.length < COMMENT_MIN_LENGTH) {
       return;
     }
 
-    const payload = {
-      placeName,
-      recommendation,
-      rating,
-      matchesAnnouncement,
-      questionOneValue,
-      questionOneLabel: LIKERT_LABELS[questionOneValue] ?? null,
-      questionTwoValue,
-      questionTwoLabel: LIKERT_LABELS[questionTwoValue] ?? null,
-      commentText: commentText.trim(),
-      showDetailsFlow,
-    };
+    try {
+      setSubmitLoading(true);
 
-    console.log("Enviar calificación:", payload);
-    navigation.goBack();
+      const payload = buildReviewPayload();
+
+      console.log("Enviar calificación:", payload);
+
+      const result = await createPlaceReviewService(placeId, payload);
+
+      console.log("Reseña publicada:", result);
+
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error al publicar reseña:", error);
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   return (
@@ -264,7 +334,7 @@ export default function CommentScreen() {
                     <View style={styles.sectionGap} />
 
                     <LikertQuestionSection
-                      title="Pregunta 1"
+                      title={questionOne.label}
                       value={questionOneValue}
                       onSelect={setQuestionOneValue}
                     />
@@ -272,7 +342,7 @@ export default function CommentScreen() {
                     <View style={styles.sectionGap} />
 
                     <LikertQuestionSection
-                      title="Pregunta 2"
+                      title={questionTwo.label}
                       value={questionTwoValue}
                       onSelect={setQuestionTwoValue}
                     />

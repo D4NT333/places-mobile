@@ -1,3 +1,4 @@
+import { getAuth } from "firebase/auth";
 import client from "./client";
 
 export default async function getPlaceDetailService(placeId) {
@@ -6,7 +7,16 @@ export default async function getPlaceDetailService(placeId) {
       throw new Error("El id del lugar es obligatorio.");
     }
 
-    const response = await client.get(`/api/places/${placeId}/detail`);
+    const user = getAuth().currentUser;
+    const token = user ? await user.getIdToken() : null;
+
+    const response = await client.get(`/api/places/${placeId}/detail`, {
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {},
+    });
 
     const result = response.data;
 

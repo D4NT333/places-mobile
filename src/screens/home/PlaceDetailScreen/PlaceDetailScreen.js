@@ -1,6 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
 import styles from "./styles";
@@ -60,7 +63,6 @@ function normalizePlaceForScreen(place) {
     location: place.location || null,
 
     isOpen: Boolean(place.isOpen),
-
     distanceKm: place.distanceKm ?? "x",
 
     images: normalizeImages(place.images),
@@ -76,6 +78,10 @@ function normalizePlaceForScreen(place) {
       commentsCount: 0,
       recommendsPercent: 0,
     },
+
+    canAddReview: place.canAddReview !== false,
+    hasCurrentUserReview: Boolean(place.hasCurrentUserReview),
+    currentUserReview: place.currentUserReview || null,
 
     googleSummary: place.googleSummary || {
       averageRating: toNumber(place.googleRating, 0),
@@ -94,6 +100,27 @@ function isPlaceInFavorites(favorites, placeId) {
       String(favorite.placeId || "") === cleanPlaceId ||
       String(favorite.id || "") === cleanPlaceId
     );
+  });
+}
+
+function getOtherReviews(reviews, currentUserReview) {
+  if (!Array.isArray(reviews)) return [];
+
+  const currentReviewId = currentUserReview?.id;
+  const currentUserId = currentUserReview?.userId;
+
+  return reviews.filter((review) => {
+    if (!review) return false;
+
+    if (currentReviewId && review.id === currentReviewId) {
+      return false;
+    }
+
+    if (currentUserId && review.userId === currentUserId) {
+      return false;
+    }
+
+    return true;
   });
 }
 
@@ -123,56 +150,57 @@ export default function PlaceDetailScreen({ route }) {
     }
   }, [placeId]);
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadPlaceDetail = useCallback(async () => {
+    try {
+      setLoading(true);
 
-    const loadPlaceDetail = async () => {
-      try {
-        setLoading(true);
-
-        if (MOCK_MODE) {
-          if (isMounted) {
-            setPlaceDetail(mockPlace);
-            setLsearchReviewsData(mockLsearchReviews);
-            setGoogleReviewsData(mockGoogleReviews);
-          }
-
-          return;
-        }
-
-        const detailResult = await getPlaceDetailService(placeId);
-
-        if (isMounted) {
-          setPlaceDetail(detailResult.place);
-          setLsearchReviewsData(detailResult.lsearchReviews);
-          setGoogleReviewsData(detailResult.googleReviews);
-          setLoading(false);
-        }
-
-        // Esto va en segundo plano. No bloquea la pantalla.
-        loadFavoriteState();
-      } catch (error) {
-        console.error("Error al cargar detalle del lugar:", error);
-
-        if (isMounted) {
-          setPlaceDetail(mockPlace);
-          setLsearchReviewsData(mockLsearchReviews);
-          setGoogleReviewsData(mockGoogleReviews);
-          setIsFavorite(false);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+      if (MOCK_MODE) {
+        setPlaceDetail(mockPlace);
+        setLsearchReviewsData(mockLsearchReviews);
+        setGoogleReviewsData(mockGoogleReviews);
+        return;
       }
-    };
 
-    loadPlaceDetail();
+      const detailResult = await getPlaceDetailService(placeId);
 
-    return () => {
-      isMounted = false;
-    };
+      console.log("Detalle review actual:", {
+  canAddReview: detailResult.place?.canAddReview,
+  hasCurrentUserReview: detailResult.place?.hasCurrentUserReview,
+  currentUserReview: detailResult.place?.currentUserReview,
+});
+
+      setPlaceDetail(detailResult.place);
+
+      setLsearchReviewsData(
+        Array.isArray(detailResult.lsearchReviews)
+          ? detailResult.lsearchReviews
+          : []
+      );
+
+      setGoogleReviewsData(
+        Array.isArray(detailResult.googleReviews)
+          ? detailResult.googleReviews
+          : []
+      );
+
+      loadFavoriteState();
+    } catch (error) {
+      console.error("Error al cargar detalle del lugar:", error);
+
+      setPlaceDetail(mockPlace);
+      setLsearchReviewsData(mockLsearchReviews);
+      setGoogleReviewsData(mockGoogleReviews);
+      setIsFavorite(false);
+    } finally {
+      setLoading(false);
+    }
   }, [placeId, loadFavoriteState]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPlaceDetail();
+    }, [loadPlaceDetail])
+  );
 
   const place = useMemo(() => {
     if (MOCK_MODE) return mockPlace;
@@ -181,10 +209,10 @@ export default function PlaceDetailScreen({ route }) {
   }, [placeDetail]);
 
   const lsearchReviews = useMemo(() => {
-    if (MOCK_MODE) return mockLsearchReviews;
+  if (MOCK_MODE) return mockLsearchReviews;
 
-    return lsearchReviewsData;
-  }, [lsearchReviewsData]);
+  return getOtherReviews(lsearchReviewsData, place.currentUserReview);
+}, [lsearchReviewsData, place.currentUserReview]);
 
   const googleReviews = useMemo(() => {
     if (MOCK_MODE) return mockGoogleReviews;
@@ -224,12 +252,16 @@ export default function PlaceDetailScreen({ route }) {
     });
   };
 
-  const handleAddReview = () => {
-    navigation.navigate("CommentScreen", {
-      placeId,
-      placeName: place.name,
-    });
-  };
+ const handleAddReview = () => {
+  if (!place.canAddReview) return;
+
+  navigation.navigate("CommentScreen", {
+    placeId,
+    placeName: place.name,
+    tagId: place.raw?.tagId,
+    tagLabel: place.raw?.tagLabel,
+  });
+};
 
   const handleViewAllPhotos = () => {
     console.log("Abrir galería");
@@ -281,8 +313,10 @@ export default function PlaceDetailScreen({ route }) {
         <ReviewsSection
           lsearchSummary={place.lsearchSummary}
           googleSummary={place.googleSummary}
+          currentUserReview={place.currentUserReview}
           lsearchReviews={lsearchReviews}
           googleReviews={googleReviews}
+          canAddReview={place.canAddReview}
           onAddReview={handleAddReview}
           onViewMoreLsearch={() => console.log("Ver más Lsearch")}
           onViewMoreGoogle={() => console.log("Ver más Google")}

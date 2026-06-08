@@ -221,4 +221,44 @@ ratingSummaryNumber: {
   fontWeight: "900",
   color: "#111111",
 },
+avatarImage: {
+  width: "100%",
+  height: "100%",
+  borderRadius: 999,
+},
+reviewAlreadyAddedBox: {
+  alignSelf: "flex-start",
+  backgroundColor: "#EDEEF2",
+  borderRadius: 999,
+  paddingHorizontal: 14,
+  height: 34,
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: 18,
+  marginBottom: 16,
+},
+
+reviewAlreadyAddedText: {
+  color: "#222222",
+  fontSize: 12,
+  fontWeight: "800",
+},
+currentReviewSection: {
+  marginTop: 18,
+},
+
+otherReviewsSection: {
+  marginTop: 18,
+},
+
+reviewGroupTitle: {
+  fontSize: 14,
+  fontWeight: "900",
+  color: "#111111",
+  marginBottom: 8,
+},
+
+reviewsList: {
+  gap: 8,
+},
 });

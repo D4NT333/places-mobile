@@ -6,11 +6,34 @@ import RatingStars from "../../../../../components/RatingStars";
 import ReviewCard from "./ReviewCard";
 import GoogleReviewCard from "./GoogleReviewCard";
 
+function toNumber(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeSummary(summary = {}) {
+  return {
+    rating: toNumber(summary.rating ?? summary.averageRating, 0),
+    reviewsCount: toNumber(
+      summary.reviewsCount ?? summary.ratingsCount,
+      0
+    ),
+    recommendationPercent: toNumber(
+      summary.recommendationPercent ?? summary.recommendsPercent,
+      0
+    ),
+  };
+}
+
 function RatingSummary({ rating, size = 22 }) {
+  const cleanRating = toNumber(rating, 0);
+
   return (
     <View style={styles.ratingSummaryRow}>
-      <RatingStars rating={rating} size={size} />
-      <Text style={styles.ratingSummaryNumber}>{rating}</Text>
+      <RatingStars rating={cleanRating} size={size} />
+      <Text style={styles.ratingSummaryNumber}>
+        {cleanRating.toFixed(1)}
+      </Text>
     </View>
   );
 }
@@ -18,14 +41,26 @@ function RatingSummary({ rating, size = 22 }) {
 export default function ReviewsSection({
   lsearchSummary,
   googleSummary,
+  currentUserReview = null,
   lsearchReviews = [],
   googleReviews = [],
+  canAddReview = true,
   onAddReview,
   onViewMoreLsearch,
   onViewMoreGoogle,
 }) {
-  const firstLsearchReview = lsearchReviews[0];
-  const firstGoogleReview = googleReviews[0];
+  const normalizedLsearchSummary = normalizeSummary(lsearchSummary);
+  const normalizedGoogleSummary = normalizeSummary(googleSummary);
+
+  const visibleLsearchReviews = Array.isArray(lsearchReviews)
+    ? lsearchReviews.slice(0, 3)
+    : [];
+
+  const firstGoogleReview = Array.isArray(googleReviews)
+    ? googleReviews[0]
+    : null;
+
+  const hasCurrentUserReview = Boolean(currentUserReview);
 
   return (
     <View style={styles.container}>
@@ -33,27 +68,52 @@ export default function ReviewsSection({
 
       <Text style={styles.sourceTitle}>Lsearch</Text>
 
-      <RatingSummary rating={lsearchSummary.rating} size={22} />
+      <RatingSummary rating={normalizedLsearchSummary.rating} size={22} />
 
       <Text style={styles.summaryText}>
-        <Text style={styles.boldText}>{lsearchSummary.reviewsCount} reseñas</Text>{" "}
-        {lsearchSummary.recommendationPercent}% lo recomienda
+        <Text style={styles.boldText}>
+          {normalizedLsearchSummary.reviewsCount} reseñas
+        </Text>{" "}
+        {normalizedLsearchSummary.recommendationPercent}% lo recomienda
       </Text>
 
-      <Pressable onPress={onAddReview} style={styles.addReviewButton}>
-        <Text style={styles.addReviewText}>Agregar reseña</Text>
-      </Pressable>
+      {canAddReview ? (
+        <Pressable onPress={onAddReview} style={styles.addReviewButton}>
+          <Text style={styles.addReviewText}>Agregar reseña</Text>
+        </Pressable>
+      ) : null}
 
-      {firstLsearchReview ? (
-        <ReviewCard review={firstLsearchReview} />
-      ) : (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyTitle}>Todavía no hay reseñas.</Text>
-          <Text style={styles.emptyText}>
-            Sé el primero en compartir tu experiencia.
-          </Text>
+      {hasCurrentUserReview ? (
+        <View style={styles.currentReviewSection}>
+          <Text style={styles.reviewGroupTitle}>Tu reseña</Text>
+          <ReviewCard review={currentUserReview} />
         </View>
-      )}
+      ) : null}
+
+      <View style={styles.otherReviewsSection}>
+        <Text style={styles.reviewGroupTitle}>Reseñas recientes</Text>
+
+        {visibleLsearchReviews.length > 0 ? (
+          <View style={styles.reviewsList}>
+            {visibleLsearchReviews.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </View>
+        ) : (
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyTitle}>
+              {hasCurrentUserReview
+                ? "Todavía no hay más reseñas."
+                : "Todavía no hay reseñas."}
+            </Text>
+            <Text style={styles.emptyText}>
+              {hasCurrentUserReview
+                ? "Cuando otros usuarios compartan su experiencia, aparecerán aquí."
+                : "Sé el primero en compartir tu experiencia."}
+            </Text>
+          </View>
+        )}
+      </View>
 
       <Pressable onPress={onViewMoreLsearch}>
         <Text style={styles.moreText}>Ver más reseñas</Text>
@@ -64,9 +124,9 @@ export default function ReviewsSection({
       <Text style={styles.sourceTitle}>Google</Text>
 
       <View style={styles.googleSummaryRow}>
-        <RatingSummary rating={googleSummary.rating} size={22} />
+        <RatingSummary rating={normalizedGoogleSummary.rating} size={22} />
         <Text style={styles.googleReviewCount}>
-          ● {googleSummary.reviewsCount} reseñas
+          ● {normalizedGoogleSummary.reviewsCount} reseñas
         </Text>
       </View>
 
