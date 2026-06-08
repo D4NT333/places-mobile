@@ -15,6 +15,7 @@ export const icons = {
   fullstar: require("./logoEstrellaAmarilla.png"),
   emptystar: require("./logoEstrellaVacia.png"),
   mediumstar: require("./logoEstrellaMedia.png"),
+  bell: require("./logoCampana.png"),
 
   art: require("./art.png"),
   entertainment: require("./entertainment.png"),

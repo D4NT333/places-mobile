@@ -1,13 +1,10 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-  card: {
+  container: {
     flex: 1,
-    borderWidth: 2,
-    borderColor: "#111",
-    borderRadius: 10,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    justifyContent: "flex-start",
+    backgroundColor: "#F6F7FB",
+    paddingTop: 14,
+    paddingHorizontal: 14,
   },
 });

@@ -12,32 +12,27 @@ import { preloadAddedPlacesSubmissions } from "../../../services/api/addedPlaces
 export default function ProfileScreen() {
   const navigation = useNavigation();
 
-useEffect(() => {
-  preloadAddedPlacesSubmissions().catch((error) => {
-    console.log("Error al precargar lugares añadidos:", error);
-  });
+  useEffect(() => {
+    preloadAddedPlacesSubmissions().catch((error) => {
+      console.log("Error al precargar lugares añadidos:", error);
+    });
   }, []);
 
   return (
     <LayoutScreen
-      padding={{ top: 16, left: 16, right: 16, bottom: 16 }}
-      bg="#538de4ff"
+      padding={{ top: 0, left: 0, right: 0, bottom: 0 }}
+      bg="#F6F7FB"
       edges={["top"]}
     >
-      <View style={styles.card}>
+      <View style={styles.container}>
         <ProfileHeader
           name="Dante Orozco Gomez Serrano"
-          description="Descripción"
-          onEditPress={() => navigation.navigate("NotificationsScreen")}
+          onBellPress={() => navigation.navigate("NotificationsScreen")}
         />
 
         <ProfileSettings
           onFavorites={() => navigation.navigate("FavoritesScreen")}
           onAddedPlaces={() => navigation.navigate("AddedPlacesScreen")}
-          onAddedDescriptions={() =>
-            navigation.navigate("AddedDescriptionScreen")
-          }
-          onAddedPhotos={() => navigation.navigate("AddedPhotosScreen")}
           onConfig={() => navigation.navigate("SettingsProfileScreen")}
         />
       </View>

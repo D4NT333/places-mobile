@@ -2,37 +2,32 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   container: {
+    width: "100%",
+    minHeight: 110,
     flexDirection: "row",
-    paddingTop: 40,
-    padding: 16,
     alignItems: "flex-start",
-    justifyContent: "space-between",
   },
+
   info: {
-    flexShrink: 1,
-    paddingLeft: 16,
+    flex: 1,
+    marginLeft: 18,
+    paddingTop: 28,
   },
-  title: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 11,
-  },
+
   name: {
-    fontSize: 13,
-    fontWeight: "500",
-    marginBottom: 10,
-  },
-  desc: {
-    fontSize: 12,
-    opacity: 0.8,
-  },
-  editBtn: {
-     width: 40,
-     height: 40,
-     resizeMode: "contain",
-     marginRight: 1,
-  },
-  editIcon: {
     fontSize: 16,
+    fontWeight: "700",
+    color: "#222222",
+  },
+
+  bellButton: {
+    paddingTop: 10,
+    paddingHorizontal: 4,
+  },
+
+  bellIcon: {
+    width: 34,
+    height: 34,
+    tintColor: "#000000",
   },
 });
