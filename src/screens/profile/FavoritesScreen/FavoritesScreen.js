@@ -8,8 +8,8 @@ import Header from "./Components/Header";
 import FavoriteCard from "./Components/FavoriteCard";
 import EmptyState from "./Components/EmptyState";
 
-import getMyFavoritesService from "../../../services/api/getMyFavorites.service";
-import toggleFavoritePlaceService from "../../../services/api/toggleFavoritePlace.service";
+import getMyFavoritesService from "../../../services/api/favorites/read/getMyFavorites.service";
+import toggleFavoritePlaceService from "../../../services/api/favorites/update/toggleFavoritePlace.service";
 
 function getFavoriteName(item) {
   return item.placeName || item.name || "Lugar sin nombre";

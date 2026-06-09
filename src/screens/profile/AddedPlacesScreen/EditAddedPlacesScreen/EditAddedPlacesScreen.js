@@ -19,7 +19,7 @@ import {
   DeleteSubtagWarningModal,
 } from "./Components";
 
-import getReturnedPlaceSubmissionEditDataService from "../../../../services/api/getReturnedPlaceSubmissionEditData.service";
+import getReturnedPlaceSubmissionEditDataService from "../../../../services/api/submissions/places/read/getReturnedPlaceSubmissionEditData.service";
 
 import { getTagsService } from "../../../../services/firebase/firestore/tags/getTags.service";
 import { getSubtagsByTagId } from "../../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";

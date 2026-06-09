@@ -17,7 +17,7 @@ import { getTagsService } from "../../../services/firebase/firestore/tags/getTag
 import { getSubtagsByTagId } from "../../../services/firebase/firestore/subtags/getSubtagsByTagId.service";
 import { getApproachesByTagId } from "../../../services/firebase/firestore/approaches/getApproachesByTagId.service";
 
-import createPlaceSubmissionService from "../../../services/api/createPlaceSubmission.service";
+import createPlaceSubmissionService from "../../../services/api/submissions/places/create/createPlaceSubmission.service";
 
 import uploadPlaceSubmissionPhotosToStorageService from "../../../services/firebase/storage/uploadPlaceSubmissionPhotosToStorage.service";
 

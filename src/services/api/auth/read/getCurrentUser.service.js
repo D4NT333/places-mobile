@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import client from "./client";
+import client from "../../client";
 
 function waitForFirebaseUser(timeoutMs = 5000) {
   const auth = getAuth();

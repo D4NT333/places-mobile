@@ -13,7 +13,7 @@ import BirthDateModal from "./Components/BirthDateModal";
 import { icons } from "../../../../assets/icons";
 
 import registerWithEmailService  from "../../../services/firebase/auth/registerWithEmail.service.js";
-import checkRegisterAvailabilityService from "../../../services/api/checkRegisterAvailability.service.js";
+import checkRegisterAvailabilityService from "../../../services/api/auth/read/checkRegisterAvailability.service.js";
 
 export default function LoginRegisterScreen() {
   const navigation = useNavigation();

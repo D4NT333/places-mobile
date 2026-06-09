@@ -14,9 +14,9 @@ import PlaceInfo from "./Components/PlaceInfo";
 import ReviewsSection from "./Components/ReviewsSection";
 import LocationSection from "./Components/LocationSection";
 
-import getPlaceDetailService from "../../../services/api/getPlaceDetail.service";
-import getMyFavoritesService from "../../../services/api/getMyFavorites.service";
-import toggleFavoritePlaceService from "../../../services/api/toggleFavoritePlace.service";
+import getPlaceDetailService from "../../../services/api/places/read/getPlaceDetail.service";
+import getMyFavoritesService from "../../../services/api/favorites/read/getMyFavorites.service";
+import toggleFavoritePlaceService from "../../../services/api/favorites/update/toggleFavoritePlace.service";
 
 import { mockPlace, mockLsearchReviews, mockGoogleReviews } from "./mock";
 

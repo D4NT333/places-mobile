@@ -1,5 +1,5 @@
-import client from "./client";
-import { auth } from "../firebase/config";
+import client from "../../../client";
+import { auth } from "../../../../firebase/config";
 
 export default async function getReturnedPlaceSubmissionEditDataService(
   submissionId

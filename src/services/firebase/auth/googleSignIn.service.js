@@ -2,7 +2,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../../firebase/config";
 
-import checkLoginMethodService from "../../api/checkLoginMethod.service";
+import checkLoginMethodService from "../../api/auth/read/checkLoginMethod.service";
 
 let isConfigured = false;
 

@@ -15,8 +15,7 @@ import {
   removeAddedPlaceFromCache,
   subscribeAddedPlacesCache,
   clearAddedPlacesSubmissionsCache,
-} from "../../../services/api/addedPlacesSubmissionsCache.service";
-
+} from "../../../services/api/submissions/places/read/addedPlacesSubmissionsCache.service";
 
 
 import {getRejectedPlaceReasonService } from "../../../services";

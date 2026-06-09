@@ -1,5 +1,5 @@
-import { auth } from "../firebase/config";
-import client from "./client";
+import { auth } from "../../../../firebase/config";
+import client from "../../../client";
 
 export default async function getMyPlaceSubmissionsService({
   limit = 10,

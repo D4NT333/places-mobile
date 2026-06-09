@@ -10,7 +10,7 @@ import PlacesFeed from "./Components/PlacesFeed";
 
 import { getCurrentLocationService } from "../../../services/";
 import sendCurrentLocationToBackendService from "../../../services/api/sendCurrentLocationToBackend.service";
-import getPlacesFeedService from "../../../services/api/getPlacesFeed.service";
+import getPlacesFeedService from "../../../services/api/places/read/getPlacesFeed.service";
 import {
   getCachedHomeFeed,
   warmHomeFeedCache,

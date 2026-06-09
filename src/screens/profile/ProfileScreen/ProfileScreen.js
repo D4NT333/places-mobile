@@ -7,7 +7,7 @@ import { ProfileHeader, ProfileSettings } from "./Components";
 
 import styles from "./styles";
 
-import { preloadAddedPlacesSubmissions } from "../../../services/api/addedPlacesSubmissionsCache.service";
+import { preloadAddedPlacesSubmissions } from "../../../services/api/submissions/places/read/addedPlacesSubmissionsCache.service";
 import {
   getCachedCurrentUser,
   preloadCurrentUser,

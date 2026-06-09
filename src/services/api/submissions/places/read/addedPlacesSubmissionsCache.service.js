@@ -1,4 +1,4 @@
-import { auth } from "../firebase/config";
+import { auth } from "../../../../firebase/config";
 import getMyPlaceSubmissionsService from "./getMyPlaceSubmissions.service";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;

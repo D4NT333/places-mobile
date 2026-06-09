@@ -1,7 +1,7 @@
 import { sendPasswordResetEmail } from "firebase/auth";
 
 import { auth } from "../config";
-import checkLoginMethodService from "../../api/checkLoginMethod.service";
+import checkLoginMethodService from "../../api/auth/read/checkLoginMethod.service";
 
 export default async function recoverPasswordService({ email }) {
   const cleanEmail = email.trim().toLowerCase();

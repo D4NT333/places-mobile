@@ -10,7 +10,7 @@ import {
 } from "../../../services";
 
 import loginWithEmailService from "../../../services/firebase/auth/loginWithEmail.service";
-import checkLoginMethodService from "../../../services/api/checkLoginMethod.service";
+import checkLoginMethodService from "../../../services/api/auth/read/checkLoginMethod.service";
 
 import styles from "./styles";
 import ModalHeader from "./Components/ModalHeader";

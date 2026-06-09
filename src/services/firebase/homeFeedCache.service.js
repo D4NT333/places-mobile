@@ -1,4 +1,4 @@
-import getPlacesFeedService from "../api/getPlacesFeed.service";
+import getPlacesFeedService from "../api/places/read/getPlacesFeed.service.js";
 
 const PAGE_SIZE = 20;
 

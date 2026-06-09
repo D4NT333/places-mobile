@@ -1,4 +1,4 @@
-import getCurrentUserService from "./getCurrentUser.service";
+import getCurrentUserService from "./auth/read/getCurrentUser.service";
 
 let cachedCurrentUser = null;
 let pendingCurrentUserPromise = null;

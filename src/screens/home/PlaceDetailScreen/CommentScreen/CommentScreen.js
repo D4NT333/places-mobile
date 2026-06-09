@@ -16,7 +16,7 @@ import LikertAnswersSummary from "./Components/LikertAnswersSummary";
 import OptionalCommentSection from "./Components/OptionalCommentSection";
 
 import { getReviewQuestionsByTagId } from "./commentQuestions";
-import createPlaceReviewService from "../../../../services/api/createPlaceReview.service";
+import createPlaceReviewService from "../../../../services/api/reviews/create/createPlaceReview.service";
 
 const LIKERT_LABELS = {
   1: "Muy insatisfecho",
