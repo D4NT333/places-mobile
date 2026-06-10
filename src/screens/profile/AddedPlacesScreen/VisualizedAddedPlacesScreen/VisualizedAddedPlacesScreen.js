@@ -9,7 +9,7 @@ import SubmissionLocationMap from "./Components/SubmissionLocationMap";
 import {
   getOrFetchPlaceSubmissionDetail,
   getPlaceSubmissionDetailFromCache,
-} from "../../../../services/api/submissions/places/read/addedPlacesSubmissionsCache.service";
+} from "../../../../services/api/submissions/places/read/placeSubmissionDetailCache.service";
 
 import styles from "./styles";
 

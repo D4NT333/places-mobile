@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View } from "react-native";
+import { View, Alert } from "react-native";
 import {
   useFocusEffect,
   useNavigation,
@@ -127,7 +127,7 @@ function getOtherReviews(reviews, currentUserReview) {
 export default function PlaceDetailScreen({ route }) {
   const navigation = useNavigation();
 
-  const placeId = route?.params?.placeId ?? "place_1";
+  const placeId = route?.params?.placeId ?? "";
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -244,19 +244,42 @@ export default function PlaceDetailScreen({ route }) {
     }
   };
 
-  const handleImproveDescription = () => {
-    navigation.navigate("ChangeDescriptionScreen", {
-      placeId,
-      currentDescription: place.description,
-      placeName: place.name,
-    });
-  };
+const handleImproveDescription = () => {
+  const realPlaceId =
+    place?.placeId ||
+    place?.id ||
+    place?.raw?.placeId ||
+    place?.raw?.id ||
+    "";
 
- const handleAddReview = () => {
+  console.log("PLACE DETAIL NORMALIZADO:", place);
+  console.log("PLACE RAW:", place?.raw);
+  console.log("ID FINAL PARA DESCRIPTION:", realPlaceId);
+
+  if (!realPlaceId) {
+    Alert.alert("Error", "No se encontró el ID del lugar.");
+    return;
+  }
+
+  navigation.navigate("ChangeDescriptionScreen", {
+    placeId: realPlaceId,
+    currentDescription: place.description,
+    placeName: place.name,
+  });
+};
+
+const handleAddReview = () => {
   if (!place.canAddReview) return;
 
+  const realPlaceId = place.placeId || place.id || place.raw?.placeId || place.raw?.id || "";
+
+  if (!realPlaceId) {
+    Alert.alert("Error", "No se encontró el ID del lugar.");
+    return;
+  }
+
   navigation.navigate("CommentScreen", {
-    placeId,
+    placeId: realPlaceId,
     placeName: place.name,
     tagId: place.raw?.tagId,
     tagLabel: place.raw?.tagLabel,

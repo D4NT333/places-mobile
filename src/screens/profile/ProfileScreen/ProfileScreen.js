@@ -76,10 +76,12 @@ export default function ProfileScreen() {
           />
         )}
 
-        <ProfileSettings
+       <ProfileSettings
           currentUser={currentUser}
           onFavorites={() => navigation.navigate("FavoritesScreen")}
           onAddedPlaces={() => navigation.navigate("AddedPlacesScreen")}
+          onAddedDescriptions={() => navigation.navigate("AddedDescriptionScreen")}
+          onAddedPhotos={() => navigation.navigate("AddedPhotosScreen")}
           onConfig={() => navigation.navigate("SettingsProfileScreen")}
         />
       </View>

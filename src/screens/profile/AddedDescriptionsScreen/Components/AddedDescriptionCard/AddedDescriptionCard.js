@@ -16,9 +16,9 @@ export default function AddedDescriptionCard({
   onEdit,
   onViewReason,
 }) {
-  const statusLabel = STATUS_LABELS[item.status] || "En revisión";
+  const statusLabel = item.statusLabel || STATUS_LABELS[item.status] || "En revisión";
 
-  const canDelete = item.status === "approved" || item.status === "rejected";
+  const canDelete = item.canDelete || item.status === "approved" || item.status === "rejected";
   const canViewReason = item.status === "rejected";
 
   return (
@@ -28,8 +28,8 @@ export default function AddedDescriptionCard({
     >
       <View style={styles.mainRow}>
         <View style={styles.imageCircle}>
-          {item.image ? (
-            <Image source={item.image} style={styles.image} />
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.image} />
           ) : (
             <Text style={styles.imageText}>IMG</Text>
           )}

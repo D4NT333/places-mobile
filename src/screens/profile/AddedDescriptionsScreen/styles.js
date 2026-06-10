@@ -59,4 +59,40 @@ export default StyleSheet.create({
   bottomSpace: {
     height: 40,
   },
+  loadingBox: {
+  flex: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingTop: 60,
+},
+
+loadingText: {
+  marginTop: 12,
+  fontSize: 14,
+  color: "#5E6470",
+  fontWeight: "600",
+},
+
+emptyBox: {
+  alignItems: "center",
+  justifyContent: "center",
+  paddingVertical: 48,
+  paddingHorizontal: 16,
+},
+
+emptyTitle: {
+  fontSize: 18,
+  fontWeight: "800",
+  color: "#1D2433",
+  textAlign: "center",
+  marginBottom: 8,
+},
+
+emptyText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#6B7280",
+  textAlign: "center",
+  lineHeight: 20,
+},
 });
