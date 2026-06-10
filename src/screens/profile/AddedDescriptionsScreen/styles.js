@@ -59,20 +59,6 @@ export default StyleSheet.create({
   bottomSpace: {
     height: 40,
   },
-  loadingBox: {
-  flex: 1,
-  alignItems: "center",
-  justifyContent: "center",
-  paddingTop: 60,
-},
-
-loadingText: {
-  marginTop: 12,
-  fontSize: 14,
-  color: "#5E6470",
-  fontWeight: "600",
-},
-
 emptyBox: {
   alignItems: "center",
   justifyContent: "center",
@@ -94,5 +80,18 @@ emptyText: {
   color: "#6B7280",
   textAlign: "center",
   lineHeight: 20,
+},
+loadingBox: {
+  flex: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingTop: 40,
+},
+
+loadingText: {
+  marginTop: 12,
+  fontSize: 14,
+  fontWeight: "700",
+  color: "#5E6470",
 },
 });
