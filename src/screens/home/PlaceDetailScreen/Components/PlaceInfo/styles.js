@@ -106,4 +106,29 @@ tagText: {
   fontWeight: "800",
   color: "#FFFFFF",
 },
+improveDescriptionButton: {
+  marginTop: 14,
+  alignSelf: "flex-start",
+  backgroundColor: "#111827",
+  paddingVertical: 10,
+  paddingHorizontal: 16,
+  borderRadius: 999,
+},
+
+improveDescriptionButtonPressed: {
+  opacity: 0.85,
+},
+
+improveDescriptionText: {
+  color: "#FFFFFF",
+  fontSize: 14,
+  fontWeight: "800",
+},
+
+descriptionReviewText: {
+  marginTop: 10,
+  fontSize: 14,
+  fontWeight: "700",
+  color: "#6B7280",
+},
 });

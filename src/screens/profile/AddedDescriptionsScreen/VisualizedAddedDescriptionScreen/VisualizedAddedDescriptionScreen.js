@@ -237,16 +237,6 @@ export default function VisualizedAddedDescriptionScreen() {
             content={normalizedDetail.proposedDescription}
           />
 
-          {normalizedDetail.status === "rejected" && (
-            <View style={styles.rejectedBox}>
-              <Text style={styles.rejectedTitle}>Motivo del rechazo</Text>
-              <Text style={styles.rejectedText}>
-                {normalizedDetail.reviewMessage ||
-                  "No se especificó un motivo de rechazo."}
-              </Text>
-            </View>
-          )}
-
           <View style={styles.bottomSpace} />
         </ScrollView>
       </View>

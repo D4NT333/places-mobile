@@ -68,29 +68,6 @@ export default StyleSheet.create({
     marginBottom: 18,
   },
 
-  rejectedBox: {
-    marginTop: 18,
-    borderWidth: 1.5,
-    borderColor: "#111111",
-    borderRadius: 14,
-    padding: 14,
-    backgroundColor: "#FFFFFF",
-  },
-
-  rejectedTitle: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#111111",
-    marginBottom: 6,
-  },
-
-  rejectedText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#444444",
-    lineHeight: 21,
-  },
-
   bottomSpace: {
     height: 40,
   },

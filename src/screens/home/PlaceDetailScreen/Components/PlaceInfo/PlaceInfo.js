@@ -21,7 +21,8 @@ export default function PlaceInfo({
   description,
   googleRating,
   lsearchRating,
-  tags = [],
+  tags,
+  canSubmitDescription = true,
   onImproveDescription,
 }) {
   return (
@@ -30,12 +31,23 @@ export default function PlaceInfo({
 
       <Text style={styles.descriptionText}>{description}</Text>
 
-      <Pressable
-        onPress={onImproveDescription}
-        style={styles.secondaryButton}
-      >
-        <Text style={styles.secondaryButtonText}>Mejorar descripción</Text>
-      </Pressable>
+      {canSubmitDescription === false ? (
+        <Text style={styles.descriptionReviewText}>
+          Descripción en revisión
+        </Text>
+      ) : (
+        <Pressable
+          onPress={onImproveDescription}
+          style={({ pressed }) => [
+            styles.improveDescriptionButton,
+            pressed && styles.improveDescriptionButtonPressed,
+          ]}
+        >
+          <Text style={styles.improveDescriptionText}>
+            Mejorar descripción
+          </Text>
+        </Pressable>
+      )}
 
       <Text style={[styles.sectionTitle, styles.spacedTitle]}>
         Valoraciones

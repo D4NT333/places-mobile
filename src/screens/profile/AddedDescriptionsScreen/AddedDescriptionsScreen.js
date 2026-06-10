@@ -14,8 +14,10 @@ import { LayoutScreen } from "../../../layouts";
 import { icons } from "../../../../assets/icons";
 
 import AddedDescriptionCard from "./Components/AddedDescriptionCard";
+import RejectionReasonModal from "./Components/RejectionReasonModal";
 
 import getMyDescriptionSubmissionsService from "../../../services/api/submissions/descriptions/read/getMyDescriptionSubmissions.service";
+import getDescriptionSubmissionRejectionReasonService from "../../../services/api/submissions/descriptions/read/getDescriptionSubmissionRejectionReason.service";
 
 import styles from "./styles";
 
@@ -68,6 +70,11 @@ export default function AddedDescriptionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [showRejectReasonModal, setShowRejectReasonModal] = useState(false);
+const [rejectReasonLoading, setRejectReasonLoading] = useState(false);
+const [rejectReasonError, setRejectReasonError] = useState("");
+const [selectedRejectionData, setSelectedRejectionData] = useState(null);
+
   const loadDescriptions = useCallback(async ({ showRefresh = false } = {}) => {
     try {
       if (showRefresh) {
@@ -103,6 +110,13 @@ export default function AddedDescriptionsScreen() {
     navigation.goBack();
   };
 
+  const handleCloseRejectReasonModal = () => {
+  setShowRejectReasonModal(false);
+  setRejectReasonLoading(false);
+  setRejectReasonError("");
+  setSelectedRejectionData(null);
+};
+
   const handlePressCard = (item) => {
     navigation.navigate("VisualizedAddedDescriptionScreen", {
       descriptionData: {
@@ -126,22 +140,30 @@ export default function AddedDescriptionsScreen() {
     console.log("Editar descripcion:", descriptionId);
   };
 
-  const handleViewReason = (descriptionId) => {
-    const item = descriptions.find((description) => description.id === descriptionId);
+const handleViewReason = async (descriptionId) => {
+  if (!descriptionId) return;
 
-    navigation.navigate("VisualizedAddedDescriptionScreen", {
-      descriptionData: {
-        id: item.id,
-        placeName: item.name,
-        status: item.status,
-        submittedAtLabel: item.submittedAtLabel,
-        currentDescription: item.currentDescription,
-        proposedDescription: item.proposedDescription || item.description,
-        reviewMessage: item.reviewMessage,
-        imageUrl: item.imageUrl,
-      },
-    });
-  };
+  try {
+    setShowRejectReasonModal(true);
+    setRejectReasonLoading(true);
+    setRejectReasonError("");
+    setSelectedRejectionData(null);
+
+    const result = await getDescriptionSubmissionRejectionReasonService(
+      descriptionId
+    );
+
+    setSelectedRejectionData(result);
+  } catch (error) {
+    console.error("Error al cargar motivo de rechazo:", error);
+
+    setRejectReasonError(
+      error.message || "No se pudo cargar el motivo de rechazo."
+    );
+  } finally {
+    setRejectReasonLoading(false);
+  }
+};
 
   return (
     <LayoutScreen
@@ -217,6 +239,14 @@ export default function AddedDescriptionsScreen() {
           </ScrollView>
         )}
       </View>
+
+      <RejectionReasonModal
+  visible={showRejectReasonModal}
+  loading={rejectReasonLoading}
+  rejectionData={selectedRejectionData}
+  errorMessage={rejectReasonError}
+  onClose={handleCloseRejectReasonModal}
+/>
     </LayoutScreen>
   );
 }

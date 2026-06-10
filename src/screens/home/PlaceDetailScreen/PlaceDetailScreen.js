@@ -83,6 +83,13 @@ function normalizePlaceForScreen(place) {
     hasCurrentUserReview: Boolean(place.hasCurrentUserReview),
     currentUserReview: place.currentUserReview || null,
 
+    canSubmitDescription: place.canSubmitDescription !== false,
+    hasCurrentUserDescriptionInReview: Boolean(
+      place.hasCurrentUserDescriptionInReview
+    ),
+    currentUserDescriptionSubmission:
+      place.currentUserDescriptionSubmission || null,
+
     googleSummary: place.googleSummary || {
       averageRating: toNumber(place.googleRating, 0),
       ratingsCount: 0,
@@ -244,7 +251,15 @@ export default function PlaceDetailScreen({ route }) {
     }
   };
 
-const handleImproveDescription = () => {
+ const handleImproveDescription = () => {
+  if (!place.canSubmitDescription) {
+    Alert.alert(
+      "Descripción en revisión",
+      "Ya tienes una propuesta de descripción en revisión para este lugar."
+    );
+    return;
+  }
+
   const realPlaceId =
     place?.placeId ||
     place?.id ||
@@ -325,13 +340,14 @@ const handleAddReview = () => {
           onAddPhotos={handleAddPhotos}
         />
 
-        <PlaceInfo
-          description={place.description}
-          googleRating={place.googleRating}
-          lsearchRating={place.lsearchRating}
-          tags={place.tags}
-          onImproveDescription={handleImproveDescription}
-        />
+          <PlaceInfo
+      description={place.description}
+      googleRating={place.googleRating}
+      lsearchRating={place.lsearchRating}
+      tags={place.tags}
+      canSubmitDescription={place.canSubmitDescription}
+      onImproveDescription={handleImproveDescription}
+    />
 
         <ReviewsSection
           lsearchSummary={place.lsearchSummary}
