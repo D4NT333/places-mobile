@@ -11,7 +11,7 @@ export { default as loginWithEmailService } from "./firebase/auth/loginWithEmail
 
 export { default as pickSingleImage } from "./image.service.js";
 
-export { default as uploadCorrectedSubmissionPhotoService } from "./firebase/storage/uploadCorrectedSubmissionPhoto.service";
+export { default as uploadCorrectedSubmissionPhotoService } from "./firebase/storage/placesubmission/uploadCorrectedSubmissionPhoto.service.js";
 
 export { default as resubmitReturnedPlaceSubmissionService } from "./api/submissions/places/update/resubmitReturnedPlaceSubmission.service.js";
 

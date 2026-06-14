@@ -14,6 +14,7 @@ export { default as FilterSectionScreen } from "./add/FilterSectionScreen";
 
 export { default as PlaceDetailScreen } from "./home/PlaceDetailScreen/PlaceDetailScreen";
 export { default as ChangeDescriptionScreen } from "./home/ChangeDescriptionScreen";
+export { default as AddPhotosScreen } from "./home/AddPhotosScreen";
 
 export { default as CommentScreen } from "./home/PlaceDetailScreen/CommentScreen";
 

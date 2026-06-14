@@ -1,6 +1,6 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImageManipulator from "expo-image-manipulator";
-import { storage, auth } from "../config";
+import { storage, auth } from "../../config";
 
 function getFileExtension(photo) {
   if (photo?.fileName && photo.fileName.includes(".")) {

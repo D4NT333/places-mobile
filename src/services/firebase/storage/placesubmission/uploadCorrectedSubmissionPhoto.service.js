@@ -1,7 +1,7 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import * as ImageManipulator from "expo-image-manipulator";
 
-import { storage } from "../config";
+import { storage } from "../../config";
 
 async function uriToBlob(uri) {
   const response = await fetch(uri);

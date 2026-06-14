@@ -19,7 +19,7 @@ import { getApproachesByTagId } from "../../../services/firebase/firestore/appro
 
 import createPlaceSubmissionService from "../../../services/api/submissions/places/create/createPlaceSubmission.service";
 
-import uploadPlaceSubmissionPhotosToStorageService from "../../../services/firebase/storage/uploadPlaceSubmissionPhotosToStorage.service";
+import uploadPlaceSubmissionPhotosToStorageService from "../../../services/firebase/storage/placesubmission/uploadPlaceSubmissionPhotosToStorage.service";
 
 import LoadingOverlay from "../../../components/LoadingOverlay";
 

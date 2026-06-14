@@ -306,8 +306,26 @@ const handleAddReview = () => {
   };
 
   const handleAddPhotos = () => {
-    console.log("Abrir agregar fotos");
-  };
+  const realPlaceId =
+    place?.placeId ||
+    place?.id ||
+    place?.raw?.placeId ||
+    place?.raw?.id ||
+    "";
+
+  if (!realPlaceId) {
+    Alert.alert(
+      "Error",
+      "No se encontró el ID del lugar."
+    );
+    return;
+  }
+
+  navigation.navigate("AddPhotosScreen", {
+    placeId: realPlaceId,
+    placeName: place.name,
+  });
+};
 
   const handleReportProblem = () => {
     console.log("Abrir reportar problema");

@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {MainPager} from "../components";
 import {PlaceDetailScreen} from "../screens";
 import {ChangeDescriptionScreen} from "../screens";
+import {AddPhotosScreen} from "../screens";
 
 import {CommentScreen} from "../screens";
 
@@ -32,6 +33,7 @@ import {ChangePasswordScreen} from "../screens";
 import {EliminateAccountScreen} from "../screens";
 import {TermsConditionsScreen} from "../screens";
 import {PrivacyNoticeScreen} from "../screens";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -64,6 +66,11 @@ export default function AppNavigator() {
          <Stack.Screen
           name="FavoritesScreen"
           component={FavoritesScreen}
+        />
+
+         <Stack.Screen
+          name="AddPhotosScreen"
+          component={AddPhotosScreen}
         />
 
          <Stack.Screen
