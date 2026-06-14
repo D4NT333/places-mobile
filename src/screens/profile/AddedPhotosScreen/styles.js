@@ -16,10 +16,15 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    lineHeight: 28,
+    width: 34,
+    height: 34,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  backIcon: {
+    width: 26,
+    height: 26,
   },
 
   headerTitle: {

@@ -1,71 +1,151 @@
-import React from "react";
-import { ScrollView, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, {
+  useCallback,
+  useState,
+} from "react";
+
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+
+import {
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
-import  AddedPhotoCard  from "./Components/AddedPhotoCard";
+import AddedPhotoCard from "./Components/AddedPhotoCard";
+
+import getMyPhotoSubmissionsService from "../../../services/api/submissions/photos/read/getMyPhotoSubmissions.service";
+
+import {icons} from "../../../../assets/icons";
 
 import styles from "./styles";
 
-const MOCK_PHOTOS = [
-  {
-    id: "1",
-    name: "Nombre",
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "approved",
-  },
-  {
-    id: "2",
-    name: "Nombre",
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "rejected",
-  },
-  {
-    id: "3",
-    name: "Nombre",
-    submittedAtLabel: "Enviado el 14 de junio",
-    status: "in_review",
-  },
-];
-
 export default function AddedPhotosScreen() {
   const navigation = useNavigation();
+
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadPhotos = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
+
+      const submissions =
+        await getMyPhotoSubmissionsService();
+
+      setPhotos(submissions);
+    } catch (error) {
+      console.log(
+        "Error al cargar fotografías añadidas:",
+        error
+      );
+
+      setErrorMessage(
+        "No fue posible cargar tus fotografías añadidas."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPhotos();
+    }, [loadPhotos])
+  );
 
   const handleGoBack = () => {
     navigation.goBack();
   };
 
   const handleDelete = (photoId) => {
-    console.log("Eliminar foto:", photoId);
+    console.log(
+      "Eliminar propuesta de fotografía:",
+      photoId
+    );
   };
 
   const handleViewReason = (photoId) => {
-    console.log("Ver motivo de rechazo:", photoId);
+    const selectedPhoto = photos.find(
+      (photo) => photo.id === photoId
+    );
+
+    Alert.alert(
+      "Motivo del rechazo",
+      selectedPhoto?.rejectionReason ||
+        "No se especificó un motivo de rechazo."
+    );
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return <ActivityIndicator />;
+    }
+
+    if (errorMessage) {
+      return (
+        <Text>
+          {errorMessage}
+        </Text>
+      );
+    }
+
+    if (photos.length === 0) {
+      return (
+        <Text>
+          Aún no has añadido fotografías.
+        </Text>
+      );
+    }
+
+    return photos.map((photo) => (
+      <AddedPhotoCard
+        key={
+          photo.submissionId ||
+          photo.id
+        }
+        photo={photo}
+        onDelete={handleDelete}
+        onViewReason={handleViewReason}
+      />
+    ));
   };
 
   return (
     <LayoutScreen>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.backButton} onPress={handleGoBack}>
-            ←
-          </Text>
+          <Pressable
+            style={styles.backButton}
+            onPress={handleGoBack}
+            hitSlop={12}
+          >
+            <Image
+              source={icons.flecha}
+              style={styles.backIcon}
+              resizeMode="contain"
+            />
+          </Pressable>
 
-          <Text style={styles.headerTitle}>Fotos añadidas</Text>
+          <Text style={styles.headerTitle}>
+            Fotos añadidas
+          </Text>
         </View>
 
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {MOCK_PHOTOS.map((photo) => (
-            <AddedPhotoCard
-              key={photo.id}
-              photo={photo}
-              onDelete={handleDelete}
-              onViewReason={handleViewReason}
-            />
-          ))}
+          {renderContent()}
         </ScrollView>
       </View>
     </LayoutScreen>
