@@ -19,6 +19,7 @@ import {AddedDescriptionScreen} from "../screens";
 
 import { VisualizedAddedPlacesScreen } from "../screens";
 import { VisualizedAddedDescriptionScreen } from "../screens";
+import { VisualizedAddedPhotosScreen } from "../screens";
 
 import {EditAddedPlacesScreen} from "../screens";
 
@@ -96,6 +97,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="AddedPhotosScreen"
           component={AddedPhotosScreen}
+        />
+
+        <Stack.Screen
+        name="VisualizedAddedPhotosScreen"
+        component={VisualizedAddedPhotosScreen}
         />
 
         <Stack.Screen

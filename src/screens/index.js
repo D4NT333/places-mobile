@@ -26,6 +26,7 @@ export { default as AddedPlacesScreen } from "./profile/AddedPlacesScreen";
 
 export { default as VisualizedAddedPlacesScreen } from "./profile/AddedPlacesScreen/VisualizedAddedPlacesScreen";
 export { default as VisualizedAddedDescriptionScreen } from "./profile/AddedDescriptionsScreen/VisualizedAddedDescriptionScreen";
+export { default as VisualizedAddedPhotosScreen } from "./profile/AddedPhotosScreen/VisualizedAddedPhotosScreen";
 
 export { default as EditAddedPlacesScreen } from "./profile/AddedPlacesScreen/EditAddedPlacesScreen";
 

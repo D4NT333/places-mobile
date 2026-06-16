@@ -19,11 +19,12 @@ import {
 } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
+
 import AddedPhotoCard from "./Components/AddedPhotoCard";
 
 import getMyPhotoSubmissionsService from "../../../services/api/submissions/photos/read/getMyPhotoSubmissions.service";
 
-import {icons} from "../../../../assets/icons";
+import { icons } from "../../../../assets/icons";
 
 import styles from "./styles";
 
@@ -31,31 +32,39 @@ export default function AddedPhotosScreen() {
   const navigation = useNavigation();
 
   const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  const loadPhotos = useCallback(async () => {
-    try {
-      setLoading(true);
-      setErrorMessage("");
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
 
-      const submissions =
-        await getMyPhotoSubmissionsService();
+  const loadPhotos = useCallback(
+    async () => {
+      try {
+        setLoading(true);
+        setErrorMessage("");
 
-      setPhotos(submissions);
-    } catch (error) {
-      console.log(
-        "Error al cargar fotografías añadidas:",
-        error
-      );
+        const submissions =
+          await getMyPhotoSubmissionsService();
 
-      setErrorMessage(
-        "No fue posible cargar tus fotografías añadidas."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        setPhotos(submissions);
+      } catch (error) {
+        console.log(
+          "Error al cargar fotografías añadidas:",
+          error
+        );
+
+        setErrorMessage(
+          "No fue posible cargar tus fotografías añadidas."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -67,17 +76,44 @@ export default function AddedPhotosScreen() {
     navigation.goBack();
   };
 
-  const handleDelete = (photoId) => {
+  const handleOpenDetails = (
+    photo
+  ) => {
+    const submissionId =
+      photo.submissionId ||
+      photo.id;
+
+    navigation.navigate(
+      "VisualizedAddedPhotosScreen",
+      {
+        submissionId,
+
+        // Lo mandamos completo por si después
+        // quieres usar los datos del listado.
+        submission: photo,
+      }
+    );
+  };
+
+  const handleDelete = (
+    photoId
+  ) => {
     console.log(
       "Eliminar propuesta de fotografía:",
       photoId
     );
   };
 
-  const handleViewReason = (photoId) => {
-    const selectedPhoto = photos.find(
-      (photo) => photo.id === photoId
-    );
+  const handleViewReason = (
+    photoId
+  ) => {
+    const selectedPhoto =
+      photos.find(
+        (photo) =>
+          photo.id === photoId ||
+          photo.submissionId ===
+            photoId
+      );
 
     Alert.alert(
       "Motivo del rechazo",
@@ -88,36 +124,86 @@ export default function AddedPhotosScreen() {
 
   const renderContent = () => {
     if (loading) {
-      return <ActivityIndicator />;
+      return (
+        <View
+          style={
+            styles.loadingContainer
+          }
+        >
+          <ActivityIndicator
+            size="large"
+          />
+
+          <Text
+            style={styles.loadingText}
+          >
+            Cargando fotografías...
+          </Text>
+        </View>
+      );
     }
 
     if (errorMessage) {
       return (
-        <Text>
-          {errorMessage}
-        </Text>
+        <View
+          style={styles.emptyContainer}
+        >
+          <Text
+            style={styles.errorText}
+          >
+            {errorMessage}
+          </Text>
+
+          <Pressable
+            style={styles.retryButton}
+            onPress={loadPhotos}
+          >
+            <Text
+              style={
+                styles.retryButtonText
+              }
+            >
+              Intentar nuevamente
+            </Text>
+          </Pressable>
+        </View>
       );
     }
 
     if (photos.length === 0) {
       return (
-        <Text>
-          Aún no has añadido fotografías.
-        </Text>
+        <View
+          style={styles.emptyContainer}
+        >
+          <Text
+            style={styles.emptyText}
+          >
+            Aún no has añadido
+            fotografías.
+          </Text>
+        </View>
       );
     }
 
-    return photos.map((photo) => (
-      <AddedPhotoCard
-        key={
-          photo.submissionId ||
-          photo.id
-        }
-        photo={photo}
-        onDelete={handleDelete}
-        onViewReason={handleViewReason}
-      />
-    ));
+    return photos.map((photo) => {
+      const submissionId =
+        photo.submissionId ||
+        photo.id;
+
+      return (
+        <AddedPhotoCard
+          key={submissionId}
+          photo={photo}
+          onPress={() =>
+            handleOpenDetails(photo)
+          }
+          onDelete={handleDelete}
+          onViewReason={
+            handleViewReason
+          }
+        />
+      );
+    });
   };
 
   return (
@@ -136,14 +222,20 @@ export default function AddedPhotosScreen() {
             />
           </Pressable>
 
-          <Text style={styles.headerTitle}>
+          <Text
+            style={styles.headerTitle}
+          >
             Fotos añadidas
           </Text>
         </View>
 
         <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            styles.content
+          }
+          showsVerticalScrollIndicator={
+            false
+          }
         >
           {renderContent()}
         </ScrollView>

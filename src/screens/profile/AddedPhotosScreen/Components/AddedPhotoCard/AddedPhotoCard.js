@@ -21,10 +21,16 @@ const STATUS_LABELS = {
 
 export default function AddedPhotoCard({
   photo,
+  onPress,
   onDelete,
   onViewReason,
 }) {
-  const [imageError, setImageError] = useState(false);
+  const [imageError, setImageError] =
+    useState(false);
+
+  const submissionId =
+    photo.submissionId ||
+    photo.id;
 
   const isRejected =
     photo.status === "rejected";
@@ -43,14 +49,23 @@ export default function AddedPhotoCard({
   }, [imageUrl]);
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        pressed &&
+          styles.cardPressed,
+      ]}
+    >
       <View style={styles.imageBox}>
         {imageUrl && !imageError ? (
           <Image
             source={{
               uri: imageUrl,
             }}
-            style={StyleSheet.absoluteFillObject}
+            style={
+              StyleSheet.absoluteFillObject
+            }
             resizeMode="cover"
             onError={() => {
               setImageError(true);
@@ -68,11 +83,14 @@ export default function AddedPhotoCard({
           style={styles.name}
           numberOfLines={1}
         >
-          {photo.name}
+          {photo.name ||
+            photo.placeName ||
+            "Lugar sin nombre"}
         </Text>
 
         <Text style={styles.submittedAt}>
-          {photo.submittedAtLabel}
+          {photo.submittedAtLabel ||
+            "Sin fecha"}
         </Text>
 
         <View style={styles.divider} />
@@ -84,12 +102,22 @@ export default function AddedPhotoCard({
         <View style={styles.actionsRow}>
           {isRejected && (
             <Pressable
-              style={styles.secondaryButton}
-              onPress={() => {
-                onViewReason?.(photo.id);
+              style={
+                styles.secondaryButton
+              }
+              onPress={(event) => {
+                event.stopPropagation();
+
+                onViewReason?.(
+                  submissionId
+                );
               }}
             >
-              <Text style={styles.secondaryButtonText}>
+              <Text
+                style={
+                  styles.secondaryButtonText
+                }
+              >
                 Ver motivo
               </Text>
             </Pressable>
@@ -97,16 +125,24 @@ export default function AddedPhotoCard({
 
           <Pressable
             style={styles.primaryButton}
-            onPress={() => {
-              onDelete?.(photo.id);
+            onPress={(event) => {
+              event.stopPropagation();
+
+              onDelete?.(
+                submissionId
+              );
             }}
           >
-            <Text style={styles.primaryButtonText}>
+            <Text
+              style={
+                styles.primaryButtonText
+              }
+            >
               Eliminar
             </Text>
           </Pressable>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

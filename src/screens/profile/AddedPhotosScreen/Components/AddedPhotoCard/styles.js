@@ -105,6 +105,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#4B5563",
   },
+  cardPressed: {
+  opacity: 0.78,
+},
 });
 
 export default styles;
