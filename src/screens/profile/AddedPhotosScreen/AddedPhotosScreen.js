@@ -5,7 +5,6 @@ import React, {
 
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -21,8 +20,11 @@ import {
 import { LayoutScreen } from "../../../layouts";
 
 import AddedPhotoCard from "./Components/AddedPhotoCard";
+import PhotoRejectionReasonModal from "./Components/PhotoRejectionReasonModal";
 
 import getMyPhotoSubmissionsService from "../../../services/api/submissions/photos/read/getMyPhotoSubmissions.service";
+
+import getMyPhotoSubmissionRejectionReasonService from "../../../services/api/submissions/photos/read/getMyPhotoSubmissionRejectionReason.service";
 
 import { icons } from "../../../../assets/icons";
 
@@ -31,14 +33,40 @@ import styles from "./styles";
 export default function AddedPhotosScreen() {
   const navigation = useNavigation();
 
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    photos,
+    setPhotos,
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
   const [
     errorMessage,
     setErrorMessage,
   ] = useState("");
+
+  const [
+    rejectionModalVisible,
+    setRejectionModalVisible,
+  ] = useState(false);
+
+  const [
+    rejectionLoading,
+    setRejectionLoading,
+  ] = useState(false);
+
+  const [
+    rejectionError,
+    setRejectionError,
+  ] = useState("");
+
+  const [
+    selectedRejection,
+    setSelectedRejection,
+  ] = useState(null);
 
   const loadPhotos = useCallback(
     async () => {
@@ -87,9 +115,6 @@ export default function AddedPhotosScreen() {
       "VisualizedAddedPhotosScreen",
       {
         submissionId,
-
-        // Lo mandamos completo por si después
-        // quieres usar los datos del listado.
         submission: photo,
       }
     );
@@ -104,23 +129,59 @@ export default function AddedPhotosScreen() {
     );
   };
 
-  const handleViewReason = (
-    photoId
-  ) => {
-    const selectedPhoto =
-      photos.find(
-        (photo) =>
-          photo.id === photoId ||
-          photo.submissionId ===
-            photoId
+  const handleCloseRejectionModal =
+    () => {
+      if (rejectionLoading) {
+        return;
+      }
+
+      setRejectionModalVisible(
+        false
       );
 
-    Alert.alert(
-      "Motivo del rechazo",
-      selectedPhoto?.rejectionReason ||
-        "No se especificó un motivo de rechazo."
-    );
-  };
+      setSelectedRejection(null);
+      setRejectionError("");
+    };
+
+  const handleViewReason =
+    async (photoId) => {
+      if (!photoId) {
+        return;
+      }
+
+      setRejectionModalVisible(
+        true
+      );
+
+      setRejectionLoading(true);
+      setRejectionError("");
+      setSelectedRejection(null);
+
+      try {
+        const rejection =
+          await getMyPhotoSubmissionRejectionReasonService(
+            photoId
+          );
+
+        setSelectedRejection(
+          rejection
+        );
+      } catch (error) {
+        console.log(
+          "Error al cargar el motivo de rechazo:",
+          error
+        );
+
+        setRejectionError(
+          error?.response?.data
+            ?.message ||
+            error?.message ||
+            "No fue posible obtener el motivo del rechazo."
+        );
+      } finally {
+        setRejectionLoading(false);
+      }
+    };
 
   const renderContent = () => {
     if (loading) {
@@ -146,7 +207,9 @@ export default function AddedPhotosScreen() {
     if (errorMessage) {
       return (
         <View
-          style={styles.emptyContainer}
+          style={
+            styles.emptyContainer
+          }
         >
           <Text
             style={styles.errorText}
@@ -173,37 +236,44 @@ export default function AddedPhotosScreen() {
     if (photos.length === 0) {
       return (
         <View
-          style={styles.emptyContainer}
+          style={
+            styles.emptyContainer
+          }
         >
           <Text
             style={styles.emptyText}
           >
-            Aún no has añadido
-            fotografías.
+            Aún no has añadido fotografías.
           </Text>
         </View>
       );
     }
 
-    return photos.map((photo) => {
-      const submissionId =
-        photo.submissionId ||
-        photo.id;
+    return photos.map(
+      (photo) => {
+        const submissionId =
+          photo.submissionId ||
+          photo.id;
 
-      return (
-        <AddedPhotoCard
-          key={submissionId}
-          photo={photo}
-          onPress={() =>
-            handleOpenDetails(photo)
-          }
-          onDelete={handleDelete}
-          onViewReason={
-            handleViewReason
-          }
-        />
-      );
-    });
+        return (
+          <AddedPhotoCard
+            key={submissionId}
+            photo={photo}
+            onPress={() =>
+              handleOpenDetails(
+                photo
+              )
+            }
+            onDelete={
+              handleDelete
+            }
+            onViewReason={
+              handleViewReason
+            }
+          />
+        );
+      }
+    );
   };
 
   return (
@@ -211,7 +281,9 @@ export default function AddedPhotosScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable
-            style={styles.backButton}
+            style={
+              styles.backButton
+            }
             onPress={handleGoBack}
             hitSlop={12}
           >
@@ -223,7 +295,9 @@ export default function AddedPhotosScreen() {
           </Pressable>
 
           <Text
-            style={styles.headerTitle}
+            style={
+              styles.headerTitle
+            }
           >
             Fotos añadidas
           </Text>
@@ -240,6 +314,24 @@ export default function AddedPhotosScreen() {
           {renderContent()}
         </ScrollView>
       </View>
+
+      <PhotoRejectionReasonModal
+        visible={
+          rejectionModalVisible
+        }
+        loading={
+          rejectionLoading
+        }
+        errorMessage={
+          rejectionError
+        }
+        rejection={
+          selectedRejection
+        }
+        onClose={
+          handleCloseRejectionModal
+        }
+      />
     </LayoutScreen>
   );
 }
