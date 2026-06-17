@@ -15,6 +15,9 @@ export default function SearchBar({ value, onChangeText }) {
         placeholderTextColor="#6B7280"
         style={styles.input}
         returnKeyType="search"
+        autoCorrect={false}
+        autoCapitalize="none"
+        clearButtonMode="while-editing"
       />
     </View>
   );

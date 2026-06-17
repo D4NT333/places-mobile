@@ -17,6 +17,7 @@
     "@react-navigation/native": "^7.1.26",
     "@react-navigation/native-stack": "^7.9.0",
     "@shopify/react-native-skia": "2.2.12",
+    "algoliasearch": "^5.55.0",
     "axios": "^1.15.2",
     "expo": "~54.0.30",
     "expo-constants": "~18.0.13",

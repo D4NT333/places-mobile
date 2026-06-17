@@ -72,6 +72,21 @@ const styles = StyleSheet.create({
     color: "#111827",
     marginBottom: 4,
   },
+  photo: {
+  width: 58,
+  height: 58,
+  borderRadius: 16,
+  backgroundColor: "#E5E7EB",
+},
+
+cardPressed: {
+  opacity: 0.82,
+  transform: [
+    {
+      scale: 0.99,
+    },
+  ],
+},
 });
 
 export default styles;
