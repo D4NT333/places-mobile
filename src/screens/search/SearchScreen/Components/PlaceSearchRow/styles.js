@@ -26,15 +26,13 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 2,
-    borderColor: "#111827",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 16,
-  },
+  width: 72,
+  height: 72,
+  borderRadius: 36,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "#E9ECF5",
+},
 
   avatarText: {
     fontSize: 24,
@@ -72,10 +70,10 @@ const styles = StyleSheet.create({
     color: "#111827",
     marginBottom: 4,
   },
-  photo: {
-  width: 58,
-  height: 58,
-  borderRadius: 16,
+ photo: {
+  width: 72,
+  height: 72,
+  borderRadius: 36,
   backgroundColor: "#E5E7EB",
 },
 

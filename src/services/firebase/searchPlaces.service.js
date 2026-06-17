@@ -92,6 +92,23 @@ function normalizeSubtags(value) {
     .filter((item) => item.id || item.label);
 }
 
+function normalizeRating(value) {
+  const parsedRating =
+    Number(value);
+
+  if (
+    !Number.isFinite(parsedRating) ||
+    parsedRating < 0
+  ) {
+    return 0;
+  }
+
+  return Math.min(
+    parsedRating,
+    5
+  );
+}
+
 function normalizePlaceHit(hit) {
   return {
     id:
@@ -140,11 +157,10 @@ function normalizePlaceHit(hit) {
       ),
 
     averageRating:
-      Number.isFinite(
-        Number(hit?.averageRating)
-      )
-        ? Number(hit.averageRating)
-        : 0,
+  normalizeRating(
+    hit?.averageRating ??
+      hit?.googleData?.rating
+  ),
 
     isOpenNow:
       typeof hit?.isOpenNow === "boolean"
@@ -198,6 +214,7 @@ export default async function searchPlacesService(
           "address",
           "tagId",
           "tagLabel",
+          "googleData",
           "subtags",
           "approaches",
           "price",
