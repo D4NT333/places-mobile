@@ -5,7 +5,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
 import AddedPlaceCard from "./Components/AddedPlaceCard";
-import DeletePlaceModal from "./Components/DeletePlaceModal";
+import DeleteSubmissionModal from "./Components/DeleteSubmissionModal";
 import RejectionReasonModal from "./Components/RejectionReasonModal";
 
 import {
@@ -19,6 +19,8 @@ import {
 
 
 import {getRejectedPlaceReasonService } from "../../../services";
+
+import requestDeleteSubmissionService from "../../../services/api/submissions/requestDeleteSubmission.service"
 
 import styles from "./styles";
 
@@ -82,6 +84,7 @@ export default function AddedPlacesScreen() {
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedPlaceToDelete, setSelectedPlaceToDelete] = useState(null);
+  const [deletingSubmission, setDeletingSubmission] = useState(false);
 
   const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
   const [loadingRejectionReason, setLoadingRejectionReason] = useState(false);
@@ -98,9 +101,11 @@ useEffect(() => {
 
 
   const handleCancelDelete = () => {
-    setDeleteModalVisible(false);
-    setSelectedPlaceToDelete(null);
-  };
+  if (deletingSubmission) return;
+
+  setDeleteModalVisible(false);
+  setSelectedPlaceToDelete(null);
+};
 
   useFocusEffect(
   useCallback(() => {
@@ -147,15 +152,43 @@ const places = cacheSnapshot.items.map(mapSubmissionToPlace);
     setDeleteModalVisible(true);
   };
   
-  const handleConfirmDelete = () => {
-  if (!selectedPlaceToDelete) return;
+  const handleConfirmDelete = async () => {
+  if (!selectedPlaceToDelete?.id) return;
+  if (deletingSubmission) return;
 
-  console.log("Lugar eliminado:", selectedPlaceToDelete.id);
+  try {
+    setDeletingSubmission(true);
 
-  removeAddedPlaceFromCache(selectedPlaceToDelete.id);
+    const result = await requestDeleteSubmissionService({
+      type: "place",
+      submissionId: selectedPlaceToDelete.id,
+    });
 
-  setDeleteModalVisible(false);
-  setSelectedPlaceToDelete(null);
+    console.log(
+      "Lugar enviado a eliminación:",
+      result
+    );
+
+    removeAddedPlaceFromCache(
+      selectedPlaceToDelete.id
+    );
+
+    setDeleteModalVisible(false);
+    setSelectedPlaceToDelete(null);
+  } catch (error) {
+    console.log(
+      "Error enviando lugar a eliminación:",
+      error
+    );
+
+    alert(
+      error?.response?.data?.message ||
+        error?.message ||
+        "No se pudo enviar el lugar a eliminación."
+    );
+  } finally {
+    setDeletingSubmission(false);
+  }
 };
 
   const handleViewReason = async (place) => {
@@ -247,12 +280,14 @@ const places = cacheSnapshot.items.map(mapSubmissionToPlace);
         </ScrollView>
       </View>
 
-      <DeletePlaceModal
-        visible={deleteModalVisible}
-        placeName={selectedPlaceToDelete?.name || "este lugar"}
-        onCancel={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-      />
+      <DeleteSubmissionModal
+          visible={deleteModalVisible}
+          title="Eliminar lugar"
+          itemName={selectedPlaceToDelete?.name || "este lugar"}
+          loading={deletingSubmission}
+          onCancel={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+        />
 
       <RejectionReasonModal
         visible={rejectionModalVisible}

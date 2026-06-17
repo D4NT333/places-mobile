@@ -20,11 +20,16 @@ import {
 import { LayoutScreen } from "../../../layouts";
 
 import AddedPhotoCard from "./Components/AddedPhotoCard";
+
 import PhotoRejectionReasonModal from "./Components/PhotoRejectionReasonModal";
+
+import DeleteSubmissionModal from "../AddedPlacesScreen/Components/DeleteSubmissionModal";
 
 import getMyPhotoSubmissionsService from "../../../services/api/submissions/photos/read/getMyPhotoSubmissions.service";
 
 import getMyPhotoSubmissionRejectionReasonService from "../../../services/api/submissions/photos/read/getMyPhotoSubmissionRejectionReason.service";
+
+import requestDeleteSubmissionService from "../../../services/api/submissions/requestDeleteSubmission.service";
 
 import { icons } from "../../../../assets/icons";
 
@@ -67,6 +72,21 @@ export default function AddedPhotosScreen() {
     selectedRejection,
     setSelectedRejection,
   ] = useState(null);
+
+  const [
+    deleteModalVisible,
+    setDeleteModalVisible,
+  ] = useState(false);
+
+  const [
+    selectedPhotoToDelete,
+    setSelectedPhotoToDelete,
+  ] = useState(null);
+
+  const [
+    deletingSubmission,
+    setDeletingSubmission,
+  ] = useState(false);
 
   const loadPhotos = useCallback(
     async () => {
@@ -123,11 +143,97 @@ export default function AddedPhotosScreen() {
   const handleDelete = (
     photoId
   ) => {
-    console.log(
-      "Eliminar propuesta de fotografía:",
-      photoId
+    const selectedPhoto =
+      photos.find((photo) => {
+        const submissionId =
+          photo.submissionId ||
+          photo.id;
+
+        return (
+          submissionId === photoId
+        );
+      });
+
+    if (!selectedPhoto) {
+      return;
+    }
+
+    setSelectedPhotoToDelete(
+      selectedPhoto
     );
+
+    setDeleteModalVisible(true);
   };
+
+  const handleCancelDelete = () => {
+    if (deletingSubmission) {
+      return;
+    }
+
+    setDeleteModalVisible(false);
+    setSelectedPhotoToDelete(null);
+  };
+
+  const handleConfirmDelete =
+    async () => {
+      const submissionId =
+        selectedPhotoToDelete
+          ?.submissionId ||
+        selectedPhotoToDelete?.id;
+
+      if (!submissionId) {
+        return;
+      }
+
+      if (deletingSubmission) {
+        return;
+      }
+
+      try {
+        setDeletingSubmission(true);
+
+        const result =
+          await requestDeleteSubmissionService({
+            type: "photo",
+            submissionId,
+          });
+
+        console.log(
+          "Fotos enviadas a eliminación:",
+          result
+        );
+
+        setPhotos((current) =>
+          current.filter((photo) => {
+            const currentId =
+              photo.submissionId ||
+              photo.id;
+
+            return (
+              currentId !==
+              submissionId
+            );
+          })
+        );
+
+        setDeleteModalVisible(false);
+        setSelectedPhotoToDelete(null);
+      } catch (error) {
+        console.log(
+          "Error enviando fotos a eliminación:",
+          error
+        );
+
+        alert(
+          error?.response?.data
+            ?.message ||
+            error?.message ||
+            "No se pudo enviar la propuesta de fotografías a eliminación."
+        );
+      } finally {
+        setDeletingSubmission(false);
+      }
+    };
 
   const handleCloseRejectionModal =
     () => {
@@ -243,7 +349,8 @@ export default function AddedPhotosScreen() {
           <Text
             style={styles.emptyText}
           >
-            Aún no has añadido fotografías.
+            Aún no has añadido
+            fotografías.
           </Text>
         </View>
       );
@@ -330,6 +437,27 @@ export default function AddedPhotosScreen() {
         }
         onClose={
           handleCloseRejectionModal
+        }
+      />
+
+      <DeleteSubmissionModal
+        visible={
+          deleteModalVisible
+        }
+        title="Eliminar fotografías"
+        itemName={
+          selectedPhotoToDelete
+            ?.placeName ||
+          "esta propuesta de fotografías"
+        }
+        loading={
+          deletingSubmission
+        }
+        onCancel={
+          handleCancelDelete
+        }
+        onConfirm={
+          handleConfirmDelete
         }
       />
     </LayoutScreen>
