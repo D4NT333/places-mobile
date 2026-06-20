@@ -40,7 +40,7 @@ export default function ProfileSettings({
             onPress={onAddedDescriptions}
           />
           <ProfileOption
-            label="Fotos añadidas"
+            label="Fotografías añadidas"
             isSubOption
             onPress={onAddedPhotos}
           />
