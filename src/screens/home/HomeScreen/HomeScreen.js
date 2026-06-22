@@ -388,16 +388,15 @@ export default function HomeScreen() {
           setCoords(currentCoords);
         }
 
-        try {
-          const result = await sendCurrentLocationToBackendService(
-            currentCoords
-          );
+        const locationSyncResult =
+          await sendCurrentLocationToBackendService(currentCoords);
 
-          console.log("Respuesta backend:", result);
-        } catch (error) {
-          console.error("Error al mandar ubicación al backend:", error);
+        if (locationSyncResult.ok) {
+          console.log("Ubicación enviada al backend:", locationSyncResult);
+        } else {
+          console.warn("Ubicación no sincronizada. Home continúa normal.");
         }
-
+        
         if (isMounted) {
           setData((prev) =>
             prev.map((item) => ({

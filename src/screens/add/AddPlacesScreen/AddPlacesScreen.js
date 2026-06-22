@@ -193,9 +193,19 @@ const isNameValid =
         tagId,
         tagLabel,
 
-        subtags: selectedSubtagLabels,
-        approaches: selectedFocusLabels,
-        price: selectedPriceLabel,
+       subtags: Array.isArray(filters.subtags)
+        ? filters.subtags
+        : [],
+
+      subtagLabels: selectedSubtagLabels,
+
+      approaches: Array.isArray(filters.focuses)
+        ? filters.focuses
+        : [],
+
+      approachLabels: selectedFocusLabels,
+
+      price: selectedPriceLabel,
 
         openingHours: filters.openingHours ?? {
         type: "not_specified",

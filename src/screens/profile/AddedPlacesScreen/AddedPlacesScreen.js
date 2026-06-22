@@ -1,12 +1,32 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+
+import {
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
+
 import { auth } from "../../../services/firebase/config";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import { LayoutScreen } from "../../../layouts";
+
 import AddedPlaceCard from "./Components/AddedPlaceCard";
 import DeleteSubmissionModal from "./Components/DeleteSubmissionModal";
 import RejectionReasonModal from "./Components/RejectionReasonModal";
+
 
 import {
   getAddedPlacesCacheSnapshot,
@@ -17,12 +37,13 @@ import {
   clearAddedPlacesSubmissionsCache,
 } from "../../../services/api/submissions/places/read/addedPlacesSubmissionsCache.service";
 
+import { getRejectedPlaceReasonService } from "../../../services";
 
-import {getRejectedPlaceReasonService } from "../../../services";
-
-import requestDeleteSubmissionService from "../../../services/api/submissions/requestDeleteSubmission.service"
+import requestDeleteSubmissionService from "../../../services/api/submissions/requestDeleteSubmission.service";
 
 import styles from "./styles";
+
+import {icons} from "../../../../assets/icons";
 
 function formatDateLabel(dateValue, prefix = "Enviado") {
   if (!dateValue) return `${prefix} recientemente`;
@@ -54,8 +75,6 @@ function formatDateLabel(dateValue, prefix = "Enviado") {
   return `${prefix} el ${day} de ${month}`;
 }
 
-
-
 function mapSubmissionToPlace(submission) {
   return {
     id: submission.id,
@@ -64,9 +83,17 @@ function mapSubmissionToPlace(submission) {
       submission.imageUrl ||
       "https://via.placeholder.com/200x200.png?text=Lugar",
     tag: submission.tag || submission.tagLabel || "Sin categoría",
-    subtags: Array.isArray(submission.subtags) ? submission.subtags : [],
-    submittedAtLabel: formatDateLabel(submission.createdAt, "Enviado"),
-    returnedAtLabel: formatDateLabel(submission.returnedAt, "Devuelto"),
+    subtags: Array.isArray(submission.subtags)
+      ? submission.subtags
+      : [],
+    submittedAtLabel: formatDateLabel(
+      submission.createdAt,
+      "Enviado"
+    ),
+    returnedAtLabel: formatDateLabel(
+      submission.returnedAt,
+      "Devuelto"
+    ),
     resubmittedAtLabel: formatDateLabel(
       submission.resubmittedAt || submission.updatedAt,
       "Corregido"
@@ -82,142 +109,158 @@ export default function AddedPlacesScreen() {
     getAddedPlacesCacheSnapshot()
   );
 
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [selectedPlaceToDelete, setSelectedPlaceToDelete] = useState(null);
-  const [deletingSubmission, setDeletingSubmission] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] =
+    useState(false);
+  const [selectedPlaceToDelete, setSelectedPlaceToDelete] =
+    useState(null);
+  const [deletingSubmission, setDeletingSubmission] =
+    useState(false);
 
-  const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
-  const [loadingRejectionReason, setLoadingRejectionReason] = useState(false);
-  const [rejectionReasonError, setRejectionReasonError] = useState("");
-  const [selectedRejectionReason, setSelectedRejectionReason] = useState(null);
+  const [rejectionModalVisible, setRejectionModalVisible] =
+    useState(false);
+  const [loadingRejectionReason, setLoadingRejectionReason] =
+    useState(false);
+  const [rejectionReasonError, setRejectionReasonError] =
+    useState("");
+  const [selectedRejectionReason, setSelectedRejectionReason] =
+    useState(null);
 
-useEffect(() => {
-  const unsubscribe = subscribeAddedPlacesCache((nextSnapshot) => {
-    setCacheSnapshot(nextSnapshot);
-  });
+  useEffect(() => {
+    const unsubscribe = subscribeAddedPlacesCache(
+      (nextSnapshot) => {
+        setCacheSnapshot(nextSnapshot);
+      }
+    );
 
-  return unsubscribe;
-}, []);
-
-
-  const handleCancelDelete = () => {
-  if (deletingSubmission) return;
-
-  setDeleteModalVisible(false);
-  setSelectedPlaceToDelete(null);
-};
+    return unsubscribe;
+  }, []);
 
   useFocusEffect(
-  useCallback(() => {
-    const uid = auth.currentUser?.uid || null;
+    useCallback(() => {
+      const uid = auth.currentUser?.uid || null;
 
-    if (!uid) {
-      clearAddedPlacesSubmissionsCache();
+      if (!uid) {
+        clearAddedPlacesSubmissionsCache();
+        setCacheSnapshot(getAddedPlacesCacheSnapshot());
+        return;
+      }
+
       setCacheSnapshot(getAddedPlacesCacheSnapshot());
-      return;
-    }
 
-    setCacheSnapshot(getAddedPlacesCacheSnapshot());
+      refreshAddedPlacesSubmissions().catch((error) => {
+        console.log(
+          "Error refrescando lugares añadidos:",
+          error
+        );
+      });
+    }, [auth.currentUser?.uid])
+  );
 
-    refreshAddedPlacesSubmissions().catch((error) => {
-  console.log("Error refrescando lugares añadidos:", error);
-});
-  }, [auth.currentUser?.uid])
-);
-
-const places = cacheSnapshot.items.map(mapSubmissionToPlace);
+  const places = useMemo(
+    () => cacheSnapshot.items.map(mapSubmissionToPlace),
+    [cacheSnapshot.items]
+  );
 
   const handleGoBack = () => {
     navigation.goBack();
   };
 
   const handlePressCard = (place) => {
-  navigation.navigate("VisualizedAddedPlacesScreen", {
-    placeId: place.id,
-    initialPlace: place,
+    navigation.navigate("VisualizedAddedPlacesScreen", {
+      placeId: place.id,
+      initialPlace: place,
     });
   };
 
   const handleEdit = (place) => {
-  navigation.navigate("EditAddedPlacesScreen", {
-    placeId: place.id,
-    initialPlace: place,
-    source: "added_places",
-    shouldFetchReturnedEditData: true,
-  });
+    navigation.navigate("EditAddedPlacesScreen", {
+      placeId: place.id,
+      initialPlace: place,
+      source: "added_places",
+      shouldFetchReturnedEditData: true,
+    });
   };
 
   const handleDelete = (place) => {
     setSelectedPlaceToDelete(place);
     setDeleteModalVisible(true);
   };
-  
-  const handleConfirmDelete = async () => {
-  if (!selectedPlaceToDelete?.id) return;
-  if (deletingSubmission) return;
 
-  try {
-    setDeletingSubmission(true);
-
-    const result = await requestDeleteSubmissionService({
-      type: "place",
-      submissionId: selectedPlaceToDelete.id,
-    });
-
-    console.log(
-      "Lugar enviado a eliminación:",
-      result
-    );
-
-    removeAddedPlaceFromCache(
-      selectedPlaceToDelete.id
-    );
+  const handleCancelDelete = () => {
+    if (deletingSubmission) return;
 
     setDeleteModalVisible(false);
     setSelectedPlaceToDelete(null);
-  } catch (error) {
-    console.log(
-      "Error enviando lugar a eliminación:",
-      error
-    );
+  };
 
-    alert(
-      error?.response?.data?.message ||
-        error?.message ||
-        "No se pudo enviar el lugar a eliminación."
-    );
-  } finally {
-    setDeletingSubmission(false);
-  }
-};
+  const handleConfirmDelete = async () => {
+    if (!selectedPlaceToDelete?.id) return;
+    if (deletingSubmission) return;
+
+    try {
+      setDeletingSubmission(true);
+
+      const result = await requestDeleteSubmissionService({
+        type: "place",
+        submissionId: selectedPlaceToDelete.id,
+      });
+
+      console.log("Lugar enviado a eliminación:", result);
+
+      removeAddedPlaceFromCache(selectedPlaceToDelete.id);
+
+      setDeleteModalVisible(false);
+      setSelectedPlaceToDelete(null);
+    } catch (error) {
+      console.log(
+        "Error enviando lugar a eliminación:",
+        error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "No se pudo enviar el lugar a eliminación."
+      );
+    } finally {
+      setDeletingSubmission(false);
+    }
+  };
 
   const handleViewReason = async (place) => {
-  setRejectionModalVisible(true);
-  setLoadingRejectionReason(true);
-  setRejectionReasonError("");
-  setSelectedRejectionReason(null);
+    setRejectionModalVisible(true);
+    setLoadingRejectionReason(true);
+    setRejectionReasonError("");
+    setSelectedRejectionReason(null);
 
-  try {
-    const data = await getRejectedPlaceReasonService(place.id);
+    try {
+      const data = await getRejectedPlaceReasonService(place.id);
 
-    console.log("Motivo de rechazo:", data);
+      console.log("Motivo de rechazo:", data);
 
-    setSelectedRejectionReason(data);
-  } catch (error) {
-    console.log("Error cargando motivo de rechazo:", error);
+      setSelectedRejectionReason(data);
+    } catch (error) {
+      console.log(
+        "Error cargando motivo de rechazo:",
+        error
+      );
 
-    setRejectionReasonError(
-      error.response?.data?.message ||
-        error.message ||
-        "No se pudo cargar el motivo de rechazo."
-    );
-  } finally {
-    setLoadingRejectionReason(false);
-  }
-};
+      setRejectionReasonError(
+        error.response?.data?.message ||
+          error.message ||
+          "No se pudo cargar el motivo de rechazo."
+      );
+    } finally {
+      setLoadingRejectionReason(false);
+    }
+  };
 
   const handleScroll = (event) => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const {
+      layoutMeasurement,
+      contentOffset,
+      contentSize,
+    } = event.nativeEvent;
 
     const visibleHeight = layoutMeasurement.height;
     const scrollY = contentOffset.y;
@@ -235,59 +278,115 @@ const places = cacheSnapshot.items.map(mapSubmissionToPlace);
       !cacheSnapshot.loadingInitial
     ) {
       loadMoreAddedPlacesSubmissions().catch((error) => {
-        console.log("Error al cargar más lugares añadidos:", error);
+        console.log(
+          "Error al cargar más lugares añadidos:",
+          error
+        );
       });
     }
   };
 
+  const isEmpty =
+    !cacheSnapshot.loadingInitial && places.length === 0;
+
   return (
     <LayoutScreen
-      padding={{ top: 16, left: 16, right: 16, bottom: 16 }}
-      bg="#538de4ff"
+      padding={{
+        top: 18,
+        left: 22,
+        right: 22,
+        bottom: 0,
+      }}
+      bg="#F4F6FB"
       edges={["top"]}
     >
-      <View style={styles.card}>
+      <View style={styles.screen}>
         <View style={styles.headerContainer}>
           <View style={styles.titleRow}>
-            <Pressable onPress={handleGoBack} style={styles.backButton}>
-              <Text style={styles.backIcon}>←</Text>
+            <Pressable
+              onPress={handleGoBack}
+              style={styles.backButton}
+              hitSlop={12}
+            >
+              <Image
+                source={icons.flecha}
+                style={styles.flecha}
+                resizeMode="contain"
+              />
             </Pressable>
 
-            <Text style={styles.title}>Lugares añadidos</Text>
+            <Text style={styles.title}>
+              Lugares añadidos
+            </Text>
           </View>
 
           <Text style={styles.helperText}>
-            Si es aprobado lo toca y lo lleva a la card del lugar nuevo
+            Revisa el estado de los lugares que has enviado.
           </Text>
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
-          {places.map((place) => (
-            <AddedPlaceCard
-              key={place.id}
-              place={place}
-              onPressCard={handlePressCard}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onViewReason={handleViewReason}
-            />
-          ))}
-        </ScrollView>
+        {cacheSnapshot.loadingInitial ? (
+          <View style={styles.centerState}>
+            <ActivityIndicator size="large" />
+            <Text style={styles.centerStateText}>
+              Cargando lugares...
+            </Text>
+          </View>
+        ) : null}
+
+        {isEmpty ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>
+              Aún no has enviado lugares
+            </Text>
+
+            <Text style={styles.emptyText}>
+              Cuando propongas un lugar, aparecerá aquí con su
+              estado de revisión.
+            </Text>
+          </View>
+        ) : null}
+
+        {!cacheSnapshot.loadingInitial && places.length > 0 ? (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {places.map((place) => (
+              <AddedPlaceCard
+                key={place.id}
+                place={place}
+                onPressCard={handlePressCard}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onViewReason={handleViewReason}
+              />
+            ))}
+
+            {cacheSnapshot.loadingMore ? (
+              <View style={styles.loadingMore}>
+                <ActivityIndicator />
+                <Text style={styles.loadingMoreText}>
+                  Cargando más...
+                </Text>
+              </View>
+            ) : null}
+          </ScrollView>
+        ) : null}
       </View>
 
       <DeleteSubmissionModal
-          visible={deleteModalVisible}
-          title="Eliminar lugar"
-          itemName={selectedPlaceToDelete?.name || "este lugar"}
-          loading={deletingSubmission}
-          onCancel={handleCancelDelete}
-          onConfirm={handleConfirmDelete}
-        />
+        visible={deleteModalVisible}
+        title="Eliminar lugar"
+        itemName={
+          selectedPlaceToDelete?.name || "este lugar"
+        }
+        loading={deletingSubmission}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />
 
       <RejectionReasonModal
         visible={rejectionModalVisible}

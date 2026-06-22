@@ -1,61 +1,103 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
-  card: {
+  screen: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    paddingTop: 18,
-    paddingHorizontal: 14,
-    paddingBottom: 0,
   },
 
+  headerContainer: {
+    marginBottom: 20,
+  },
+
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+
+  backButton: {
+    width: 34,
+    height: 34,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 17,
+  },
+
+  flecha: {
+    width: 24,
+    height: 24,
+  },
+
+  title: {
+    flex: 1,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#111827",
+    letterSpacing: -0.6,
+  },
+
+  helperText: {
+    marginTop: 8,
+    marginLeft: 46,
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
 
   scrollContent: {
-    paddingBottom: 24,
-    gap: 14,
+    paddingBottom: 120,
+    gap: 16,
   },
 
-headerTextContainer: {
-  flex: 1,
-},
-headerContainer: {
-  marginBottom: 16,
-},
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
 
-titleRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginBottom: 6,
-},
+  centerStateText: {
+    fontSize: 15,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
 
-backButton: {
-  width: 32,
-  height: 32,
-  justifyContent: "center",
-  alignItems: "center",
-  marginRight: 8,
-},
+  emptyState: {
+    marginTop: 32,
+    padding: 22,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
 
-backIcon: {
-  fontSize: 22,
-  fontWeight: "700",
-  color: "#111827",
-},
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 8,
+  },
 
-title: {
-  flex: 1,
-  fontSize: 22,
-  fontWeight: "700",
-  color: "#111827",
-},
+  emptyText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
 
-helperText: {
-  fontSize: 12,
-  color: "#374151",
-  lineHeight: 16,
-  marginLeft: 40,
-},
+  loadingMore: {
+    paddingVertical: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+
+  loadingMoreText: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
 });
 
 export default styles;

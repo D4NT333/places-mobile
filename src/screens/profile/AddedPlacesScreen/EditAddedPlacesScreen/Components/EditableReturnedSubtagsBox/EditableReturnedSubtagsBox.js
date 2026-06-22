@@ -78,29 +78,42 @@ export default function EditableReturnedSubtagsBox({
                   key={row.correctionKey}
                   style={[
                     styles.rowBlock,
-                    index < visibleRows.length - 1 && styles.rowBlockWithGap,
+                    index < visibleRows.length - 1 &&
+                      styles.rowBlockWithGap,
                   ]}
                 >
                   <View style={styles.topRow}>
-                    <Text style={styles.columnLabel}>Nueva subetiqueta</Text>
+                    <Text style={styles.columnLabel}>
+                      Nueva subetiqueta
+                    </Text>
 
                     {isReviewSelected ? (
-                      <Pressable onPress={() => handleDelete(row)} hitSlop={8}>
-                        <Text style={styles.editText}>Eliminar</Text>
+                      <Pressable
+                        onPress={() => handleDelete(row)}
+                        hitSlop={8}
+                      >
+                        <Text style={styles.editText}>
+                          Eliminar
+                        </Text>
                       </Pressable>
                     ) : null}
                   </View>
 
                   <View style={styles.compactContent}>
                     <View style={styles.pillWrapper}>
-                      <Text style={styles.newPill}>{row.label}</Text>
+                      <Text style={styles.newPill}>
+                        {row.label}
+                      </Text>
                     </View>
                   </View>
                 </View>
               );
             }
 
-            const isReadOnly = !isReviewSelected || !row.message;
+            const message = String(row.message || "").trim();
+            const hasMessage = message.length > 0;
+
+            const isReadOnly = !isReviewSelected || !hasMessage;
 
             if (isReadOnly) {
               return (
@@ -108,7 +121,8 @@ export default function EditableReturnedSubtagsBox({
                   key={row.correctionKey || `valid-${index}`}
                   style={[
                     styles.rowBlock,
-                    index < visibleRows.length - 1 && styles.rowBlockWithGap,
+                    index < visibleRows.length - 1 &&
+                      styles.rowBlockWithGap,
                     {
                       backgroundColor: "transparent",
                       borderBottomWidth: 0,
@@ -131,14 +145,21 @@ export default function EditableReturnedSubtagsBox({
                         {row.oldLabel}
                       </Text>
                     </View>
+
+                    <Text style={styles.neutralMessageText}>
+                      Subetiqueta sin observaciones.
+                    </Text>
                   </View>
                 </View>
               );
             }
 
             const correction = subtagCorrections[row.correctionKey];
+
             const newLabel =
-              correction?.type === "replace" ? correction.label : "";
+              correction?.type === "replace"
+                ? correction.label
+                : "";
 
             const hasNewLabel = Boolean(
               newLabel && !sameTextValue(newLabel, row.oldLabel)
@@ -154,7 +175,8 @@ export default function EditableReturnedSubtagsBox({
                 key={row.correctionKey}
                 style={[
                   styles.rowBlock,
-                  index < visibleRows.length - 1 && styles.rowBlockWithGap,
+                  index < visibleRows.length - 1 &&
+                    styles.rowBlockWithGap,
                 ]}
               >
                 <View style={styles.topRow}>
@@ -164,7 +186,10 @@ export default function EditableReturnedSubtagsBox({
                     <View />
                   )}
 
-                  <Pressable onPress={() => handleEdit(row)} hitSlop={8}>
+                  <Pressable
+                    onPress={() => handleEdit(row)}
+                    hitSlop={8}
+                  >
                     <Text style={styles.editText}>Editar</Text>
                   </Pressable>
                 </View>
@@ -172,7 +197,9 @@ export default function EditableReturnedSubtagsBox({
                 {!isExpanded ? (
                   <View style={styles.compactContent}>
                     <View style={styles.pillWrapper}>
-                      <Text style={styles.oldPill}>{row.oldLabel}</Text>
+                      <Text style={styles.oldPill}>
+                        {row.oldLabel}
+                      </Text>
 
                       {canDeleteThisItem ? (
                         <Pressable
@@ -180,12 +207,18 @@ export default function EditableReturnedSubtagsBox({
                           onPress={() => handleDelete(row)}
                           hitSlop={10}
                         >
-                          <Text style={styles.deleteBubbleText}>×</Text>
+                          <Text style={styles.deleteBubbleText}>
+                            ×
+                          </Text>
                         </Pressable>
                       ) : null}
                     </View>
 
-                    <Text style={styles.messageText}>{row.message}</Text>
+                    {hasMessage ? (
+                      <Text style={styles.messageText}>
+                        {message}
+                      </Text>
+                    ) : null}
                   </View>
                 ) : (
                   <View style={styles.columns}>
@@ -193,7 +226,9 @@ export default function EditableReturnedSubtagsBox({
                       <Text style={styles.columnLabel}>Antes</Text>
 
                       <View style={styles.pillWrapper}>
-                        <Text style={styles.oldPill}>{row.oldLabel}</Text>
+                        <Text style={styles.oldPill}>
+                          {row.oldLabel}
+                        </Text>
 
                         {canDeleteThisItem ? (
                           <Pressable
@@ -201,12 +236,18 @@ export default function EditableReturnedSubtagsBox({
                             onPress={() => handleDelete(row)}
                             hitSlop={10}
                           >
-                            <Text style={styles.deleteBubbleText}>×</Text>
+                            <Text style={styles.deleteBubbleText}>
+                              ×
+                            </Text>
                           </Pressable>
                         ) : null}
                       </View>
 
-                      <Text style={styles.messageText}>{row.message}</Text>
+                      {hasMessage ? (
+                        <Text style={styles.messageText}>
+                          {message}
+                        </Text>
+                      ) : null}
                     </View>
 
                     <View style={styles.divider} />
@@ -215,7 +256,9 @@ export default function EditableReturnedSubtagsBox({
                       <Text style={styles.columnLabel}>Nueva</Text>
 
                       {hasNewLabel ? (
-                        <Text style={styles.newPill}>{newLabel}</Text>
+                        <Text style={styles.newPill}>
+                          {newLabel}
+                        </Text>
                       ) : (
                         <Text style={styles.emptyText}>
                           Selecciona una nueva.
@@ -229,8 +272,8 @@ export default function EditableReturnedSubtagsBox({
           })
         ) : (
           <Text style={styles.emptyText}>
-            No hay subetiquetas. Toca en "+ Agregar subetiqueta" para proponer
-            nuevas.
+            No hay subetiquetas. Toca en "+ Agregar subetiqueta"
+            para proponer nuevas.
           </Text>
         )}
 
@@ -246,7 +289,10 @@ export default function EditableReturnedSubtagsBox({
             <Text
               style={[
                 styles.editText,
-                { color: "#3B82F6", fontWeight: "bold" },
+                {
+                  color: "#3B82F6",
+                  fontWeight: "bold",
+                },
               ]}
             >
               + Agregar subetiqueta

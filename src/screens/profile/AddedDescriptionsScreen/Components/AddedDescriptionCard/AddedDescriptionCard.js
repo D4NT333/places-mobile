@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, Image } from "react-native";
 
 import styles from "./styles";
+import DescriptionStatusPill from "../DescriptionStatusPill";
 
 const STATUS_LABELS = {
   approved: "Aprobado",
@@ -16,9 +17,8 @@ export default function AddedDescriptionCard({
   onEdit,
   onViewReason,
 }) {
-  const statusLabel = item.statusLabel || STATUS_LABELS[item.status] || "En revisión";
 
-  const canDelete = item.canDelete || item.status === "approved" || item.status === "rejected";
+  const canDelete = true
   const canViewReason = item.status === "rejected";
 
   return (
@@ -45,10 +45,15 @@ export default function AddedDescriptionCard({
           </Text>
 
           <View style={styles.metaRow}>
-            <Text style={styles.date}>{item.submittedAtLabel}</Text>
+  <Text
+    style={styles.date}
+    numberOfLines={1}
+  >
+    {item.submittedAtLabel}
+  </Text>
 
-            <Text style={styles.status}>{statusLabel}</Text>
-          </View>
+  <DescriptionStatusPill status={item.status} />
+</View>
         </View>
       </View>
 

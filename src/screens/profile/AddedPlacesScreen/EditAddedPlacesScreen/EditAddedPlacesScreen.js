@@ -436,6 +436,35 @@ function mapCatalogToOptions(items = []) {
     }));
 }
 
+function resolveOptionIdsByLabels(labels = [], options = []) {
+  if (!Array.isArray(labels)) {
+    return [];
+  }
+
+  return labels
+    .map((label) => {
+      const cleanLabel = normalizeText(label);
+
+      if (!cleanLabel) {
+        return "";
+      }
+
+      if (
+        cleanLabel.startsWith("subtag_") ||
+        cleanLabel.startsWith("approach_")
+      ) {
+        return cleanLabel;
+      }
+
+      const foundOption = options.find((option) =>
+        sameTextValue(option.label, cleanLabel)
+      );
+
+      return foundOption?.id || "";
+    })
+    .filter(Boolean);
+}
+
 function getPhotoUrl(photo = {}) {
   if (!photo) return null;
 
@@ -855,6 +884,16 @@ const [pendingDeleteSubtagRow, setPendingDeleteSubtagRow] = useState(null);
   );
 
   const { oldPlace, newPlace, returnFields, generalMessage } = editSources;
+
+  const getObservationText = (fieldKey, label) => {
+  const field = returnFields[fieldKey];
+
+  if (field?.message) {
+    return field.message;
+  }
+
+  return `${label} sin observaciones.`;
+};
 
   const submissionOwnerId = getSubmissionOwnerId({
   editData,
@@ -1538,6 +1577,17 @@ const handleOpenScheduleModal = () => {
       ? await uploadCorrectedPhotos()
       : [];
 
+    const correctedSubtagIds = resolveOptionIdsByLabels(
+      subtags,
+      subtagOptions
+    );
+
+    const correctedApproachIds = resolveOptionIdsByLabels(
+      approaches,
+      approachOptions
+    );
+    
+
     const correctedFields = removeUndefinedFields({
       name: returnFields.name?.selected ? normalizeText(name) : undefined,
 
@@ -1552,13 +1602,25 @@ const handleOpenScheduleModal = () => {
           }
         : undefined,
 
-      subtags: returnFields.subtags?.selected ? subtags : undefined,
+     subtags: returnFields.subtags?.selected
+  ? correctedSubtagIds
+  : undefined,
 
-      approaches: selectedTagHasNoApproaches
-        ? null
-        : returnFields.approaches?.selected
-          ? approaches
-          : undefined,
+subtagLabels: returnFields.subtags?.selected
+  ? subtags
+  : undefined,
+
+approaches: selectedTagHasNoApproaches
+  ? null
+  : returnFields.approaches?.selected
+    ? correctedApproachIds
+    : undefined,
+
+approachLabels: selectedTagHasNoApproaches
+  ? []
+  : returnFields.approaches?.selected
+    ? approaches
+    : undefined,
 
       price: returnFields.price?.selected
         ? normalizeText(priceRange)
@@ -1892,17 +1954,22 @@ const handleToggleFreePrice = () => {
 
   return (
     <LayoutScreen
-      padding={{ top: 16, left: 16, right: 16, bottom: 16 }}
-      bg="#538DE4"
-      edges={["top"]}
-    >
-      <View style={styles.screenCard}>
-        <EditHeader title="Revisión requerida" onClose={handleClose} />
+  padding={{
+    top: 18,
+    left: 22,
+    right: 22,
+    bottom: 0,
+  }}
+  bg="#F4F6FB"
+  edges={["top"]}
+>
+  <View style={styles.screen}>
+    <EditHeader title="Revisión requerida" onClose={handleClose} />
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
           {loadingEditData ? (
             <Text style={styles.stateText}>Cargando datos de revisión...</Text>
           ) : null}
@@ -1926,7 +1993,7 @@ const handleToggleFreePrice = () => {
             value={name}
             onChangeText={setName}
             placeholder="Nombre del lugar"
-            helperText={returnFields.name.message || "Texto"}
+            helperText={getObservationText("name", "Nombre")}
             reviewField={returnFields.name}
             isEditing={Boolean(editingFields.name)}
             onPressEdit={() => handleEditField("name")}
@@ -1941,7 +2008,7 @@ const handleToggleFreePrice = () => {
             value={description}
             onChangeText={setDescription}
             placeholder="Descripción"
-            helperText={returnFields.description.message || "Texto"}
+            helperText={getObservationText("description", "Descripción")}
             reviewField={returnFields.description}
             isEditing={Boolean(editingFields.description)}
             onPressEdit={() => handleEditField("description")}
@@ -1955,7 +2022,7 @@ const handleToggleFreePrice = () => {
   newLabel="Nueva etiqueta"
   pills={oldPlace.tag}
   newPills={tag}
-  helperText={returnFields.tag.message || "Texto"}
+  helperText={getObservationText("tag", "Etiqueta")}
   reviewField={returnFields.tag}
   isEditing={Boolean(editingFields.tag)}
   onPressEdit={handleOpenTagModal}
@@ -1976,7 +2043,7 @@ const handleToggleFreePrice = () => {
   newLabel="Nuevo enfoque"
   pills={oldPlace.approaches}
   newPills={approaches}
-  helperText={returnFields.approaches.message || "Texto"}
+  helperText={getObservationText("approaches", "Enfoque")}
   reviewField={returnFields.approaches}
   isEditing={Boolean(editingFields.approaches)}
   onPressEdit={() => setActiveOptionModal("approaches")}
@@ -1989,7 +2056,7 @@ const handleToggleFreePrice = () => {
   value={priceRange}
   onChangeText={setPriceRange}
   placeholder="Rango de precio"
-  helperText={returnFields.price.message || "Texto"}
+  helperText={getObservationText("price", "Rango de precio")}
   reviewField={returnFields.price}
   isEditing={Boolean(editingFields.price)}
   onPressEdit={handleOpenPriceModal}
@@ -2003,7 +2070,7 @@ const handleToggleFreePrice = () => {
   value={openingHours?.label || "Horario no especificado"}
   onChangeText={() => {}}
   placeholder="Horario"
-  helperText={returnFields.schedule.message || "Texto"}
+helperText={getObservationText("schedule", "Horario")}
   reviewField={returnFields.schedule}
   isEditing={Boolean(editingFields.schedule)}
   onPressEdit={handleOpenScheduleModal}
@@ -2014,7 +2081,6 @@ const handleToggleFreePrice = () => {
   label="Fotos"
   photos={oldPlace.photos}
   reviewField={returnFields.photos}
-  helperText={returnFields.photos.message || "Texto"}
   minPhotos={MIN_PHOTOS}
   maxPhotos={MAX_PHOTOS}
   onChangePhotoCorrections={setPhotoCorrections}
@@ -2026,10 +2092,7 @@ const handleToggleFreePrice = () => {
             oldLocation={oldPlace.location}
             newLocation={newPlace.location}
             reviewField={returnFields.location}
-            helperText={
-              returnFields.location.message ||
-              "Ajusta el pin al acceso principal del lugar."
-            }
+     helperText={getObservationText("location", "Mapa")}
             isEditing={Boolean(editingFields.location)}
             onPressEdit={() => handleEditField("location")}
             onChangeLocation={setEditedLocation}

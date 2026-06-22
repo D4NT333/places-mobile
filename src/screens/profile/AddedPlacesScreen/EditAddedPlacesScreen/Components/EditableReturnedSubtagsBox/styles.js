@@ -168,6 +168,13 @@ divider: {
   marginHorizontal: 18,
   alignSelf: "stretch",
 },
+neutralMessageText: {
+  marginTop: 8,
+  fontSize: 14,
+  lineHeight: 19,
+  fontWeight: "600",
+  color: "#6B7280",
+},
 });
 
 export default styles;

@@ -12,12 +12,7 @@ import {
 } from "react-native";
 
 import styles from "./styles";
-
-const STATUS_LABELS = {
-  approved: "Aprobado",
-  rejected: "Rechazado",
-  in_review: "En revisión",
-};
+import PhotoStatusPill from "../PhotoStatusPill";
 
 export default function AddedPhotoCard({
   photo,
@@ -40,9 +35,14 @@ export default function AddedPhotoCard({
     photo.imageUrl ||
     "";
 
-  const statusLabel =
-    STATUS_LABELS[photo.status] ||
-    "En revisión";
+  const placeName =
+    photo.name ||
+    photo.placeName ||
+    "Lugar sin nombre";
+
+  const submittedAtLabel =
+    photo.submittedAtLabel ||
+    "Sin fecha";
 
   useEffect(() => {
     setImageError(false);
@@ -53,19 +53,14 @@ export default function AddedPhotoCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
-        pressed &&
-          styles.cardPressed,
+        pressed && styles.cardPressed,
       ]}
     >
       <View style={styles.imageBox}>
         {imageUrl && !imageError ? (
           <Image
-            source={{
-              uri: imageUrl,
-            }}
-            style={
-              StyleSheet.absoluteFillObject
-            }
+            source={{ uri: imageUrl }}
+            style={StyleSheet.absoluteFillObject}
             resizeMode="cover"
             onError={() => {
               setImageError(true);
@@ -83,61 +78,45 @@ export default function AddedPhotoCard({
           style={styles.name}
           numberOfLines={1}
         >
-          {photo.name ||
-            photo.placeName ||
-            "Lugar sin nombre"}
+          {placeName}
         </Text>
 
-        <Text style={styles.submittedAt}>
-          {photo.submittedAtLabel ||
-            "Sin fecha"}
-        </Text>
+        <View style={styles.metaRow}>
+          <Text
+            style={styles.submittedAt}
+            numberOfLines={1}
+          >
+            {submittedAtLabel}
+          </Text>
+
+          <PhotoStatusPill status={photo.status} />
+        </View>
 
         <View style={styles.divider} />
 
-        <Text style={styles.status}>
-          {statusLabel}
-        </Text>
-
         <View style={styles.actionsRow}>
-          {isRejected && (
+          {isRejected ? (
             <Pressable
-              style={
-                styles.secondaryButton
-              }
+              style={styles.secondaryButton}
               onPress={(event) => {
                 event.stopPropagation();
-
-                onViewReason?.(
-                  submissionId
-                );
+                onViewReason?.(submissionId);
               }}
             >
-              <Text
-                style={
-                  styles.secondaryButtonText
-                }
-              >
+              <Text style={styles.secondaryButtonText}>
                 Ver motivo
               </Text>
             </Pressable>
-          )}
+          ) : null}
 
           <Pressable
             style={styles.primaryButton}
             onPress={(event) => {
               event.stopPropagation();
-
-              onDelete?.(
-                submissionId
-              );
+              onDelete?.(submissionId);
             }}
           >
-            <Text
-              style={
-                styles.primaryButtonText
-              }
-            >
+            <Text style={styles.primaryButtonText}>
               Eliminar
             </Text>
           </Pressable>

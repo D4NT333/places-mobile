@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
-
+import StatusPill from "../StatusPill";
 import styles from "./styles";
 
 function getStatusLabel(status) {
@@ -96,7 +96,7 @@ export default function AddedPlaceCard({
               {dateLabel}
             </Text>
 
-            <Text style={styles.statusText}>{statusLabel}</Text>
+            <StatusPill status={place.status} />
           </View>
         </View>
       </View>
